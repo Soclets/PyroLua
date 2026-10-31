@@ -30,6 +30,7 @@ Current milestone: **M1, front end** (proven lexer and parser). See
 | [docs/DESIGN.md](docs/DESIGN.md) | Architecture, data representation, key design decisions |
 | [docs/PROOFS.md](docs/PROOFS.md) | What is proven, what is trusted, what is only tested, proof rules |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Milestones and their completion criteria |
+| [docs/STYLE.md](docs/STYLE.md) | How code is written, tested and committed; working rules |
 
 ## Scope
 
@@ -71,7 +72,8 @@ string metatable that provides it. Number-to-string coercion in concatenation
   changes syntax and semantics. The `lua@5.4` binaries are shadowed by 5.5's on
   `PATH`, so always call them by full path: `/opt/homebrew/opt/lua@5.4/bin/lua`
   and `/opt/homebrew/opt/lua@5.4/bin/luac` (or `$(brew --prefix lua@5.4)/bin/…`).
-  Test scripts take the reference path from `PYRO_REF_LUA`, defaulting to that.
+  Test scripts take the folder holding `lua` and `luac` from `PYRO_REF_LUA`,
+  defaulting to `/opt/homebrew/opt/lua@5.4/bin`.
 
 ## Building, proving, testing
 
@@ -81,7 +83,8 @@ Planned layout and commands (they become real during M1):
 alr build                                   # build the library
 cd cli && alr build                         # build the pyro executable
 alr exec -- gnatprove -P pyro.gpr           # run the proofs (settings live in pyro.gpr)
-tests/run.sh                                # differential and golden-file tests
+tests/run                                   # everything: build, proofs, tests (5 min cap)
+tests/run --full                            # clean proofs and long fuzzing (30 min cap)
 ```
 
 Command-line program (M1 subset):
@@ -98,7 +101,9 @@ Later milestones add `pyro --bytecode file.lua` and `pyro file.lua` (run).
 
 ```
 pyro.gpr, alire.toml   Library crate (all SPARK code lives here)
-src/                   Library sources, packages named Pyro.*
+src/                   Library sources, packages named Pyro.*, one folder per
+                       pipeline stage (common, front_end, compiler, runtime,
+                       embedding)
 cli/                   Nested crate for the `pyro` executable
 tests/                 Test runner, corpus, golden files
 tools/                 Helper scripts (reference Lua setup, corpus download, fuzzing)
@@ -106,6 +111,8 @@ docs/                  Design, proof and roadmap documents
 ```
 
 ## Development rules
+
+The full rules are in [docs/STYLE.md](docs/STYLE.md). The essentials:
 
 - Every library unit is `SPARK_Mode => On`. The only exceptions are the trusted
   units listed in [docs/PROOFS.md](docs/PROOFS.md#trusted-code), and adding one means

@@ -44,15 +44,15 @@ termination (`Subprogram_Variant` on recursive subprograms, loop variants on loo
 
 ### Bytecode validity (M2)
 
-Ghost predicate `Pyro.Bytecode.Valid (Prototype)`: register operands below the
+Ghost predicate `Pyro.Bytecode.Is_Valid (Prototype)`: register operands below the
 prototype's stack size, jump targets inside the code, constant, nested prototype
 and upvalue indices in range, and no execution path falls off the end of the code.
-The compiler's postcondition is `Valid` for every prototype it produces. The VM
-requires `Valid` and relies on it to omit runtime checks.
+The compiler's postcondition is `Is_Valid` for every prototype it produces. The VM
+requires `Is_Valid` and relies on it to omit runtime checks.
 
 ### Heap validity (M3)
 
-Invariant `Heap_Valid`: every `Object_Id` stored in any live object or in any root
+Invariant `Is_Valid (Heap)`: every `Object_Handle` stored in any live object or in any root
 refers to an allocated slot of the expected object kind. Every heap operation
 (allocate, store into an object, free) is proven to preserve it.
 
@@ -62,13 +62,13 @@ With reachability defined as a ghost function over the heap and the root set:
 
 1. after the mark phase, every object reachable from the roots is marked;
 2. sweep frees only unmarked objects;
-3. `Heap_Valid` holds after collection.
+3. `Is_Valid (Heap)` holds after collection.
 
 Together these say the collector never frees a reachable object.
 
 ### Tables (M3)
 
-Invariant `Table_Valid`: every hash-part key can be found along its probe sequence,
+Invariant `Is_Valid (Table)`: every hash-part key can be found along its probe sequence,
 no key is stored twice, counts are consistent, array-part keys are not also in the
 hash part. Get, set, delete, resize and next preserve it. Get after set returns the
 stored value for that key (a functional model of the table as a ghost map).
@@ -133,7 +133,10 @@ alr exec -- gnatprove -P pyro.gpr
 Proof settings live in the `Prove` package of `pyro.gpr` so everyone uses the same
 ones. Planned defaults:
 
-- `--level=2` (raise per unit with `--level` or `pragma Annotate` only if needed);
+- `--level=2`;
+- an explicit `--steps` limit and no wall-clock `--timeout`, so a proof that is too
+  hard fails the same way every time, whatever the machine load. The value is chosen
+  during M1 setup, recorded here, and raised only with the owner's OK;
 - `--checks-as-errors=on` and `--warnings=error`, so an unproved check fails the run;
 - `--proof-warnings=on` to catch dead code and inconsistent assumptions;
 - `-j0` to use all cores.
@@ -141,9 +144,11 @@ ones. Planned defaults:
 Rules:
 
 - `main` always proves completely with these settings.
-- A full proof run should stay practical on a laptop. If a unit becomes too slow to
-  prove, restructure it (smaller subprograms, intermediate lemmas) before raising
-  timeouts.
+- Proofs fit the time limits in [STYLE.md](STYLE.md#time-limits). If a unit
+  becomes too slow to prove, restructure it (smaller subprograms, lemmas, child
+  packages); raising limits needs the owner's OK.
+- A proof that will not close is never forced through; see
+  [STYLE.md](STYLE.md#proofs-that-will-not-close).
 - Lemmas go in `Pyro.*.Lemmas` child packages as ghost procedures, so proof-only
   code stays out of executable units.
 - Runtime checks stay enabled in debug builds. A release build may suppress checks

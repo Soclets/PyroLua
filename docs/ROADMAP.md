@@ -7,8 +7,11 @@ unproved checks and all tests pass. A milestone is done when every item in its
 
 ## Test infrastructure
 
-Shared by all milestones:
+Shared by all milestones. How tests are run, their time limits and what each commit
+must add are in [STYLE.md](STYLE.md#testing).
 
+- **Runner:** `tests/run` (every commit, 5 minute cap) and `tests/run --full` (end of
+  milestone, 30 minute cap), written in Python 3 with no extra packages.
 - **Reference Lua:** PUC Lua 5.4 (`brew install lua@5.4`, currently 5.4.9), used
   through explicit paths to its `lua` and `luac` binaries. Never the default `lua`,
   which is 5.5.
@@ -28,11 +31,13 @@ Shared by all milestones:
 
 Project setup, lexer, parser and resolver, all proven.
 
-- Alire library crate `pyro` with proof settings in `pyro.gpr`, nested crate
-  `cli/` for the `pyro` executable, `tests/` and `tools/` scripts.
+- Alire library crate `pyro` (with `sparklib`) with style checks and proof settings
+  in `pyro.gpr`, nested crate `cli/` for the `pyro` executable, `.gitignore`.
+- `tests/run` with stage timing, timeouts and the tag/doc checks; `tools/where`;
+  the script that fetches the official Lua 5.4.9 test suite.
 - `Pyro.Growable_Arrays`, `Pyro.Sources`, `Pyro.Diagnostics`, `Pyro.Symbols`.
 - `Pyro.Lexer`, `Pyro.Numbers`, `Pyro.Floats` (decimal conversion only, for now).
-- `Pyro.AST`, `Pyro.Parser`, `Pyro.Resolver`.
+- `Pyro.Syntax_Trees`, `Pyro.Parser`, `Pyro.Resolver`.
 - `pyro --tokens`, `pyro --ast`, `pyro --check`.
 
 **Done when:**
@@ -44,37 +49,37 @@ Project setup, lexer, parser and resolver, all proven.
   `pyro --check` and reference `luac -p` agree on accept/reject, and on the error
   line for rejected files. Differences in message wording are listed in
   `tests/known-differences.md` with a reason, and the list is short.
-- Mutation fuzzing runs for an agreed number of iterations with no accept/reject
-  disagreement.
+- `tests/run --full` passes within its 30 minutes, including long mutation fuzzing
+  with no accept/reject disagreement.
 - Golden files exist for tokens and AST of the own corpus.
 - README status and the PROOFS.md status table are updated.
 
 ## M2: Compiler and bytecode
 
-- `Pyro.Bytecode` instruction set, prototypes, ghost `Valid` predicate.
+- `Pyro.Bytecode` instruction set, prototypes, ghost `Is_Valid` predicate.
 - `Pyro.Compiler`: AST to bytecode for the whole language, including closures,
   upvalues, varargs, `goto`, `<const>` constant folding, `<close>`, numeric and
   generic `for`.
 - Compile-time limits (locals, upvalues, registers) with PUC Lua's errors.
 - `pyro --bytecode`.
 
-**Done when:** the compiler is proven to produce `Valid` prototypes; the corpus
+**Done when:** the compiler is proven to produce valid prototypes (`Is_Valid`); the corpus
 compiles; files that hit compile-time limits are rejected in agreement with
 `luac -p`; golden bytecode listings exist for the own corpus.
 
 ## M3: Values, heap, tables, GC
 
-- `Pyro.Values`, `Pyro.Heap`, `Pyro.Strings`, `Pyro.Tables`, `Pyro.GC`.
+- `Pyro.Values`, `Pyro.Heap`, `Pyro.Strings`, `Pyro.Tables`, `Pyro.Garbage_Collector`.
 - Mark and sweep collector, without weak tables and finalisers.
 
-**Done when:** `Heap_Valid`, `Table_Valid` and the GC properties are proven; unit
+**Done when:** `Is_Valid (Heap)`, `Is_Valid (Table)` and the GC properties are proven; unit
 tests in `tests/` exercise tables (including traversal while deleting) and
 collection with synthetic root sets; stress tests allocate and collect large object
 graphs within the memory limit.
 
 ## M4: Virtual machine
 
-- `Pyro.VM` executing compiled chunks: arithmetic, comparisons, concatenation,
+- `Pyro.Virtual_Machine` executing compiled chunks: arithmetic, comparisons, concatenation,
   tables, closures and upvalues, varargs, metatables and all metamethods, Lua
   errors with source positions, protected calls, `<close>`.
 - `Pyro.Floats` gains float formatting.
@@ -101,7 +106,7 @@ may not); differential tests for coroutine and GC-related scripts pass.
 
 ## M6: Embedding API and sandbox
 
-- `Pyro.API` as described in DESIGN.md.
+- `Pyro.Embedding` as described in DESIGN.md.
 - Instruction budget, memory limit, depth limits.
 - An example host program in `examples/`.
 
@@ -116,4 +121,4 @@ recursion, string bombs) and get clean Lua errors; the README documents embeddin
 - More Gold where it pays off, for example proving the lexer against a formal token
   grammar.
 - Optional companion crate implementing parts of the standard library on top of
-  `Pyro.API`, outside the core.
+  `Pyro.Embedding`, outside the core.

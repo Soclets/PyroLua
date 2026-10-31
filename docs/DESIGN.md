@@ -9,15 +9,15 @@ those milestones start. Proof obligations are summarised here and specified in
 
 ```
 source bytes
-   │  Pyro.Lexer        tokens
+   │  Pyro.Lexer                tokens
    ▼
-   │  Pyro.Parser       syntax tree (Pyro.AST)
+   │  Pyro.Parser               syntax tree (Pyro.Syntax_Trees)
    ▼
-   │  Pyro.Resolver     scopes, locals/upvalues, labels/goto, const checks
+   │  Pyro.Resolver             scopes, locals/upvalues, labels/goto, const checks
    ▼
-   │  Pyro.Compiler     register bytecode (Pyro.Bytecode)        [M2]
+   │  Pyro.Compiler             register bytecode (Pyro.Bytecode)        [M2]
    ▼
-   │  Pyro.VM           execution over Pyro.Heap / Pyro.Tables   [M4]
+   │  Pyro.Virtual_Machine      execution over Pyro.Heap / Pyro.Tables   [M4]
    ▼
 results / Lua errors
 ```
@@ -32,7 +32,7 @@ acceptable.
 
 **No pointers to the heap, handles instead.** Every dynamically sized structure (AST
 nodes, heap objects, table slots, stacks) lives in an arena indexed by a typed
-handle (`Node_Id`, `Object_Id`, …). Handles are plain integers, so SPARK can reason
+handle (`Node_Index`, `Object_Handle`, …). Handles are plain integers, so SPARK can reason
 about them with ordinary arithmetic, and validity becomes an invariant ("every
 handle stored anywhere refers to an allocated slot") rather than a pointer-ownership
 problem.
@@ -75,7 +75,7 @@ locale.
 | `Pyro.Numbers` | M1 | Integer and float literal conversion |
 | `Pyro.Floats` | M1 | IEEE float operations on raw bits (trusted body) |
 | `Pyro.Symbols` | M1 | Interned names and string literals |
-| `Pyro.AST` | M1 | Syntax tree arena |
+| `Pyro.Syntax_Trees` | M1 | Syntax tree arena |
 | `Pyro.Parser` | M1 | Recursive-descent parser |
 | `Pyro.Resolver` | M1 | Scope analysis and compile-time semantic errors |
 | `Pyro.Bytecode` | M2 | Instruction set, prototypes, validity predicate |
@@ -84,9 +84,12 @@ locale.
 | `Pyro.Heap` | M3 | Object arena, allocation, handles |
 | `Pyro.Strings` | M3 | String objects, hashing, interning |
 | `Pyro.Tables` | M3 | Lua tables |
-| `Pyro.GC` | M3 | Mark and sweep collector |
-| `Pyro.VM` | M4 | Interpreter loop, call frames, metamethods |
-| `Pyro.API` | M6 | Embedding API for Ada/SPARK hosts |
+| `Pyro.Garbage_Collector` | M3 | Mark and sweep collector |
+| `Pyro.Virtual_Machine` | M4 | Interpreter loop, call frames, metamethods |
+| `Pyro.Embedding` | M6 | Embedding API for Ada/SPARK hosts |
+
+Source folders, file naming and the rules for private and public packages are in
+[STYLE.md](STYLE.md#packages-and-files).
 
 The `pyro` executable (`cli/`) is ordinary Ada. It handles files, command-line
 arguments and output, and calls into the library.
@@ -108,7 +111,7 @@ loader feature, not a lexer one, so it lives in the loading code, not in
 `Pyro.Lexer` produces one token at a time from a lexer state (source, position,
 line). A token has a kind, a span (first/last position), a line, and a payload:
 
-- names and string literals: a `Symbol_Id` into `Pyro.Symbols` (bytes are decoded:
+- names and string literals: a `Symbol_Index` into `Pyro.Symbols` (bytes are decoded:
   escapes resolved, long-bracket leading newline dropped);
 - numerals: a Lua integer or a float (as raw bits, see [Numbers](#numbers)).
 
@@ -158,7 +161,7 @@ needed from M4 and also lives in the trusted float package.
 
 ### Syntax tree
 
-`Pyro.AST` is an arena of nodes indexed by `Node_Id`. Each node has a kind, a span,
+`Pyro.Syntax_Trees` is an arena of nodes indexed by `Node_Index`. Each node has a kind, a span,
 a line, up to three child slots, an optional child list (a slice of a separate list
 arena), and kind-specific payload (symbol, integer, float bits, operator, attribute).
 
@@ -227,10 +230,10 @@ but not binary-compatible with it. A **prototype** holds the instructions,
 constants, nested prototypes, upvalue descriptors, parameter count, vararg flag,
 maximum stack size and line info.
 
-`Pyro.Bytecode` defines a ghost predicate `Valid (P)`: every register operand is
+`Pyro.Bytecode` defines a ghost predicate `Is_Valid (Prototype)`: every register operand is
 below the prototype's stack size, every jump target is inside the code, every
 constant/prototype/upvalue index is in range, and the code cannot fall off the end.
-The compiler's postcondition is `Valid` for every prototype it produces, and the
+The compiler's postcondition is `Is_Valid` for every prototype it produces, and the
 VM's precondition requires it. The VM can then skip these checks at runtime.
 
 Limits follow PUC Lua: at most 200 locals per function, 255 upvalues, 255 registers.
@@ -242,18 +245,18 @@ Limits follow PUC Lua: at most 200 locals per function, 255 upvalues, 255 regist
 ### Values
 
 A Lua value is a small discriminated record:
-`nil | boolean | integer (Integer_64) | float (raw bits) | object (Object_Id)`.
+`nil | boolean | integer (Integer_64) | float (raw bits) | object (Object_Handle)`.
 Strings, tables, closures, prototypes, upvalue cells, coroutines and host userdata
-are heap objects referenced by `Object_Id`. Light userdata (a host-supplied opaque
+are heap objects referenced by `Object_Handle`. Light userdata (a host-supplied opaque
 integer) can be added as an immediate case if the API needs it.
 
 ### Heap
 
 `Pyro.Heap` is an arena of object slots with a free list. Every slot is either free
-or holds one object of a known kind. The central invariant, `Heap_Valid`, says every
-`Object_Id` stored in any live object or root (VM stacks, registry, open upvalues,
+or holds one object of a known kind. The central invariant, `Is_Valid (Heap)`, says every
+`Object_Handle` stored in any live object or root (VM stacks, registry, open upvalues,
 the host's handles) refers to an allocated slot of the expected kind. Every heap
-operation preserves `Heap_Valid` (Gold).
+operation preserves `Is_Valid (Heap)` (Gold).
 
 ### Strings
 
@@ -271,7 +274,7 @@ integral value are normalised to integers (`t[2.0]` is `t[2]`).
 during traversal, as Lua allows. Deleting therefore leaves a tombstone, and rehashing
 happens only when a new key is inserted.
 
-The invariant `Table_Valid` (Gold) says: every key in the hash part can be found
+The invariant `Is_Valid (Table)` (Gold) says: every key in the hash part can be found
 along its probe sequence, element counts are consistent, no key appears twice, and
 array-part keys are never also stored in the hash part. Get, set, delete, resize and
 next are proven to preserve it, and get is proven to return what the last set
@@ -292,7 +295,7 @@ later optimisation and not required for correctness.
   come after the basic collector is proven.
 
 Gold properties: after marking, every object reachable from the roots is marked;
-sweep frees only unmarked objects; `Heap_Valid` holds after collection. Together:
+sweep frees only unmarked objects; `Is_Valid (Heap)` holds after collection. Together:
 the collector never frees a reachable object. Reachability is defined as a ghost
 function over the heap.
 
@@ -353,7 +356,7 @@ These are where differential tests matter most:
 
 ## Embedding API (M6)
 
-`Pyro.API` gives an Ada/SPARK host what the Lua C API gives a C host, in a typed
+`Pyro.Embedding` gives an Ada/SPARK host what the Lua C API gives a C host, in a typed
 form instead of a raw stack:
 
 - create and destroy a state, with limits (memory, instruction budget, call depth);
