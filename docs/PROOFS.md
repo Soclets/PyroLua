@@ -159,7 +159,7 @@ Rules:
 
 | Area | Level | Status |
 | --- | --- | --- |
-| Growable arrays | Gold | not started |
+| Growable arrays | Gold | proven |
 | Lexer | Silver + totality | not started |
 | Parser, AST | Silver + well-formedness | not started |
 | Resolver | Silver | not started |

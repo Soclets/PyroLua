@@ -44,7 +44,10 @@ contract exposes the contents as a ghost sequence so clients can state invariant
 about them.
 
 **Memory accounting.** Every growth goes through a single allocator that checks a
-configurable memory limit first. Exceeding the limit is an ordinary error result
+configurable memory limit first. The limit lives in a `Memory_Budget` record
+(`Pyro.Memory_Budgets`: limit and bytes used) that is passed `in out` to every growth,
+from the front end on, so a chunk loaded at runtime counts against its state's limit.
+Each growable array also has a maximum length (the range of its index type). Exceeding the limit is an ordinary error result
 (and, at runtime, a Lua "not enough memory" error). Running out of OS memory before
 reaching the limit is outside what Pyro can prove; see
 [PROOFS.md](PROOFS.md#assumptions).
@@ -67,6 +70,7 @@ locale.
 | Package | Milestone | Role |
 | --- | --- | --- |
 | `Pyro` | M1 | Root: limits and configuration constants |
+| `Pyro.Memory_Budgets` | M1 | Memory limit and the bytes charged against it |
 | `Pyro.Growable_Arrays` | M1 | Proven generic growable array |
 | `Pyro.Sources` | M1 | Source buffer, positions, line numbers, chunk name |
 | `Pyro.Diagnostics` | M1 | Error records and message formatting |
