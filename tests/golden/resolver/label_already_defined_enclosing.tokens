@@ -1,0 +1,10 @@
+1 ::
+1 name top
+1 ::
+2 keyword do
+3 ::
+3 name top
+3 ::
+4 keyword end
+5 <eof>
+exit 0

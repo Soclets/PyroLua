@@ -1,0 +1,14 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "a"
+      1 expression_list
+        1 integer_literal 1
+    1 assignment
+      1 expression_list
+        1 assignment_target "a"
+          1 name_expression "a" local@1
+      1 expression_list
+        1 integer_literal 2
+exit 0

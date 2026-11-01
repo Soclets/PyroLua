@@ -1,0 +1,18 @@
+1 function_body vararg
+  1 block
+    1 generic_for
+      1 name_list
+        1 local_name "k"
+        1 local_name "v"
+      1 expression_list
+        1 call_expression
+          1 name_expression "pairs" global
+          1 name_expression "t" global
+      1 block
+        1 assignment
+          1 expression_list
+            1 assignment_target "k"
+              1 name_expression "k" local@1
+          1 expression_list
+            1 integer_literal 1
+exit 0

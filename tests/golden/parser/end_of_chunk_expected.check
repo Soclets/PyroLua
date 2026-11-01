@@ -1,0 +1,6 @@
+refused: tests/corpus/parser/end_of_chunk_expected.lua:2:1, line 2 column 1
+ 2 | x = 2
+   | ^
+ what: expected `<eof>`, found `x`
+ why:  Lua's grammar needs `<eof>` here (Lua 5.4 manual §9)
+exit 1

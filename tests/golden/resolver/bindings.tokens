@@ -1,0 +1,41 @@
+1 keyword local
+1 name a
+1 =
+1 integer 1
+2 keyword local
+2 keyword function
+2 name f
+2 (
+2 name b
+2 )
+3 keyword local
+3 name c
+3 =
+3 name a
+3 +
+3 name b
+4 keyword return
+4 keyword function
+4 (
+4 )
+4 keyword return
+4 name a
+4 ,
+4 name b
+4 ,
+4 name c
+4 ,
+4 name d
+4 keyword end
+5 keyword end
+6 keyword function
+6 name t
+6 :
+6 name m
+6 (
+6 )
+6 keyword return
+6 name self
+6 keyword end
+7 <eof>
+exit 0

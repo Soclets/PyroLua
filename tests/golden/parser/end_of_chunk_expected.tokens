@@ -1,0 +1,7 @@
+1 keyword return
+1 integer 1
+2 name x
+2 =
+2 integer 2
+3 <eof>
+exit 0

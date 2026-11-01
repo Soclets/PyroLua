@@ -1,0 +1,68 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "x"
+      1 expression_list
+        1 binary_operation concatenate
+          1 binary_operation add
+            1 integer_literal 1
+            1 binary_operation multiply
+              1 integer_literal 2
+              1 binary_operation power
+                1 integer_literal 3
+                1 binary_operation power
+                  1 integer_literal 2
+                  1 float_literal 0x3FE0000000000000
+          1 binary_operation concatenate
+            1 string_literal "a"
+            1 string_literal "b"
+    2 assignment
+      2 expression_list
+        2 assignment_target "x"
+          2 name_expression "x" local@1
+      2 expression_list
+        2 binary_operation or_else
+          2 name_expression "a" global
+          2 binary_operation and_then
+            2 name_expression "b" global
+            2 binary_operation less
+              2 name_expression "c" global
+              2 binary_operation bitwise_or
+                2 name_expression "d" global
+                2 binary_operation bitwise_exclusive_or
+                  2 name_expression "e" global
+                  2 binary_operation bitwise_and
+                    2 name_expression "f" global
+                    2 binary_operation shift_right
+                      2 binary_operation shift_left
+                        2 name_expression "g" global
+                        2 integer_literal 1
+                      2 binary_operation concatenate
+                        2 integer_literal 2
+                        2 binary_operation add
+                          2 name_expression "h" global
+                          2 binary_operation modulo
+                            2 binary_operation floor_divide
+                              2 name_expression "i" global
+                              2 name_expression "j" global
+                            2 name_expression "k" global
+    3 assignment
+      3 expression_list
+        3 assignment_target "x"
+          3 name_expression "x" local@1
+      3 expression_list
+        3 unary_operation negate
+          3 binary_operation power
+            3 integer_literal 2
+            3 integer_literal 2
+    4 assignment
+      4 expression_list
+        4 assignment_target "x"
+          4 name_expression "x" local@1
+      4 expression_list
+        4 binary_operation equal
+          4 unary_operation logical_not
+            4 name_expression "a" global
+          4 name_expression "b" global
+exit 0

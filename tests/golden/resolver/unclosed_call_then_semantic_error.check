@@ -1,0 +1,6 @@
+refused: tests/corpus/resolver/unclosed_call_then_semantic_error.lua:1:4, line 1 column 4
+ 1 | f( local x <const> = 1 x = 2
+   |    ^^^^^
+ what: `local` can't start an expression
+ why:  an expression starts with a value, a name, `(`, `{`, `function`, `...` or a unary operator (Lua 5.4 manual §3.4)
+exit 1

@@ -1,0 +1,20 @@
+1 keyword repeat
+2 keyword if
+2 name x
+2 keyword then
+2 keyword goto
+2 name cont
+2 keyword end
+3 keyword local
+3 name xuxu
+3 =
+3 integer 10
+4 ::
+4 name cont
+4 ::
+5 keyword until
+5 name xuxu
+5 <
+5 name x
+6 <eof>
+exit 0

@@ -1,0 +1,95 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "a"
+        1 local_name "b"
+      1 expression_list
+        1 integer_literal 1
+        1 integer_literal 2
+    2 local_statement
+      2 name_list
+        2 local_name "c"
+      2 expression_list
+        2 binary_operation subtract
+          2 binary_operation add
+            2 name_expression "a" local@1
+            2 name_expression "b" local@2
+          2 binary_operation modulo
+            2 binary_operation floor_divide
+              2 binary_operation divide
+                2 binary_operation multiply
+                  2 name_expression "a" local@1
+                  2 name_expression "b" local@2
+                2 name_expression "a" local@1
+              2 name_expression "b" local@2
+            2 binary_operation power
+              2 name_expression "a" local@1
+              2 name_expression "b" local@2
+    3 local_statement
+      3 name_list
+        3 local_name "d"
+      3 expression_list
+        3 binary_operation bitwise_or
+          3 binary_operation bitwise_and
+            3 name_expression "a" local@1
+            3 name_expression "b" local@2
+          3 binary_operation bitwise_exclusive_or
+            3 name_expression "b" local@2
+            3 binary_operation shift_right
+              3 binary_operation shift_left
+                3 name_expression "a" local@1
+                3 integer_literal 1
+              3 binary_operation concatenate
+                3 integer_literal 1
+                3 string_literal ""
+    4 local_statement
+      4 name_list
+        4 local_name "e"
+      4 expression_list
+        4 binary_operation equal
+          4 name_expression "a" local@1
+          4 name_expression "b" local@2
+        4 binary_operation not_equal
+          4 name_expression "a" local@1
+          4 name_expression "b" local@2
+        4 binary_operation less_equal
+          4 name_expression "a" local@1
+          4 name_expression "b" local@2
+        4 binary_operation greater_equal
+          4 name_expression "a" local@1
+          4 name_expression "b" local@2
+        4 binary_operation less
+          4 name_expression "a" local@1
+          4 name_expression "b" local@2
+        4 binary_operation greater
+          4 name_expression "a" local@1
+          4 name_expression "b" local@2
+        4 unary_operation length
+          4 string_literal "x"
+        4 unary_operation negate
+          4 name_expression "a" local@1
+        4 unary_operation bitwise_not
+          4 name_expression "a" local@1
+    5 local_statement
+      5 name_list
+        5 local_name "t"
+      5 expression_list
+        5 table_constructor
+          5 named_field
+            5 integer_literal 1
+            5 integer_literal 2
+          5 named_field name-key
+            5 string_literal "x"
+            5 integer_literal 3
+    6 local_statement
+      6 name_list
+        6 local_name "y"
+      6 expression_list
+        6 index_expression name-key
+          6 name_expression "t" local@72
+          6 string_literal "x"
+        6 index_expression
+          6 name_expression "t" local@72
+          6 integer_literal 1
+exit 0

@@ -1,0 +1,29 @@
+1 function_body vararg
+  1 block
+    1 do_statement
+      2 block
+        2 goto_statement "skip"
+        3 local_statement
+          3 name_list
+            3 local_name "y"
+          3 expression_list
+            3 integer_literal 3
+        4 label_statement "skip"
+        5 call_statement
+          5 call_expression
+            5 name_expression "print" global
+            5 name_expression "y" local@2
+refused: tests/corpus/resolver/goto_into_scope.lua:2:3, line 2 column 3
+ 2 |   goto skip
+   |   ^^^^^^^^^
+ what: `goto skip` jumps into the scope of local `y`
+ why:  a goto can jump to a visible label only if it does not enter the scope of a local variable (Lua 5.4 manual §3.3.4)
+ because: tests/corpus/resolver/goto_into_scope.lua:3:9, line 3 column 9
+ 3 |   local y = 3
+   |         ^
+     `y` is declared here
+ because: tests/corpus/resolver/goto_into_scope.lua:4:3, line 4 column 3
+ 4 |   ::skip::
+   |   ^^^^^^^^
+     the label `skip` is here, inside its scope
+exit 1

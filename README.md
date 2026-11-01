@@ -19,8 +19,9 @@ whatever script it is given.
 
 ## Status
 
-Pre-code. The design and plan are written down; nothing builds yet.
-Current milestone: **M1, front end** (proven lexer and parser). See
+M1 (front end) in progress: the lexer, parser and resolver are written and proven, and
+`pyro --tokens`, `pyro --ast` and `pyro --check` work. `pyro --check --lua-style`
+agrees with `luac -p` 5.4.9 on the official test suite and Pyro's corpus. See
 [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Documentation

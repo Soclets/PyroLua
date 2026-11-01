@@ -1,0 +1,18 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "a"
+      1 expression_list
+        1 string_literal "a\7\8\12\10\13\9\11\\\"'"
+    2 local_statement
+      2 name_list
+        2 local_name "b"
+      2 expression_list
+        2 string_literal "AzA\0\255"
+    3 local_statement
+      3 name_list
+        3 local_name "c"
+      4 expression_list
+        4 string_literal "line\10break"
+exit 0

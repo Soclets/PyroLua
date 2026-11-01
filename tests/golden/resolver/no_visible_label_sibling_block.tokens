@@ -1,0 +1,9 @@
+1 keyword do
+1 ::
+1 name inner
+1 ::
+1 keyword end
+2 keyword goto
+2 name inner
+3 <eof>
+exit 0

@@ -1,0 +1,10 @@
+1 keyword goto
+1 name x
+1 ;
+1 keyword do
+1 ::
+1 name x
+1 ::
+1 keyword end
+2 <eof>
+exit 0

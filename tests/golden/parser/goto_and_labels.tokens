@@ -1,0 +1,32 @@
+1 keyword for
+1 name i
+1 =
+1 integer 1
+1 ,
+1 integer 3
+1 keyword do
+2 keyword if
+2 name i
+2 ==
+2 integer 2
+2 keyword then
+2 keyword goto
+2 name continue
+2 keyword end
+3 keyword local
+3 name x
+3 =
+3 name i
+4 ::
+4 name continue
+4 ::
+5 keyword end
+6 keyword goto
+6 name done
+7 keyword do
+7 keyword end
+8 ::
+8 name done
+8 ::
+9 <eof>
+exit 0

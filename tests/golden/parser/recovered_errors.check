@@ -1,0 +1,36 @@
+refused: tests/corpus/parser/recovered_errors.lua:1:5, line 1 column 5
+ 1 | f(a b)
+   |     ^
+ what: expected `)` to close `(`, found `b`
+ why:  every `(` needs its `)` (Lua 5.4 manual §3.4)
+ because: tests/corpus/parser/recovered_errors.lua:1:2, line 1 column 2
+ 1 | f(a b)
+   |  ^
+     `(` opened here
+
+refused: tests/corpus/parser/recovered_errors.lua:2:17, line 2 column 17
+ 2 | local t = {1, 2 3}
+   |                 ^
+ what: expected `}` to close `{`, found `3`
+ why:  every `{` needs its `}` (Lua 5.4 manual §3.4.9)
+ because: tests/corpus/parser/recovered_errors.lua:2:11, line 2 column 11
+ 2 | local t = {1, 2 3}
+   |           ^
+     `{` opened here
+
+refused: tests/corpus/parser/recovered_errors.lua:3:9, line 3 column 9
+ 3 | x = y[1 2]
+   |         ^
+ what: expected `]`, found `2`
+ why:  Lua's grammar needs `]` here (Lua 5.4 manual §9)
+
+refused: tests/corpus/parser/recovered_errors.lua:6:1, line 6 column 1
+ 6 | 
+   | ^
+ what: expected `end` to close `if`, found the end of the chunk
+ why:  every `if` needs its `end` (Lua 5.4 manual §3.3.4)
+ because: tests/corpus/parser/recovered_errors.lua:5:1, line 5 column 1
+ 5 | if x then
+   | ^^
+     `if` opened here
+exit 1

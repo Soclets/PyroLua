@@ -1,0 +1,43 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "a"
+      1 expression_list
+        1 integer_literal 1
+    2 local_function
+      2 local_name "f"
+      2 function_body
+        2 name_list
+          2 local_name "b"
+        3 block
+          3 local_statement
+            3 name_list
+              3 local_name "c"
+            3 expression_list
+              3 binary_operation add
+                3 name_expression "a" upvalue@1
+                3 name_expression "b" local@7
+          4 return_statement
+            4 expression_list
+              4 function_expression
+                4 function_body
+                  4 name_list
+                  4 block
+                    4 return_statement
+                      4 expression_list
+                        4 name_expression "a" upvalue@1
+                        4 name_expression "b" upvalue@7
+                        4 name_expression "c" upvalue@9
+                        4 name_expression "d" global
+    6 function_statement method
+      6 index_expression name-key
+        6 name_expression "t" global
+        6 string_literal "m"
+      6 function_body method
+        6 name_list
+        6 block
+          6 return_statement
+            6 expression_list
+              6 name_expression "self" local@0
+exit 0

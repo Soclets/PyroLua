@@ -1,0 +1,8 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "a"
+      1 expression_list
+        1 string_literal "H\226\130\172\244\143\191\191\253\191\191\191\191\191\0"
+exit 0

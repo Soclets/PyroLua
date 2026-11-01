@@ -1,0 +1,37 @@
+1 keyword local
+1 keyword function
+1 name f
+1 (
+1 )
+1 keyword return
+1 keyword end
+2 keyword local
+2 keyword function
+2 name g
+2 (
+2 )
+2 keyword return
+2 integer 1
+2 ,
+2 integer 2
+2 ;
+2 keyword end
+3 keyword local
+3 keyword function
+3 name h
+3 (
+3 )
+3 keyword do
+3 keyword return
+3 keyword end
+3 keyword end
+4 keyword return
+4 name f
+4 (
+4 )
+4 ,
+4 name g
+4 (
+4 )
+5 <eof>
+exit 0

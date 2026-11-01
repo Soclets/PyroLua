@@ -1,0 +1,19 @@
+1 keyword local
+1 keyword function
+1 name f
+1 (
+1 ...
+1 )
+2 keyword local
+2 name x
+2 <
+2 name const
+2 >
+2 =
+2 ...
+3 name x
+3 =
+3 integer 1
+4 keyword end
+5 <eof>
+exit 0

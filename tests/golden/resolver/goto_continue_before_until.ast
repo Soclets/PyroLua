@@ -1,0 +1,32 @@
+1 function_body vararg
+  1 block
+    1 repeat_statement
+      2 block
+        2 if_statement
+          2 if_clause
+            2 name_expression "x" global
+            2 block
+              2 goto_statement "cont"
+        3 local_statement
+          3 name_list
+            3 local_name "xuxu"
+          3 expression_list
+            3 integer_literal 10
+        4 label_statement "cont"
+      5 binary_operation less
+        5 name_expression "xuxu" local@6
+        5 name_expression "x" global
+refused: tests/corpus/resolver/goto_continue_before_until.lua:2:13, line 2 column 13
+ 2 |   if x then goto cont end
+   |             ^^^^^^^^^
+ what: `goto cont` jumps into the scope of local `xuxu`
+ why:  a goto can jump to a visible label only if it does not enter the scope of a local variable (Lua 5.4 manual §3.3.4)
+ because: tests/corpus/resolver/goto_continue_before_until.lua:3:9, line 3 column 9
+ 3 |   local xuxu = 10
+   |         ^^^^
+     `xuxu` is declared here
+ because: tests/corpus/resolver/goto_continue_before_until.lua:4:3, line 4 column 3
+ 4 |   ::cont::
+   |   ^^^^^^^^
+     the label `cont` is here, inside its scope
+exit 1

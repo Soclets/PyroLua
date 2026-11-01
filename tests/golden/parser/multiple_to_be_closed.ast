@@ -1,0 +1,19 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "a" close_attribute
+        1 local_name "b" close_attribute
+      1 expression_list
+        1 nil_literal
+        1 nil_literal
+refused: tests/corpus/parser/multiple_to_be_closed.lua:1:18, line 1 column 18
+ 1 | local a <close>, b <close> = nil, nil
+   |                  ^
+ what: `b` is a second <close> variable in this declaration
+ why:  a list of variables can contain at most one to-be-closed variable (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/parser/multiple_to_be_closed.lua:1:7, line 1 column 7
+ 1 | local a <close>, b <close> = nil, nil
+   |       ^
+     the first <close> variable is declared here
+exit 1

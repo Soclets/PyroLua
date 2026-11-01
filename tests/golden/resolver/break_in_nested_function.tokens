@@ -1,0 +1,13 @@
+1 keyword while
+1 keyword true
+1 keyword do
+2 keyword local
+2 keyword function
+2 name f
+2 (
+2 )
+3 keyword break
+4 keyword end
+5 keyword end
+6 <eof>
+exit 0

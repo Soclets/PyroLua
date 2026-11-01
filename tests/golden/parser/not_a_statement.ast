@@ -1,0 +1,13 @@
+1 function_body vararg incomplete
+  1 block incomplete
+    1 local_statement
+      1 name_list
+        1 local_name "x"
+      1 expression_list
+        1 integer_literal 1
+refused: tests/corpus/parser/not_a_statement.lua:2:1, line 2 column 1
+ 2 | x
+   | ^
+ what: this expression is not a statement
+ why:  only function calls and assignments are statements (Lua 5.4 manual §3.3)
+exit 1

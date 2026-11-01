@@ -1,0 +1,13 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "a"
+      1 expression_list
+        1 string_literal "\0\1\255\127"
+    2 local_statement
+      2 name_list
+        2 local_name "b"
+      2 expression_list
+        2 string_literal "\0\226\130\172"
+exit 0

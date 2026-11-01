@@ -1,0 +1,7 @@
+1 name a
+1 :
+1 name b
+1 +
+1 integer 1
+2 <eof>
+exit 0

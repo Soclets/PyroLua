@@ -1,0 +1,13 @@
+1 keyword do
+2 keyword goto
+2 name finish
+3 keyword local
+3 name y
+3 =
+3 integer 3
+4 ::
+4 name finish
+4 ::
+5 keyword end
+6 <eof>
+exit 0

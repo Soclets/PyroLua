@@ -1,0 +1,65 @@
+1 function_body vararg incomplete
+  1 block incomplete
+    1 call_statement
+      1 call_expression
+        1 name_expression "f" global
+        1 name_expression "a" global
+    2 local_statement
+      2 name_list
+        2 local_name "t"
+      2 expression_list
+        2 table_constructor
+          2 integer_literal 1
+          2 integer_literal 2
+    3 assignment
+      3 expression_list
+        3 assignment_target "x"
+          3 name_expression "x" global
+      3 expression_list
+        3 index_expression
+          3 name_expression "y" global
+          3 integer_literal 1
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 name_expression "t" local@5
+    5 if_statement
+      5 if_clause
+        5 name_expression "x" global
+        6 block
+refused: tests/corpus/parser/recovered_errors.lua:1:5, line 1 column 5
+ 1 | f(a b)
+   |     ^
+ what: expected `)` to close `(`, found `b`
+ why:  every `(` needs its `)` (Lua 5.4 manual §3.4)
+ because: tests/corpus/parser/recovered_errors.lua:1:2, line 1 column 2
+ 1 | f(a b)
+   |  ^
+     `(` opened here
+
+refused: tests/corpus/parser/recovered_errors.lua:2:17, line 2 column 17
+ 2 | local t = {1, 2 3}
+   |                 ^
+ what: expected `}` to close `{`, found `3`
+ why:  every `{` needs its `}` (Lua 5.4 manual §3.4.9)
+ because: tests/corpus/parser/recovered_errors.lua:2:11, line 2 column 11
+ 2 | local t = {1, 2 3}
+   |           ^
+     `{` opened here
+
+refused: tests/corpus/parser/recovered_errors.lua:3:9, line 3 column 9
+ 3 | x = y[1 2]
+   |         ^
+ what: expected `]`, found `2`
+ why:  Lua's grammar needs `]` here (Lua 5.4 manual §9)
+
+refused: tests/corpus/parser/recovered_errors.lua:6:1, line 6 column 1
+ 6 | 
+   | ^
+ what: expected `end` to close `if`, found the end of the chunk
+ why:  every `if` needs its `end` (Lua 5.4 manual §3.3.4)
+ because: tests/corpus/parser/recovered_errors.lua:5:1, line 5 column 1
+ 5 | if x then
+   | ^^
+     `if` opened here
+exit 1

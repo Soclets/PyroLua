@@ -1,0 +1,23 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "a"
+      1 expression_list
+        1 integer_literal 9223372036854775807
+    2 local_statement
+      2 name_list
+        2 local_name "b"
+      2 expression_list
+        2 float_literal 0x43E0000000000000
+    3 local_statement
+      3 name_list
+        3 local_name "c"
+      3 expression_list
+        3 integer_literal -1
+    4 local_statement
+      4 name_list
+        4 local_name "d"
+      4 expression_list
+        4 integer_literal 0
+exit 0

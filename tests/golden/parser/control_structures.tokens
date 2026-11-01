@@ -1,0 +1,45 @@
+1 keyword if
+1 name a
+1 keyword then
+1 keyword elseif
+1 name b
+1 keyword then
+1 keyword else
+1 keyword end
+2 keyword while
+2 name a
+2 keyword do
+2 keyword break
+2 keyword end
+3 keyword repeat
+3 keyword local
+3 name x
+3 =
+3 integer 1
+3 keyword until
+3 name x
+4 keyword for
+4 name i
+4 =
+4 integer 1
+4 ,
+4 integer 10
+4 ,
+4 integer 2
+4 keyword do
+4 keyword end
+5 keyword for
+5 name k
+5 ,
+5 name v
+5 keyword in
+5 name pairs
+5 (
+5 name t
+5 )
+5 keyword do
+5 keyword end
+6 keyword do
+6 keyword end
+7 <eof>
+exit 0

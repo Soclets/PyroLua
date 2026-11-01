@@ -1,0 +1,11 @@
+1 function_body vararg
+  1 block
+    1 do_statement
+      1 block
+        1 local_statement
+          1 name_list
+            1 local_name "bb"
+            1 local_name "cc"
+        1 goto_statement "l1"
+    1 label_statement "l1" last
+exit 0

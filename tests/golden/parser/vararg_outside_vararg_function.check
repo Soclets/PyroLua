@@ -1,0 +1,6 @@
+refused: tests/corpus/parser/vararg_outside_vararg_function.lua:1:21, line 1 column 21
+ 1 | function f() return ... end
+   |                     ^^^
+ what: `...` is used in a function that has no `...` parameter
+ why:  `...` can only be used directly inside a variadic function (Lua 5.4 manual §3.4.11)
+exit 1

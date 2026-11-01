@@ -1,0 +1,17 @@
+1 keyword local
+1 name x
+1 <
+1 name close
+1 >
+1 =
+1 keyword nil
+2 keyword function
+2 name f
+2 (
+2 )
+2 name x
+2 =
+2 integer 1
+2 keyword end
+3 <eof>
+exit 0

@@ -170,8 +170,8 @@ Rules:
 | --- | --- | --- |
 | Growable arrays | Gold | proven |
 | Lexer | Silver + totality | proven |
-| Parser, AST | Silver + well-formedness | not started |
-| Resolver | Silver | not started |
+| Parser, AST | Silver + well-formedness | proven |
+| Resolver | Silver | proven |
 | Compiler / bytecode validity | Gold | not started |
 | Heap | Gold | not started |
 | Tables | Gold | not started |

@@ -1,0 +1,10 @@
+refused: tests/corpus/resolver/function_statement_constant.lua:2:10, line 2 column 10
+ 2 | function f() end
+   |          ^
+ what: `f` is assigned, but it is declared <const>
+ why:  a <const> variable can't be assigned after its declaration (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/resolver/function_statement_constant.lua:1:7, line 1 column 7
+ 1 | local f <const> = nil
+   |       ^
+     `f` is declared <const> here
+exit 1

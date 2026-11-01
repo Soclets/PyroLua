@@ -1,0 +1,10 @@
+refused: tests/corpus/resolver/label_already_defined.lua:3:1, line 3 column 1
+ 3 | ::top::
+   | ^^^^^^^
+ what: a label `top` is already visible here
+ why:  a label should not be declared where a label with the same name is visible (Lua 5.4 manual §3.3.4)
+ because: tests/corpus/resolver/label_already_defined.lua:1:1, line 1 column 1
+ 1 | ::top::
+   | ^^^^^^^
+     the visible label `top` is defined here
+exit 1

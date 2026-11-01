@@ -1,0 +1,15 @@
+1 keyword function
+1 name g
+1 (
+1 )
+1 ::
+1 name a
+1 ::
+1 keyword end
+2 ::
+2 name a
+2 ::
+2 keyword goto
+2 name a
+3 <eof>
+exit 0

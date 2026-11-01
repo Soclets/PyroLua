@@ -1,0 +1,15 @@
+1 function_body vararg
+  1 block
+    1 label_statement "a" last
+      1 label_statement "b" last
+        1 label_statement "a" last
+refused: tests/corpus/resolver/label_repeated_in_run.lua:1:1, line 1 column 1
+ 1 | ::a:: ::b:: ::a::
+   | ^^^^^
+ what: a label `a` is already visible here
+ why:  a label should not be declared where a label with the same name is visible (Lua 5.4 manual §3.3.4)
+ because: tests/corpus/resolver/label_repeated_in_run.lua:1:13, line 1 column 13
+ 1 | ::a:: ::b:: ::a::
+   |             ^^^^^
+     the visible label `a` is defined here
+exit 1

@@ -1,0 +1,14 @@
+1 function_body vararg
+  1 block
+    1 function_statement
+      1 name_expression "f" global
+      1 function_body
+        1 name_list
+          1 local_name "a"
+        1 block
+refused: tests/corpus/parser/name_or_vararg_expected.lua:1:15, line 1 column 15
+ 1 | function f(a, 1) end
+   |               ^
+ what: `1` can't be a parameter
+ why:  parameters are names, optionally followed by `...` last (Lua 5.4 manual §3.4.11)
+exit 1

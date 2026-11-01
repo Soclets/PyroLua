@@ -1,0 +1,28 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "x" close_attribute
+      1 expression_list
+        1 nil_literal
+    2 function_statement
+      2 name_expression "f" global
+      2 function_body
+        2 name_list
+        2 block
+          2 assignment
+            2 expression_list
+              2 assignment_target "x"
+                2 name_expression "x" upvalue@1
+            2 expression_list
+              2 integer_literal 1
+refused: tests/corpus/resolver/assignment_to_close_upvalue.lua:2:14, line 2 column 14
+ 2 | function f() x = 1 end
+   |              ^
+ what: `x` is assigned, but it is declared <close>
+ why:  a <close> variable behaves like a constant (Lua 5.4 manual §3.3.8)
+ because: tests/corpus/resolver/assignment_to_close_upvalue.lua:1:7, line 1 column 7
+ 1 | local x <close> = nil
+   |       ^
+     `x` is declared <close> here
+exit 1

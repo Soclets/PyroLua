@@ -172,7 +172,9 @@ arena), and kind-specific payload (symbol, integer, float bits, operator, attrib
 **Key invariant:** a node's children always have smaller ids than the node itself.
 Nodes are only created after their children, so this holds by construction, and it
 makes the tree acyclic and every walk well-founded, which simplifies termination
-proofs for all later passes.
+proofs for all later passes. A list (the statements of a block, the arguments of a
+call) is gathered on a stack in the tree while its items are parsed, and copied into
+the list arena when its node is created.
 
 ### Parser
 
@@ -218,12 +220,18 @@ with a scope stack and reports:
 - `goto` with no visible label, a duplicate label in the same function, and a
   `goto` that jumps into the scope of a local (including Lua's special rule that a
   label at the end of a block counts as outside the scope of that block's locals);
-- assignment to a `<const>` or `<close>` variable;
-- `...` used outside a vararg function;
-- unknown local attributes.
+- assignment to a `<const>` or `<close>` variable.
 
-It also annotates each name use as local (slot), upvalue (index) or global
-(`_ENV.name`), which the compiler needs.
+`...` used outside a vararg function, unknown local attributes and two `<close>`
+variables in one list are reported by the parser itself, which is where PUC Lua finds
+them; parsing goes on after them (design session, M1).
+
+It also binds each name use to its declaration: a local of the same function, an
+upvalue (a local of an enclosing function) or a global (`_ENV.name`), which the
+compiler needs. The walk keeps its own stack (no recursion), since the depth of a tree
+is not bounded by the parser's nesting limit (`1 + 1 + ... + 1` nests to the left
+without counting levels).
+
 
 The "too many locals/upvalues/registers" limits are code generation limits in PUC
 Lua and are checked by the compiler in M2.

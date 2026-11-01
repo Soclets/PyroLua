@@ -1,0 +1,22 @@
+1 keyword do
+1 keyword goto
+1 name l
+1 ;
+1 keyword local
+1 name a
+1 <
+1 name const
+1 >
+1 =
+1 integer 1
+1 ;
+1 ::
+1 name l
+1 ::
+1 name print
+1 (
+1 name a
+1 )
+1 keyword end
+2 <eof>
+exit 0

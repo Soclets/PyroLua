@@ -34,7 +34,7 @@ REFERENCE = Path(os.environ.get("PYRO_REF_LUA", "/opt/homebrew/opt/lua@5.4/bin")
 LUAC = REFERENCE / "luac"
 
 # The pyro modes whose output has golden files.
-GOLDEN_MODES = ("tokens", "check")
+GOLDEN_MODES = ("tokens", "ast", "check")
 
 PROCESS_LIMIT = 10  # seconds for one pyro, lua or luac process
 TOTAL_LIMIT = {"quick": 300, "full": 1800}
@@ -329,7 +329,7 @@ class Runner:
         return parse_check(code, err, LUAC.name, relative)
 
     def check_pyro(self, relative):
-        code, out, err = self.run([PYRO, "--check", relative], what=str(relative))
+        code, out, err = self.run([PYRO, "--check", "--lua-style", relative], what=str(relative))
         if code is None:
             return None
         if code not in (0, 1) or out:
@@ -485,6 +485,8 @@ def main():
         ("tags", runner.stage_tags),
         ("unit", runner.stage_unit),
         ("golden", runner.stage_golden),
+        ("differential", runner.stage_differential),
+        ("fuzz", runner.stage_fuzz),
     ]
     if arguments.only:
         wanted = arguments.only.split(",")

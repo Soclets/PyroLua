@@ -1,0 +1,6 @@
+refused: tests/corpus/parser/not_equal_typo.lua:1:6, line 1 column 6
+ 1 | if a != b then end
+   |      ^^
+ fix:  `~=`
+ why:  Lua's not-equal operator is `~=` (Lua 5.4 manual §3.4.4)
+exit 1

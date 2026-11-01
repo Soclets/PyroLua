@@ -1,0 +1,13 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "x"
+      1 expression_list
+        1 integer_literal 1
+refused: tests/corpus/parser/unknown_attribute.lua:1:10, line 1 column 10
+ 1 | local x <constant> = 1
+   |          ^^^^^^^^
+ what: `<constant>` is not an attribute
+ why:  the only attributes are <const> and <close> (Lua 5.4 manual §3.3.7)
+exit 1

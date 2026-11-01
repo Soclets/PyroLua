@@ -1,0 +1,16 @@
+1 keyword if
+1 name x
+1 keyword then
+1 keyword goto
+1 name e
+1 keyword else
+1 keyword goto
+1 name e
+1 keyword end
+2 keyword local
+2 name z
+3 ::
+3 name e
+3 ::
+4 <eof>
+exit 0

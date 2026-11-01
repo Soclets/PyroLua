@@ -1,0 +1,9 @@
+1 function_body vararg incomplete
+  1 block incomplete
+    1 numeric_for
+refused: tests/corpus/parser/equals_or_in_expected.lua:1:7, line 1 column 7
+ 1 | for i do end
+   |       ^^
+ what: expected `=` or `in` after the loop variable, found `do`
+ why:  a numeric `for` has `=`, a generic `for` has `in` (Lua 5.4 manual §3.3.5)
+exit 1

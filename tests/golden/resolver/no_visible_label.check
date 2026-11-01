@@ -1,0 +1,6 @@
+refused: tests/corpus/resolver/no_visible_label.lua:1:1, line 1 column 1
+ 1 | goto nowhere
+   | ^^^^^^^^^^^^
+ what: no label `nowhere` is visible from this `goto`
+ why:  a label is visible in the block where it is defined, except inside nested functions (Lua 5.4 manual §3.3.4)
+exit 1

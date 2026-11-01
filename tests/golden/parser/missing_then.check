@@ -1,0 +1,6 @@
+refused: tests/corpus/parser/missing_then.lua:1:6, line 1 column 6
+ 1 | if x print(1) end
+   |      ^^^^^
+ what: expected `then`, found `print`
+ why:  Lua's grammar needs `then` here (Lua 5.4 manual §9)
+exit 1

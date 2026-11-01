@@ -1,0 +1,16 @@
+1 keyword do
+1 keyword local
+1 name bb
+1 ,
+1 name cc
+1 ;
+1 keyword goto
+1 name l1
+1 ;
+1 keyword end
+1 ;
+1 ::
+1 name l1
+1 ::
+2 <eof>
+exit 0

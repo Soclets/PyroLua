@@ -1,0 +1,25 @@
+1 function_body vararg
+  1 block
+    1 local_function
+      1 local_name "f"
+      1 function_body
+        1 name_list
+        2 block
+          2 local_statement
+            2 name_list
+              2 local_name "self"
+            2 expression_list
+              2 integer_literal 1
+          3 return_statement
+            3 expression_list
+              3 function_expression
+                3 function_body
+                  3 name_list
+                  3 block
+                    3 assignment
+                      3 expression_list
+                        3 assignment_target "self"
+                          3 name_expression "self" upvalue@3
+                      3 expression_list
+                        3 integer_literal 2
+exit 0

@@ -1,0 +1,17 @@
+1 keyword do
+2 keyword goto
+2 name skip
+3 keyword local
+3 name y
+3 =
+3 integer 3
+4 ::
+4 name skip
+4 ::
+5 name print
+5 (
+5 name y
+5 )
+6 keyword end
+7 <eof>
+exit 0

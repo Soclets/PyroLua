@@ -1,0 +1,11 @@
+1 function_body vararg
+  1 block
+    1 function_statement
+      1 name_expression "g" global
+      1 function_body
+        1 name_list
+        1 block
+          1 label_statement "a" last
+    2 label_statement "a"
+    2 goto_statement "a"
+exit 0

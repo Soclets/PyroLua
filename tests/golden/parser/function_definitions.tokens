@@ -1,0 +1,51 @@
+1 keyword function
+1 name f
+1 (
+1 name a
+1 ,
+1 name b
+1 ,
+1 ...
+1 )
+1 keyword return
+1 ...
+1 keyword end
+2 keyword function
+2 name a
+2 .
+2 name b
+2 .
+2 name c
+2 (
+2 name x
+2 )
+2 keyword end
+3 keyword function
+3 name a
+3 .
+3 name b
+3 :
+3 name m
+3 (
+3 )
+3 keyword return
+3 name self
+3 keyword end
+4 keyword local
+4 keyword function
+4 name g
+4 (
+4 )
+4 keyword return
+4 name g
+4 keyword end
+5 keyword local
+5 name h
+5 =
+5 keyword function
+5 (
+5 ...
+5 )
+5 keyword end
+6 <eof>
+exit 0

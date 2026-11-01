@@ -1,0 +1,16 @@
+1 keyword local
+1 name a
+1 <
+1 name close
+1 >
+1 ,
+1 name b
+1 <
+1 name close
+1 >
+1 =
+1 keyword nil
+1 ,
+1 keyword nil
+2 <eof>
+exit 0

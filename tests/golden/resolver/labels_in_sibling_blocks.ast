@@ -1,0 +1,9 @@
+1 function_body vararg
+  1 block
+    1 do_statement
+      1 block
+        1 label_statement "a" last
+    2 do_statement
+      2 block
+        2 label_statement "a" last
+exit 0

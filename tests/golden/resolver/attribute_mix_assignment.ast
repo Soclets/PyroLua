@@ -1,0 +1,27 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "a" close_attribute
+        1 local_name "b" constant_attribute
+      1 expression_list
+        1 call_expression
+          1 name_expression "f" global
+        1 call_expression
+          1 name_expression "g" global
+    2 assignment
+      2 expression_list
+        2 assignment_target "b"
+          2 name_expression "b" local@2
+      2 expression_list
+        2 integer_literal 1
+refused: tests/corpus/resolver/attribute_mix_assignment.lua:2:1, line 2 column 1
+ 2 | b = 1
+   | ^
+ what: `b` is assigned, but it is declared <const>
+ why:  a <const> variable can't be assigned after its declaration (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/resolver/attribute_mix_assignment.lua:1:18, line 1 column 18
+ 1 | local a <close>, b <const> = f(), g()
+   |                  ^
+     `b` is declared <const> here
+exit 1

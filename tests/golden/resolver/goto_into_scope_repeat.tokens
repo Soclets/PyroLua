@@ -1,0 +1,18 @@
+1 keyword repeat
+2 keyword if
+2 name x
+2 keyword then
+2 keyword goto
+2 name continue
+2 keyword end
+3 keyword local
+3 name y
+3 =
+3 integer 10
+4 ::
+4 name continue
+4 ::
+5 keyword until
+5 name y
+6 <eof>
+exit 0

@@ -1,0 +1,7 @@
+1 keyword local
+1 name x
+1 =
+1 integer 1
+2 keyword break
+3 <eof>
+exit 0

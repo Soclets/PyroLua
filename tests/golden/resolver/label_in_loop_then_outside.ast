@@ -1,0 +1,8 @@
+1 function_body vararg
+  1 block
+    1 while_statement
+      1 name_expression "x" global
+      1 block
+        1 label_statement "a" last
+    2 label_statement "a" last
+exit 0

@@ -1,0 +1,6 @@
+refused: tests/corpus/parser/not_assignable.lua:1:5, line 1 column 5
+ 1 | f() = 1
+   |     ^
+ what: this can't be assigned to
+ why:  only names, fields and indexed expressions can be assigned to (Lua 5.4 manual §3.3.3)
+exit 1

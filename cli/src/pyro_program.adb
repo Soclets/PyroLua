@@ -8,16 +8,22 @@ pragma SPARK_Mode (Off);
 with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Streams.Stream_IO;
+with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with GNAT.OS_Lib;
 with Interfaces;
+with Pyro;
 with Pyro.Character_Arrays;
 with Pyro.Diagnostics;
 with Pyro.Diagnostics.Rendering;
+with Pyro.Diagnostic_Lists;
 with Pyro.Lexer;
 with Pyro.Memory_Budgets;
+with Pyro.Parser;
+with Pyro.Resolver;
 with Pyro.Sources;
 with Pyro.Symbols;
+with Pyro.Syntax_Trees;
 with Pyro.Tokens;
 
 procedure Pyro_Program is
@@ -28,7 +34,10 @@ procedure Pyro_Program is
    type Source_Access is access Pyro.Sources.Source;
    procedure Free is new Ada.Unchecked_Deallocation (Pyro.Sources.Source, Source_Access);
 
-   type Mode is (Tokens_Mode, Check_Mode);
+   function To_Integer is new Ada.Unchecked_Conversion
+     (Interfaces.Unsigned_64, Interfaces.Integer_64);
+
+   type Mode is (Tokens_Mode, Tree_Mode, Check_Mode);
 
    --  Report errors as luac does (one line), rather than the rich report.
    Lua_Style : Boolean := False;
@@ -178,6 +187,14 @@ procedure Pyro_Program is
          Set_Exit_Status (Failure);
       end Report;
    begin
+      if Natural (Ada.Directories.Size (Path)) > Pyro.Maximum_Source_Length then
+         --  [differs] Chunks larger than Pyro.Maximum_Source_Length are refused.
+         Source := new Pyro.Sources.Source'
+           (Name_Size => Path'Length + 1, Length => 0, Name => "@" & Path, Text => "");
+         Report ((What => Pyro.Diagnostics.Not_Enough_Memory, others => <>));
+         Free (Source);
+         return;
+      end if;
       Source := Load (Path, Binary);
       if Binary then
          Report ((What => Pyro.Diagnostics.Binary_Chunk, others => <>));
@@ -217,14 +234,144 @@ procedure Pyro_Program is
             if Pyro.Lexer.Failed (Lexer) then
                Report (Pyro.Lexer.Error (Lexer));
             end if;
-         when Check_Mode =>
-            loop
-               Pyro.Lexer.Next_Token (Lexer, Source.all, Symbols, Budget, Item);
-               exit when Pyro.Lexer.Failed (Lexer) or else Item.Kind = End_Of_Stream;
-            end loop;
-            if Pyro.Lexer.Failed (Lexer) then
-               Report (Pyro.Lexer.Error (Lexer));
-            end if;
+         when Tree_Mode | Check_Mode =>
+            declare
+               use Pyro.Syntax_Trees;
+               Tree     : Syntax_Tree;
+               Problems : Pyro.Diagnostic_Lists.Growable_Array;
+               Root     : Node_Index;
+               Count    : Natural;
+               Bindings : Pyro.Resolver.Binding_Table;
+
+               procedure Print (Index : Node_Index; Depth : Natural) is
+                  Item : Node;
+               begin
+                  if Index = No_Node then
+                     return;
+                  end if;
+                  Item := Get (Tree, Index);
+                  Put ([1 .. 2 * Depth => ' '] & Image (Long_Long_Integer (Item.Line)) & " "
+                       & Lower (Node_Kind'Image (Item.Kind)));
+                  if Item.Symbol /= Pyro.Symbols.No_Symbol then
+                     Put (" " & Quoted (Pyro.Symbols.Text (Symbols, Item.Symbol)));
+                  end if;
+                  case Item.Kind is
+                     when Integer_Literal =>
+                        Put (" " & Image (Long_Long_Integer (To_Integer (Item.Value))));
+                     when Float_Literal => Put (" " & Hexadecimal (Item.Value));
+                     when Binary_Operation | Unary_Operation =>
+                        Put (" " & Lower (Operator_Kind'Image (Item.Operator)));
+                     when Local_Name =>
+                        if Item.Attribute /= Regular then
+                           Put (" " & Lower (Attribute_Kind'Image (Item.Attribute)));
+                        end if;
+                     when others => null;
+                  end case;
+                  if Item.Kind = Name_Expression then
+                     declare
+                        use Pyro.Resolver;
+                        Found : constant Binding := Binding_Of (Bindings, Index);
+                     begin
+                        case Found.Kind is
+                           when Local_Variable =>
+                              Put (" local@" & Image (Long_Long_Integer (Found.Declaration)));
+                           when Upvalue =>
+                              Put (" upvalue@" & Image (Long_Long_Integer (Found.Declaration)));
+                           when Global => Put (" global");
+                           when Unbound => null;
+                        end case;
+                     end;
+                  end if;
+                  if Item.Is_Vararg then
+                     Put (" vararg");
+                  end if;
+                  if Item.Is_Method then
+                     Put (" method");
+                  end if;
+                  if Item.Is_Name_Key then
+                     Put (" name-key");
+                  end if;
+                  if Item.Is_Last_Label then
+                     Put (" last");
+                  end if;
+                  if Item.Is_Incomplete then
+                     Put (" incomplete");
+                  end if;
+                  Put ([1 => ASCII.LF]);
+                  for Slot in Child_Slot loop
+                     Print (Child (Tree, Index, Slot), Depth + 1);
+                  end loop;
+                  for Position in 1 .. Item.List_Length loop
+                     Print (List_Item (Tree, Index, Position), Depth + 1);
+                  end loop;
+               end Print;
+            begin
+               Pyro.Parser.Parse (Source.all, Symbols, Budget, Tree, Problems, Root);
+               Pyro.Resolver.Resolve (Tree, Root, Symbols, Budget, Problems, Bindings);
+               Count := Natural (Pyro.Diagnostic_Lists.Length (Problems));
+               if Selected = Tree_Mode then
+                  Print (Root, 0);
+               end if;
+               if Count > 0 and then Lua_Style then
+                  --  The error PUC Lua would raise first.
+                  declare
+                     First : Pyro.Diagnostics.Diagnostic :=
+                       Pyro.Diagnostic_Lists.Element (Problems, 1);
+                  begin
+                     for Index in 2 .. Count loop
+                        declare
+                           Item : constant Pyro.Diagnostics.Diagnostic :=
+                             Pyro.Diagnostic_Lists.Element
+                               (Problems, Pyro.Diagnostics.Diagnostic_Position (Index));
+                        begin
+                           if Pyro.Diagnostics.Before (Item.Detection, First.Detection) then
+                              First := Item;
+                           end if;
+                        end;
+                     end loop;
+                     Report (First);
+                  end;
+               elsif Count > 0 then
+                  --  Every error, in source order.
+                  declare
+                     type Order_Array is array (1 .. Count) of Positive;
+                     Order : Order_Array;
+                     function Place_Of (Index : Positive) return Natural is
+                        Item : constant Pyro.Diagnostics.Diagnostic :=
+                          Pyro.Diagnostic_Lists.Element
+                            (Problems, Pyro.Diagnostics.Diagnostic_Position (Index));
+                     begin
+                        return (if Item.Has_Place then Natural (Item.Place.First) else 0);
+                     end Place_Of;
+                  begin
+                     for Index in Order'Range loop
+                        Order (Index) := Index;
+                     end loop;
+                     for Index in 2 .. Count loop
+                        declare
+                           Moving : constant Positive := Order (Index);
+                           Slot   : Natural := Index - 1;
+                        begin
+                           while Slot >= 1 and then Place_Of (Order (Slot)) > Place_Of (Moving) loop
+                              Order (Slot + 1) := Order (Slot);
+                              Slot := Slot - 1;
+                           end loop;
+                           Order (Slot + 1) := Moving;
+                        end;
+                     end loop;
+                     for Index in Order'Range loop
+                        if Index > 1 then
+                           Put_Error ([1 => ASCII.LF]);
+                        end if;
+                        Report (Pyro.Diagnostic_Lists.Element
+                                  (Problems, Pyro.Diagnostics.Diagnostic_Position (Order (Index))));
+                     end loop;
+                  end;
+               end if;
+               Clear (Tree, Budget);
+               Pyro.Diagnostic_Lists.Clear (Problems, Budget);
+               Pyro.Resolver.Clear (Bindings, Budget);
+            end;
       end case;
       Pyro.Lexer.Clear (Lexer, Budget);
       Pyro.Symbols.Clear (Symbols, Budget);
@@ -234,7 +381,7 @@ procedure Pyro_Program is
 
    procedure Usage is
    begin
-      Put_Error ("usage: pyro (--tokens | --check [--lua-style]) file.lua" & ASCII.LF);
+      Put_Error ("usage: pyro (--tokens | --ast | --check [--lua-style]) file.lua" & ASCII.LF);
       Set_Exit_Status (2);
    end Usage;
 begin
@@ -246,6 +393,8 @@ begin
       Usage;
    elsif Argument (1) = "--tokens" then
       Run (Tokens_Mode, Argument (2));
+   elsif Argument (1) = "--ast" then
+      Run (Tree_Mode, Argument (2));
    elsif Argument (1) = "--check" then
       Run (Check_Mode, Argument (2));
    else

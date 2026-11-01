@@ -1,0 +1,8 @@
+1 function_body vararg
+  1 block
+    2 local_statement
+      2 name_list
+        2 local_name "a"
+      2 expression_list
+        2 name_expression "b" global
+exit 0

@@ -1,0 +1,12 @@
+1 keyword do
+1 ::
+1 name a
+1 ::
+1 keyword end
+2 keyword do
+2 ::
+2 name a
+2 ::
+2 keyword end
+3 <eof>
+exit 0

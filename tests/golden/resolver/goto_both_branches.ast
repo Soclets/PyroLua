@@ -1,0 +1,14 @@
+1 function_body vararg
+  1 block
+    1 if_statement
+      1 block
+        1 goto_statement "e"
+      1 if_clause
+        1 name_expression "x" global
+        1 block
+          1 goto_statement "e"
+    2 local_statement
+      2 name_list
+        2 local_name "z"
+    3 label_statement "e" last
+exit 0

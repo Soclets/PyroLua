@@ -1,0 +1,10 @@
+refused: tests/corpus/parser/unclosed_bracket.lua:2:1, line 2 column 1
+ 2 | local x = 1
+   | ^^^^^
+ what: expected `)` to close `(`, found `local`
+ why:  every `(` needs its `)` (Lua 5.4 manual §3.4)
+ because: tests/corpus/parser/unclosed_bracket.lua:1:2, line 1 column 2
+ 1 | f(a, b
+   |  ^
+     `(` opened here
+exit 1

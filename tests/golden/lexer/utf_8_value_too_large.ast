@@ -1,0 +1,12 @@
+1 function_body vararg incomplete
+  1 block incomplete
+    1 local_statement
+      1 name_list
+        1 local_name "a"
+      1 expression_list
+refused: tests/corpus/lexer/utf_8_value_too_large.lua:1:12, line 1 column 12
+ 1 | local a = "\u{80000000}"
+   |            ^^^^^^^^^^^
+ what: the value in `\u{80000000` is 2^31 or more
+ why:  a UTF-8 escape encodes a value below 2^31 (Lua 5.4 manual §3.1)
+exit 1

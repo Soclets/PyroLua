@@ -1,0 +1,17 @@
+1 function_body vararg
+  1 block
+    1 while_statement
+      1 true_literal
+      2 block
+        2 local_function
+          2 local_name "f"
+          2 function_body
+            2 name_list
+            3 block
+              3 break_statement
+refused: tests/corpus/resolver/break_in_nested_function.lua:3:5, line 3 column 5
+ 3 |     break
+   |     ^^^^^
+ what: `break` is not inside a loop
+ why:  a break ends the innermost enclosing loop (Lua 5.4 manual §3.3.4)
+exit 1

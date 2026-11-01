@@ -1,0 +1,28 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "a"
+      1 expression_list
+        1 float_literal 0x7FE1CCF385EBC8A0
+    2 local_statement
+      2 name_list
+        2 local_name "b"
+      2 expression_list
+        2 float_literal 0x7FF0000000000000
+    3 local_statement
+      3 name_list
+        3 local_name "c"
+      3 expression_list
+        3 float_literal 0x000FFFFFFFFFFFFF
+    4 local_statement
+      4 name_list
+        4 local_name "d"
+      4 expression_list
+        4 float_literal 0x3FB999999999999A
+    5 local_statement
+      5 name_list
+        5 local_name "e"
+      5 expression_list
+        5 float_literal 0x0000000000000000
+exit 0

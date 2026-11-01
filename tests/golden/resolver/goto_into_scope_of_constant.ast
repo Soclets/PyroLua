@@ -1,0 +1,29 @@
+1 function_body vararg
+  1 block
+    1 do_statement
+      1 block
+        1 goto_statement "l"
+        1 local_statement
+          1 name_list
+            1 local_name "a" constant_attribute
+          1 expression_list
+            1 integer_literal 1
+        1 label_statement "l"
+        1 call_statement
+          1 call_expression
+            1 name_expression "print" global
+            1 name_expression "a" local@2
+refused: tests/corpus/resolver/goto_into_scope_of_constant.lua:1:4, line 1 column 4
+ 1 | do goto l; local a <const> = 1; ::l:: print(a) end
+   |    ^^^^^^
+ what: `goto l` jumps into the scope of local `a`
+ why:  a goto can jump to a visible label only if it does not enter the scope of a local variable (Lua 5.4 manual §3.3.4)
+ because: tests/corpus/resolver/goto_into_scope_of_constant.lua:1:18, line 1 column 18
+ 1 | do goto l; local a <const> = 1; ::l:: print(a) end
+   |                  ^
+     `a` is declared here
+ because: tests/corpus/resolver/goto_into_scope_of_constant.lua:1:33, line 1 column 33
+ 1 | do goto l; local a <const> = 1; ::l:: print(a) end
+   |                                 ^^^^^
+     the label `l` is here, inside its scope
+exit 1

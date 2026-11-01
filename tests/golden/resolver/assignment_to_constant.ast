@@ -1,0 +1,23 @@
+1 function_body vararg
+  1 block
+    1 local_statement
+      1 name_list
+        1 local_name "x" constant_attribute
+      1 expression_list
+        1 integer_literal 1
+    2 assignment
+      2 expression_list
+        2 assignment_target "x"
+          2 name_expression "x" local@1
+      2 expression_list
+        2 integer_literal 2
+refused: tests/corpus/resolver/assignment_to_constant.lua:2:1, line 2 column 1
+ 2 | x = 2
+   | ^
+ what: `x` is assigned, but it is declared <const>
+ why:  a <const> variable can't be assigned after its declaration (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/resolver/assignment_to_constant.lua:1:7, line 1 column 7
+ 1 | local x <const> = 1
+   |       ^
+     `x` is declared <const> here
+exit 1

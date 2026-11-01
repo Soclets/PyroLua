@@ -1,0 +1,9 @@
+1 keyword if
+1 name x
+1 keyword then
+2 name print
+2 (
+2 integer 1
+2 )
+3 <eof>
+exit 0

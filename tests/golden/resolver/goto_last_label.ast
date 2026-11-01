@@ -1,0 +1,12 @@
+1 function_body vararg
+  1 block
+    1 do_statement
+      2 block
+        2 goto_statement "finish"
+        3 local_statement
+          3 name_list
+            3 local_name "y"
+          3 expression_list
+            3 integer_literal 3
+        4 label_statement "finish" last
+exit 0

@@ -1,0 +1,14 @@
+1 name f
+1 (
+1 keyword local
+1 name x
+1 <
+1 name const
+1 >
+1 =
+1 integer 1
+1 name x
+1 =
+1 integer 2
+2 <eof>
+exit 0

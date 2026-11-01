@@ -1,0 +1,32 @@
+1 function_body vararg
+  1 block
+    1 local_function
+      1 local_name "f"
+      1 function_body
+        1 name_list
+        1 block
+          1 return_statement
+    2 local_function
+      2 local_name "g"
+      2 function_body
+        2 name_list
+        2 block
+          2 return_statement
+            2 expression_list
+              2 integer_literal 1
+              2 integer_literal 2
+    3 local_function
+      3 local_name "h"
+      3 function_body
+        3 name_list
+        3 block
+          3 do_statement
+            3 block
+              3 return_statement
+    4 return_statement
+      4 expression_list
+        4 call_expression
+          4 name_expression "f" local@1
+        4 call_expression
+          4 name_expression "g" local@7
+exit 0

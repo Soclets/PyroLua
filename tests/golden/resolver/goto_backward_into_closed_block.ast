@@ -1,0 +1,12 @@
+1 function_body vararg
+  1 block
+    1 do_statement
+      1 block
+        1 label_statement "l" last
+    2 goto_statement "l"
+refused: tests/corpus/resolver/goto_backward_into_closed_block.lua:2:1, line 2 column 1
+ 2 | goto l
+   | ^^^^^^
+ what: no label `l` is visible from this `goto`
+ why:  a label is visible in the block where it is defined, except inside nested functions (Lua 5.4 manual §3.3.4)
+exit 1

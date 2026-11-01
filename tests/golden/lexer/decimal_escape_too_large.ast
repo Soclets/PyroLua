@@ -1,0 +1,12 @@
+1 function_body vararg incomplete
+  1 block incomplete
+    1 local_statement
+      1 name_list
+        1 local_name "a"
+      1 expression_list
+refused: tests/corpus/lexer/decimal_escape_too_large.lua:1:12, line 1 column 12
+ 1 | local a = "\256"
+   |            ^^^^^
+ what: this decimal escape is more than 255
+ why:  a decimal escape `\ddd` is one byte, from 0 to 255 (Lua 5.4 manual §3.1)
+exit 1

@@ -1,0 +1,26 @@
+1 function_body vararg
+  1 block
+    1 numeric_for
+      1 local_name "i"
+      1 expression_list
+        1 integer_literal 1
+        1 integer_literal 3
+      2 block
+        2 if_statement
+          2 if_clause
+            2 binary_operation equal
+              2 name_expression "i" local@1
+              2 integer_literal 2
+            2 block
+              2 goto_statement "continue"
+        3 local_statement
+          3 name_list
+            3 local_name "x"
+          3 expression_list
+            3 name_expression "i" local@1
+        4 label_statement "continue" last
+    6 goto_statement "done"
+    7 do_statement
+      7 block
+    8 label_statement "done" last
+exit 0
