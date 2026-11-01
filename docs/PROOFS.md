@@ -91,8 +91,8 @@ kept small and conservative.
 
 | Unit | Reason | Since |
 | --- | --- | --- |
-| `Pyro.Floats` (body) and its C helper `src/common/pyro_floats.c` | IEEE 754 arithmetic with infinities and NaN, correctly rounded decimal-to-float conversion, `%.14g` formatting. SPARK assumes floats are finite, so these must operate on raw bits outside SPARK. Decimal conversion is libc's `strtod_l` with an explicit "C" locale, so a host calling `setlocale` cannot change how numerals are read. | M1 |
-| `cli/` (`pyro` executable) | File and console I/O, command-line handling. Not part of the library. | M1 |
+| `Pyro.Floats` (body) and its C helper `src/common/pyro_floats.c` | IEEE 754 arithmetic with infinities and NaN, correctly rounded decimal-to-float conversion, `%.14g` formatting. SPARK assumes floats are finite, so these must operate on raw bits outside SPARK. Decimal conversion is libc's `strtod_l` with an explicit "C" locale, so a host calling `setlocale` cannot change how numerals are read. Constant folding (M2) uses libc's `pow`, `fmod` and `floor` as luac does, so folded constants are bit-identical to luac's. | M1, M2 |
+| `cli/` (`pyro` executable) | File and console I/O, command-line handling, bytecode listings (with `%.14g` from libc in `cli/src/pyro_cli_floats.c`). Not part of the library. | M1 |
 
 Any new entry needs a reason here and should be as small as possible.
 
@@ -102,7 +102,17 @@ Also counted as trust, and listed here when used:
 - `pragma Annotate (GNATprove, False_Positive | Intentional, …)`: each must have a
   justification string and be listed here.
 
-Current list of assumptions and justified checks: *none*.
+`pragma Annotate (GNATprove, Hide_Info | Unhide_Info, …)` only keeps a definition out
+of proofs (they then rely on contracts alone), so it is not trust and needs no entry.
+
+Current list of assumptions and justified checks:
+
+- `Pyro.Compiler.Code.Compiler_State` carries the ownership annotation
+  `Needs_Reclamation`, with `Is_Released` as its `Is_Reclaimed` function, so that its
+  private part (seventeen growable arrays) can be hidden from the compiler's proofs.
+  GNATprove takes on trust that `Is_Released` is true only when the state holds no heap
+  memory; it is the conjunction of `Is_Released` of every array in the state, each of
+  which is proven to mean exactly that (M2).
 
 ## Assumptions
 
@@ -187,7 +197,7 @@ Rules:
 | Lexer | Silver + totality | proven |
 | Parser, AST | Silver + well-formedness | proven |
 | Resolver | Silver | proven |
-| Compiler / bytecode validity | Gold | not started |
+| Compiler / bytecode validity | Gold | proven (output checked by the proven `Is_Valid`) |
 | Heap | Gold | not started |
 | Tables | Gold | not started |
 | GC | Gold | not started |

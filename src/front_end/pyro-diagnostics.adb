@@ -149,10 +149,26 @@ package body Pyro.Diagnostics with SPARK_Mode => On is
             Append (Output, Budget, "no visible label '");
             Append_Symbol (Output, Budget, Table, Item.Name);
             Append (Output, Budget, "' for <goto> at line " & Other);
+         when Too_Many_Registers =>
+            Append (Output, Budget, "function or expression needs too many registers");
+         when Too_Many_Local_Variables | Too_Many_Upvalues =>
+            --  [puc lparser.c:errorlimit]
+            Append (Output, Budget,
+                    (if Item.What = Too_Many_Upvalues then "too many upvalues (limit is 255) in "
+                     else "too many local variables (limit is 200) in "));
+            if Item.In_Main_Function then
+               Append (Output, Budget, "main function");
+            else
+               Append (Output, Budget, "function at line " & Other);
+            end if;
+         when Control_Structure_Too_Long =>
+            Append (Output, Budget, "control structure too long");
          when Not_Enough_Memory => Append (Output, Budget, "not enough memory");
          when Binary_Chunk =>
             --  [differs] Precompiled chunks are not loaded.
             Append (Output, Budget, "precompiled chunks are not supported");
+         when Internal_Error =>
+            Append (Output, Budget, "internal error: the compiler built invalid bytecode");
       end case;
       case Item.Near is
          when No_Near => null;

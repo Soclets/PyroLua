@@ -1,0 +1,295 @@
+
+main <tests/corpus/compiler/constants.lua:0,0> (232 instructions at #1)
+0+ params, 35 slots, 1 upvalue, 17 locals, 38 constants, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	load_integer	0 5
+	3	[3]	load_float	1 1024
+	4	[3]	load_constant	2 0	; 3.5
+	5	[3]	load_integer	3 -4
+	6	[3]	load_integer	4 -2
+	7	[3]	load_integer	5 2
+	8	[3]	load_constant	6 1	; -0.5
+	9	[4]	load_integer	2 1
+	10	[4]	divide_constant	2 2 2	; 0
+	11	[4]	metamethod_binary_constant	2 2 11 0	; __div 0
+	12	[4]	load_integer	3 -1
+	13	[4]	divide_constant	3 3 2	; 0
+	14	[4]	metamethod_binary_constant	3 2 11 0	; __div 0
+	15	[4]	load_integer	4 0
+	16	[4]	divide_constant	4 4 2	; 0
+	17	[4]	metamethod_binary_constant	4 2 11 0	; __div 0
+	18	[4]	load_integer	5 -1
+	19	[4]	multiply_constant	5 5 3	; 0.0
+	20	[4]	metamethod_binary_constant	5 3 8 1	; __mul 0.0 flip
+	21	[4]	load_integer	6 1
+	22	[4]	floor_divide_constant	6 6 2	; 0
+	23	[4]	metamethod_binary_constant	6 2 12 0	; __idiv 0
+	24	[4]	load_integer	7 1
+	25	[4]	modulo_constant	7 7 2	; 0
+	26	[4]	metamethod_binary_constant	7 2 9 0	; __mod 0
+	27	[5]	load_integer	3 15
+	28	[5]	load_integer	4 -1
+	29	[5]	load_constant	5 4	; -9223372036854775808
+	30	[5]	load_integer	6 0
+	31	[5]	load_constant	7 5	; 9223372036854775807
+	32	[5]	load_integer	8 2
+	33	[5]	load_constant	9 7	; 2.5
+	34	[5]	bitwise_and_constant	9 9 6	; 3
+	35	[5]	metamethod_binary_constant	9 6 13 0	; __band 3
+	36	[6]	load_constant	4 8	; "x"
+	37	[6]	load_constant	5 9	; "y"
+	38	[6]	concatenate	4 2
+	39	[6]	load_constant	5 4	; -9223372036854775808
+	40	[6]	get_table_upvalue	6 0 10	; _ENV "math"
+	41	[6]	get_field	6 6 11	; "huge"
+	42	[10]	load_constant	5 12	; 126.5
+	43	[10]	load_constant	6 13	; "a long string constant that is longer than forty bytes in total"
+	44	[10]	load_constant	7 13	; "a long string constant that is longer than forty bytes in total"
+	45	[10]	concatenate	6 2
+	46	[10]	load_integer	7 -42
+	47	[10]	load_false	8
+	48	[10]	load_constant	9 13	; "a long string constant that is longer than forty bytes in total"
+	49	[10]	length   	9 9
+	50	[11]	load_constant	6 14	; 0.3
+	51	[11]	load_constant	7 15	; inf
+	52	[11]	load_float	8 0
+	53	[11]	negate   	8 8
+	54	[11]	load_constant	9 16	; 9.9998886718268e-321
+	55	[11]	load_float	10 3
+	56	[11]	load_float	11 -3
+	57	[11]	load_float	12 65536
+	58	[11]	load_constant	13 17	; 65537.0
+	59	[11]	load_float	14 -65535
+	60	[12]	load_constant	7 18	; 9007199254740993
+	61	[12]	load_constant	8 19	; 9.007199254741e+15
+	62	[12]	load_constant	9 20	; 9.2233720368548e+18
+	63	[12]	load_constant	10 21	; -9.2233720368548e+18
+	64	[12]	load_constant	11 22	; 1e+15
+	65	[12]	load_constant	12 23	; 123456789012345
+	66	[13]	load_integer	8 127
+	67	[13]	load_integer	9 128
+	68	[13]	load_integer	10 -127
+	69	[13]	load_integer	11 -128
+	70	[13]	load_integer	12 65535
+	71	[13]	load_integer	13 65536
+	72	[13]	load_integer	14 -65535
+	73	[13]	load_constant	15 24	; -65536
+	74	[13]	load_constant	16 25	; 131071
+	75	[14]	vararg   	9 3	; 2 out
+	76	[15]	add_integer	11 9 1
+	77	[15]	metamethod_binary_integer	9 1 6 0	; __add
+	78	[15]	add_integer	12 9 127
+	79	[15]	metamethod_binary_integer	9 127 6 0	; __add
+	80	[15]	add_integer	13 9 128
+	81	[15]	metamethod_binary_integer	9 128 6 0	; __add
+	82	[15]	add_integer	14 9 -127
+	83	[15]	metamethod_binary_integer	9 127 7 0	; __sub
+	84	[15]	subtract_constant	15 9 26	; 128
+	85	[15]	metamethod_binary_constant	9 26 7 0	; __sub 128
+	86	[15]	add_integer	16 9 1
+	87	[15]	metamethod_binary_integer	9 1 6 1	; __add flip
+	88	[15]	multiply_constant	17 9 27	; 2
+	89	[15]	metamethod_binary_constant	9 27 8 0	; __mul 2
+	90	[15]	multiply_constant	18 9 27	; 2
+	91	[15]	metamethod_binary_constant	9 27 8 1	; __mul 2 flip
+	92	[15]	divide_constant	19 9 6	; 3
+	93	[15]	metamethod_binary_constant	9 6 11 0	; __div 3
+	94	[15]	floor_divide_constant	20 9 6	; 3
+	95	[15]	metamethod_binary_constant	9 6 12 0	; __idiv 3
+	96	[16]	modulo_constant	12 9 6	; 3
+	97	[16]	metamethod_binary_constant	9 6 9 0	; __mod 3
+	98	[16]	power_constant	13 9 27	; 2
+	99	[16]	metamethod_binary_constant	9 27 10 0	; __pow 2
+	100	[16]	bitwise_and_constant	14 9 28	; 1
+	101	[16]	metamethod_binary_constant	9 28 13 0	; __band 1
+	102	[16]	bitwise_and_constant	15 9 28	; 1
+	103	[16]	metamethod_binary_constant	9 28 13 1	; __band 1 flip
+	104	[16]	bitwise_or_constant	16 9 27	; 2
+	105	[16]	metamethod_binary_constant	9 27 14 0	; __bor 2
+	106	[16]	bitwise_exclusive_or_constant	17 9 6	; 3
+	107	[16]	metamethod_binary_constant	9 6 15 0	; __bxor 3
+	108	[16]	shift_right_integer	18 9 -1
+	109	[16]	metamethod_binary_integer	9 1 16 0	; __shl
+	110	[16]	load_integer	19 200
+	111	[16]	shift_left	19 9 19
+	112	[16]	metamethod_binary	9 19 16	; __shl
+	113	[16]	shift_left_integer	20 9 1
+	114	[16]	metamethod_binary_integer	9 1 16 1	; __shl flip
+	115	[16]	shift_right_integer	21 9 2
+	116	[16]	metamethod_binary_integer	9 2 17 0	; __shr
+	117	[16]	shift_right_integer	22 9 -2
+	118	[16]	metamethod_binary_integer	9 -2 17 0	; __shr
+	119	[17]	add_constant	13 9 29	; 0.5
+	120	[17]	metamethod_binary_constant	9 29 6 0	; __add 0.5
+	121	[17]	subtract_constant	14 9 30	; 1.5
+	122	[17]	metamethod_binary_constant	9 30 7 0	; __sub 1.5
+	123	[17]	multiply_constant	15 9 31	; 10000000000.0
+	124	[17]	metamethod_binary_constant	9 31 8 0	; __mul 10000000000.0
+	125	[17]	load_constant	16 32	; "s"
+	126	[17]	add      	16 9 16
+	127	[17]	metamethod_binary	9 16 6	; __add
+	128	[17]	add      	17 9 10
+	129	[17]	metamethod_binary	9 10 6	; __add
+	130	[17]	move     	18 9
+	131	[17]	move     	19 10
+	132	[17]	load_constant	20 33	; "z"
+	133	[17]	load_integer	21 1
+	134	[17]	concatenate	18 4
+	135	[18]	equal_integer	9 1 1
+	136	[18]	jump     	1	; to 138
+	137	[18]	load_false_skip	14
+	138	[18]	load_true	14
+	139	[18]	equal_integer	9 1 0
+	140	[18]	jump     	1	; to 142
+	141	[18]	load_false_skip	15
+	142	[18]	load_true	15
+	143	[18]	equal_constant	9 32 1	; "s"
+	144	[18]	jump     	1	; to 146
+	145	[18]	load_false_skip	16
+	146	[18]	load_true	16
+	147	[18]	equal_constant	9 34 1	; nil
+	148	[18]	jump     	1	; to 150
+	149	[18]	load_false_skip	17
+	150	[18]	load_true	17
+	151	[18]	equal_constant	9 35 1	; true
+	152	[18]	jump     	1	; to 154
+	153	[18]	load_false_skip	18
+	154	[18]	load_true	18
+	155	[18]	equal    	9 10 1
+	156	[18]	jump     	1	; to 158
+	157	[18]	load_false_skip	19
+	158	[18]	load_true	19
+	159	[18]	equal_integer	9 1 1
+	160	[18]	jump     	1	; to 162
+	161	[18]	load_false_skip	20
+	162	[18]	load_true	20
+	163	[18]	less_than_integer	9 1 1
+	164	[18]	jump     	1	; to 166
+	165	[18]	load_false_skip	21
+	166	[18]	load_true	21
+	167	[18]	greater_than_integer	9 1 1
+	168	[18]	jump     	1	; to 170
+	169	[18]	load_false_skip	22
+	170	[18]	load_true	22
+	171	[19]	less_equal_integer	9 127 1
+	172	[19]	jump     	1	; to 174
+	173	[19]	load_false_skip	15
+	174	[19]	load_true	15
+	175	[19]	greater_than_integer	9 128 1
+	176	[19]	jump     	1	; to 178
+	177	[19]	load_false_skip	16
+	178	[19]	load_true	16
+	179	[19]	greater_equal_integer	9 -1 1
+	180	[19]	jump     	1	; to 182
+	181	[19]	load_false_skip	17
+	182	[19]	load_true	17
+	183	[19]	load_constant	18 30	; 1.5
+	184	[19]	less_than	18 9 1
+	185	[19]	jump     	1	; to 187
+	186	[19]	load_false_skip	18
+	187	[19]	load_true	18
+	188	[19]	less_than_integer	9 2 1
+	189	[19]	jump     	1	; to 191
+	190	[19]	load_false_skip	19
+	191	[19]	load_true	19
+	192	[19]	load_constant	20 36	; "a"
+	193	[19]	less_than	20 9 1
+	194	[19]	jump     	1	; to 196
+	195	[19]	load_false_skip	20
+	196	[19]	load_true	20
+	197	[19]	less_than	10 9 1
+	198	[19]	jump     	1	; to 200
+	199	[19]	load_false_skip	21
+	200	[19]	load_true	21
+	201	[19]	less_equal	10 9 1
+	202	[19]	jump     	1	; to 204
+	203	[19]	load_false_skip	22
+	204	[19]	load_true	22
+	205	[20]	logical_not	16 9
+	206	[20]	load_true	17
+	207	[20]	load_false	18
+	208	[20]	logical_not	19 9
+	209	[20]	logical_not	19 19
+	210	[20]	negate   	20 9
+	211	[20]	bitwise_not	21 9
+	212	[20]	length   	22 9
+	213	[21]	move     	17 0
+	214	[21]	move     	18 1
+	215	[21]	move     	19 2
+	216	[21]	move     	20 3
+	217	[21]	move     	21 4
+	218	[21]	load_integer	22 42
+	219	[21]	load_constant	23 13	; "a long string constant that is longer than forty bytes in total"
+	220	[21]	load_constant	24 37	; 84.5
+	221	[21]	move     	25 5
+	222	[21]	move     	26 6
+	223	[21]	move     	27 7
+	224	[21]	move     	28 8
+	225	[21]	move     	29 11
+	226	[21]	move     	30 12
+	227	[21]	move     	31 13
+	228	[21]	move     	32 14
+	229	[21]	move     	33 15
+	230	[21]	move     	34 16
+	231	[21]	return_values	17 19 1	; 18 out
+	232	[21]	return_values	17 1 1	; 0 out
+constants (38) for #1:
+	0	F	3.5
+	1	F	-0.5
+	2	I	0
+	3	F	0.0
+	4	I	-9223372036854775808
+	5	I	9223372036854775807
+	6	I	3
+	7	F	2.5
+	8	S	"x"
+	9	S	"y"
+	10	S	"math"
+	11	S	"huge"
+	12	F	126.5
+	13	S	"a long string constant that is longer than forty bytes in total"
+	14	F	0.3
+	15	F	inf
+	16	F	9.9998886718268e-321
+	17	F	65537.0
+	18	I	9007199254740993
+	19	F	9.007199254741e+15
+	20	F	9.2233720368548e+18
+	21	F	-9.2233720368548e+18
+	22	F	1e+15
+	23	I	123456789012345
+	24	I	-65536
+	25	I	131071
+	26	I	128
+	27	I	2
+	28	I	1
+	29	F	0.5
+	30	F	1.5
+	31	F	10000000000.0
+	32	S	"s"
+	33	S	"z"
+	34	N	nil
+	35	B	true
+	36	S	"a"
+	37	F	84.5
+locals (17) for #1:
+	0	a	3	233
+	1	b	9	233
+	2	c	27	233
+	3	d	36	233
+	4	e	42	233
+	5	i	50	233
+	6	j	60	233
+	7	k	66	233
+	8	l	75	233
+	9	x	76	233
+	10	y	76	233
+	11	m	96	233
+	12	n	119	233
+	13	o	135	233
+	14	p	171	233
+	15	q	205	233
+	16	r	213	233
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0

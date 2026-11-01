@@ -1,0 +1,405 @@
+1 function_body vararg
+  1 block
+    2 local_statement
+      2 name_list
+        2 local_name "a"
+      2 expression_list
+        2 binary_operation subtract
+          2 binary_operation add
+            2 integer_literal 1
+            2 binary_operation multiply
+              2 integer_literal 2
+              2 integer_literal 3
+          2 binary_operation modulo
+            2 binary_operation floor_divide
+              2 integer_literal 4
+              2 integer_literal 2
+            2 integer_literal 3
+    3 local_statement
+      3 name_list
+        3 local_name "b"
+      3 expression_list
+        3 binary_operation power
+          3 integer_literal 2
+          3 integer_literal 10
+        3 binary_operation divide
+          3 integer_literal 7
+          3 integer_literal 2
+        3 binary_operation floor_divide
+          3 unary_operation negate
+            3 integer_literal 7
+          3 integer_literal 2
+        3 binary_operation modulo
+          3 integer_literal 7
+          3 unary_operation negate
+            3 integer_literal 3
+        3 binary_operation modulo
+          3 unary_operation negate
+            3 integer_literal 7
+          3 integer_literal 3
+        3 binary_operation modulo
+          3 float_literal 0x401E000000000000
+          3 unary_operation negate
+            3 integer_literal 2
+    4 local_statement
+      4 name_list
+        4 local_name "c"
+      4 expression_list
+        4 binary_operation divide
+          4 integer_literal 1
+          4 integer_literal 0
+        4 binary_operation divide
+          4 unary_operation negate
+            4 integer_literal 1
+          4 integer_literal 0
+        4 binary_operation divide
+          4 integer_literal 0
+          4 integer_literal 0
+        4 binary_operation multiply
+          4 float_literal 0x0000000000000000
+          4 unary_operation negate
+            4 integer_literal 1
+        4 binary_operation floor_divide
+          4 integer_literal 1
+          4 integer_literal 0
+        4 binary_operation modulo
+          4 integer_literal 1
+          4 integer_literal 0
+    5 local_statement
+      5 name_list
+        5 local_name "d"
+      5 expression_list
+        5 binary_operation bitwise_or
+          5 binary_operation bitwise_and
+            5 integer_literal 3
+            5 integer_literal 5
+          5 binary_operation bitwise_exclusive_or
+            5 integer_literal 6
+            5 integer_literal 9
+        5 unary_operation bitwise_not
+          5 integer_literal 0
+        5 binary_operation shift_left
+          5 integer_literal 1
+          5 integer_literal 63
+        5 binary_operation shift_left
+          5 integer_literal 1
+          5 integer_literal 64
+        5 binary_operation shift_right
+          5 unary_operation negate
+            5 integer_literal 1
+          5 integer_literal 1
+        5 binary_operation bitwise_and
+          5 float_literal 0x4000000000000000
+          5 integer_literal 3
+        5 binary_operation bitwise_and
+          5 float_literal 0x4004000000000000
+          5 integer_literal 3
+    6 local_statement
+      6 name_list
+        6 local_name "e"
+      6 expression_list
+        6 binary_operation concatenate
+          6 string_literal "x"
+          6 string_literal "y"
+        6 unary_operation negate
+          6 parenthesized
+            6 binary_operation subtract
+              6 unary_operation negate
+                6 integer_literal 9223372036854775807
+              6 integer_literal 1
+        6 index_expression name-key
+          6 name_expression "math" global
+          6 string_literal "huge"
+    7 local_statement
+      7 name_list
+        7 local_name "f" constant_attribute
+      7 expression_list
+        7 integer_literal 42
+    8 local_statement
+      8 name_list
+        8 local_name "g" constant_attribute
+      8 expression_list
+        8 string_literal "a long string constant that is longer than forty bytes in total"
+    9 local_statement
+      9 name_list
+        9 local_name "h" constant_attribute
+      9 expression_list
+        9 binary_operation add
+          9 binary_operation multiply
+            9 name_expression "f" local@111
+            9 integer_literal 2
+          9 float_literal 0x3FE0000000000000
+    10 local_statement
+      10 name_list
+        10 local_name "i"
+      10 expression_list
+        10 binary_operation add
+          10 name_expression "f" local@111
+          10 name_expression "h" local@121
+        10 binary_operation concatenate
+          10 name_expression "g" local@116
+          10 name_expression "g" local@116
+        10 unary_operation negate
+          10 name_expression "f" local@111
+        10 unary_operation logical_not
+          10 name_expression "f" local@111
+        10 unary_operation length
+          10 name_expression "g" local@116
+    11 local_statement
+      11 name_list
+        11 local_name "j"
+      11 expression_list
+        11 binary_operation add
+          11 float_literal 0x3FB999999999999A
+          11 float_literal 0x3FC999999999999A
+        11 binary_operation multiply
+          11 float_literal 0x7FE1CCF385EBC8A0
+          11 integer_literal 10
+        11 unary_operation negate
+          11 float_literal 0x0000000000000000
+        11 float_literal 0x00000000000007E8
+        11 float_literal 0x4008000000000000
+        11 unary_operation negate
+          11 float_literal 0x4008000000000000
+        11 float_literal 0x40F0000000000000
+        11 float_literal 0x40F0001000000000
+        11 unary_operation negate
+          11 float_literal 0x40EFFFE000000000
+    12 local_statement
+      12 name_list
+        12 local_name "k"
+      12 expression_list
+        12 integer_literal 9007199254740993
+        12 binary_operation power
+          12 integer_literal 2
+          12 integer_literal 53
+        12 binary_operation power
+          12 integer_literal 2
+          12 integer_literal 63
+        12 unary_operation negate
+          12 binary_operation power
+            12 integer_literal 2
+            12 integer_literal 63
+        12 float_literal 0x430C6BF526340000
+        12 integer_literal 123456789012345
+    13 local_statement
+      13 name_list
+        13 local_name "l"
+      13 expression_list
+        13 integer_literal 127
+        13 integer_literal 128
+        13 unary_operation negate
+          13 integer_literal 127
+        13 unary_operation negate
+          13 integer_literal 128
+        13 integer_literal 65535
+        13 integer_literal 65536
+        13 unary_operation negate
+          13 integer_literal 65535
+        13 unary_operation negate
+          13 integer_literal 65536
+        13 integer_literal 131071
+    14 local_statement
+      14 name_list
+        14 local_name "x"
+        14 local_name "y"
+      14 expression_list
+        14 vararg_expression
+    15 local_statement
+      15 name_list
+        15 local_name "m"
+      15 expression_list
+        15 binary_operation add
+          15 name_expression "x" local@200
+          15 integer_literal 1
+        15 binary_operation add
+          15 name_expression "x" local@200
+          15 integer_literal 127
+        15 binary_operation add
+          15 name_expression "x" local@200
+          15 integer_literal 128
+        15 binary_operation subtract
+          15 name_expression "x" local@200
+          15 integer_literal 127
+        15 binary_operation subtract
+          15 name_expression "x" local@200
+          15 integer_literal 128
+        15 binary_operation add
+          15 integer_literal 1
+          15 name_expression "x" local@200
+        15 binary_operation multiply
+          15 name_expression "x" local@200
+          15 integer_literal 2
+        15 binary_operation multiply
+          15 integer_literal 2
+          15 name_expression "x" local@200
+        15 binary_operation divide
+          15 name_expression "x" local@200
+          15 integer_literal 3
+        15 binary_operation floor_divide
+          15 name_expression "x" local@200
+          15 integer_literal 3
+    16 local_statement
+      16 name_list
+        16 local_name "n"
+      16 expression_list
+        16 binary_operation modulo
+          16 name_expression "x" local@200
+          16 integer_literal 3
+        16 binary_operation power
+          16 name_expression "x" local@200
+          16 integer_literal 2
+        16 binary_operation bitwise_and
+          16 name_expression "x" local@200
+          16 integer_literal 1
+        16 binary_operation bitwise_and
+          16 integer_literal 1
+          16 name_expression "x" local@200
+        16 binary_operation bitwise_or
+          16 name_expression "x" local@200
+          16 integer_literal 2
+        16 binary_operation bitwise_exclusive_or
+          16 name_expression "x" local@200
+          16 integer_literal 3
+        16 binary_operation shift_left
+          16 name_expression "x" local@200
+          16 integer_literal 1
+        16 binary_operation shift_left
+          16 name_expression "x" local@200
+          16 integer_literal 200
+        16 binary_operation shift_left
+          16 integer_literal 1
+          16 name_expression "x" local@200
+        16 binary_operation shift_right
+          16 name_expression "x" local@200
+          16 integer_literal 2
+        16 binary_operation shift_right
+          16 name_expression "x" local@200
+          16 unary_operation negate
+            16 integer_literal 2
+    17 local_statement
+      17 name_list
+        17 local_name "o"
+      17 expression_list
+        17 binary_operation add
+          17 name_expression "x" local@200
+          17 float_literal 0x3FE0000000000000
+        17 binary_operation subtract
+          17 name_expression "x" local@200
+          17 float_literal 0x3FF8000000000000
+        17 binary_operation multiply
+          17 name_expression "x" local@200
+          17 float_literal 0x4202A05F20000000
+        17 binary_operation add
+          17 name_expression "x" local@200
+          17 string_literal "s"
+        17 binary_operation add
+          17 name_expression "x" local@200
+          17 name_expression "y" local@201
+        17 binary_operation concatenate
+          17 name_expression "x" local@200
+          17 binary_operation concatenate
+            17 name_expression "y" local@201
+            17 binary_operation concatenate
+              17 string_literal "z"
+              17 integer_literal 1
+    18 local_statement
+      18 name_list
+        18 local_name "p"
+      18 expression_list
+        18 binary_operation equal
+          18 name_expression "x" local@200
+          18 integer_literal 1
+        18 binary_operation not_equal
+          18 name_expression "x" local@200
+          18 float_literal 0x3FF0000000000000
+        18 binary_operation equal
+          18 name_expression "x" local@200
+          18 string_literal "s"
+        18 binary_operation equal
+          18 name_expression "x" local@200
+          18 nil_literal
+        18 binary_operation equal
+          18 name_expression "x" local@200
+          18 true_literal
+        18 binary_operation equal
+          18 name_expression "x" local@200
+          18 name_expression "y" local@201
+        18 binary_operation equal
+          18 integer_literal 1
+          18 name_expression "x" local@200
+        18 binary_operation less
+          18 name_expression "x" local@200
+          18 integer_literal 1
+        18 binary_operation less
+          18 integer_literal 1
+          18 name_expression "x" local@200
+    19 local_statement
+      19 name_list
+        19 local_name "q"
+      19 expression_list
+        19 binary_operation less_equal
+          19 name_expression "x" local@200
+          19 integer_literal 127
+        19 binary_operation greater
+          19 name_expression "x" local@200
+          19 integer_literal 128
+        19 binary_operation greater_equal
+          19 name_expression "x" local@200
+          19 unary_operation negate
+            19 integer_literal 1
+        19 binary_operation less
+          19 float_literal 0x3FF8000000000000
+          19 name_expression "x" local@200
+        19 binary_operation less
+          19 name_expression "x" local@200
+          19 float_literal 0x4000000000000000
+        19 binary_operation less
+          19 string_literal "a"
+          19 name_expression "x" local@200
+        19 binary_operation greater
+          19 name_expression "x" local@200
+          19 name_expression "y" local@201
+        19 binary_operation greater_equal
+          19 name_expression "x" local@200
+          19 name_expression "y" local@201
+    20 local_statement
+      20 name_list
+        20 local_name "r"
+      20 expression_list
+        20 unary_operation logical_not
+          20 name_expression "x" local@200
+        20 unary_operation logical_not
+          20 nil_literal
+        20 unary_operation logical_not
+          20 integer_literal 1
+        20 unary_operation logical_not
+          20 unary_operation logical_not
+            20 name_expression "x" local@200
+        20 unary_operation negate
+          20 name_expression "x" local@200
+        20 unary_operation bitwise_not
+          20 name_expression "x" local@200
+        20 unary_operation length
+          20 name_expression "x" local@200
+    21 return_statement
+      21 expression_list
+        21 name_expression "a" local@1
+        21 name_expression "b" local@16
+        21 name_expression "c" local@42
+        21 name_expression "d" local@66
+        21 name_expression "e" local@95
+        21 name_expression "f" local@111
+        21 name_expression "g" local@116
+        21 name_expression "h" local@121
+        21 name_expression "i" local@130
+        21 name_expression "j" local@146
+        21 name_expression "k" local@166
+        21 name_expression "l" local@183
+        21 name_expression "m" local@206
+        21 name_expression "n" local@240
+        21 name_expression "o" local@278
+        21 name_expression "p" local@304
+        21 name_expression "q" local@335
+        21 name_expression "r" local@364
+exit 0

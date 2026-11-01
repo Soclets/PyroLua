@@ -1,0 +1,6 @@
+refused: tests/corpus/resolver/goto_in_function_expression.lua:1:16, line 1 column 16
+ 1 | x = function() goto l end
+   |                ^^^^^^
+ what: no label `l` is visible from this `goto`
+ why:  a label is visible in the block where it is defined, except inside nested functions (Lua 5.4 manual §3.3.4)
+exit 1

@@ -1,0 +1,37 @@
+
+main <tests/corpus/parser/assignments.lua:0,0> (20 instructions at #1)
+0+ params, 7 slots, 1 upvalue, 4 locals, 5 constants, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[1]	load_nil 	0 2	; 3 out
+	3	[2]	load_integer	3 1
+	4	[2]	load_integer	1 2
+	5	[2]	move     	0 3
+	6	[3]	load_integer	3 3
+	7	[3]	load_integer	4 4
+	8	[3]	load_nil 	5 0	; 1 out
+	9	[3]	move     	2 5
+	10	[3]	set_integer	1 1 4
+	11	[3]	set_field	0 0 3	; "x"
+	12	[4]	new_table	3 0 0	; 0
+	13	[4]	extra_argument	0
+	14	[5]	get_field	4 3 1	; "a"
+	15	[5]	get_field	4 4 2	; "b"
+	16	[5]	get_integer	5 3 1
+	17	[5]	load_integer	6 1
+	18	[5]	set_integer	5 2 4k	; 2
+	19	[5]	set_field	4 3 6	; "c"
+	20	[5]	return_values	4 1 1	; 0 out
+constants (5) for #1:
+	0	S	"x"
+	1	S	"a"
+	2	S	"b"
+	3	S	"c"
+	4	I	2
+locals (4) for #1:
+	0	a	3	21
+	1	b	3	21
+	2	c	3	21
+	3	t	14	21
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0

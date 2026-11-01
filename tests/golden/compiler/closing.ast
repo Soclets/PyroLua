@@ -1,0 +1,87 @@
+1 function_body vararg
+  1 block
+    2 local_function
+      2 local_name "f"
+      2 function_body
+        2 name_list
+        3 block
+          3 local_statement
+            3 name_list
+              3 local_name "x" close_attribute
+            3 expression_list
+              3 nil_literal
+          4 local_statement
+            4 name_list
+              4 local_name "y" constant_attribute
+            4 expression_list
+              4 integer_literal 10
+          5 local_statement
+            5 name_list
+              5 local_name "z" constant_attribute
+            5 expression_list
+              5 table_constructor
+          6 do_statement
+            7 block
+              7 local_statement
+                7 name_list
+                  7 local_name "w" close_attribute
+                7 expression_list
+                  7 call_expression
+                    7 name_expression "setmetatable" global
+                    7 table_constructor
+                    7 table_constructor
+                      7 named_field name-key
+                        7 string_literal "__close"
+                        7 name_expression "print" global
+              8 return_statement
+                8 expression_list
+                  8 name_expression "w" local@18
+                  8 name_expression "y" local@8
+                  8 name_expression "z" local@13
+    11 local_function
+      11 local_name "g"
+      11 function_body vararg
+        11 name_list
+        12 block
+          12 local_statement
+            12 name_list
+              12 local_name "a" close_attribute
+            12 expression_list
+              12 vararg_expression
+          13 return_statement
+            13 expression_list
+              13 call_expression
+                13 name_expression "g" upvalue@39
+                13 vararg_expression
+    15 local_function
+      15 local_name "h"
+      15 function_body
+        15 name_list
+        16 block
+          16 local_statement
+            16 name_list
+              16 local_name "a" close_attribute
+            16 expression_list
+              16 nil_literal
+          17 return_statement
+            17 expression_list
+              17 call_expression
+                17 name_expression "h" upvalue@54
+    19 generic_for
+      19 name_list
+        19 local_name "k"
+        19 local_name "v"
+      19 expression_list
+        19 call_expression
+          19 name_expression "pairs" global
+          19 table_constructor
+      19 block
+        19 return_statement
+          19 expression_list
+            19 name_expression "k" local@68
+    20 return_statement
+      20 expression_list
+        20 name_expression "f" local@1
+        20 name_expression "g" local@39
+        20 name_expression "h" local@54
+exit 0

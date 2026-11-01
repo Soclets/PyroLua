@@ -1,0 +1,387 @@
+2 keyword local
+2 name t
+2 =
+2 {
+2 }
+3 keyword for
+3 name i
+3 =
+3 integer 1
+3 ,
+3 integer 10
+3 keyword do
+3 name t
+3 [
+3 name i
+3 ]
+3 =
+3 keyword function
+3 (
+3 )
+3 keyword return
+3 name i
+3 keyword end
+3 keyword end
+4 keyword for
+4 name i
+4 =
+4 integer 10
+4 ,
+4 integer 1
+4 ,
+4 -
+4 integer 1
+4 keyword do
+4 keyword if
+4 name i
+4 ==
+4 integer 5
+4 keyword then
+4 keyword break
+4 keyword end
+4 keyword end
+5 keyword for
+5 name i
+5 =
+5 float 1.0 0x3FF0000000000000
+5 ,
+5 integer 2
+5 keyword do
+5 keyword end
+6 keyword for
+6 name k
+6 ,
+6 name v
+6 keyword in
+6 name pairs
+6 (
+6 name t
+6 )
+6 keyword do
+6 name t
+6 [
+6 name k
+6 ]
+6 =
+6 name v
+6 keyword end
+7 keyword for
+7 name k
+7 ,
+7 name v
+7 ,
+7 name w
+7 ,
+7 name z
+7 keyword in
+7 name next
+7 ,
+7 name t
+7 keyword do
+7 keyword local
+7 name a
+7 =
+7 name k
+7 keyword end
+8 keyword while
+8 #
+8 name t
+8 >
+8 integer 0
+8 keyword do
+8 name table
+8 .
+8 name remove
+8 (
+8 name t
+8 )
+8 keyword if
+8 #
+8 name t
+8 ==
+8 integer 3
+8 keyword then
+8 keyword break
+8 keyword end
+8 keyword end
+9 keyword repeat
+9 keyword local
+9 name x
+9 =
+9 #
+9 name t
+9 keyword until
+9 name x
+9 ==
+9 integer 0
+10 keyword repeat
+10 keyword local
+10 name y
+10 =
+10 integer 1
+10 ;
+10 keyword local
+10 name f
+10 =
+10 keyword function
+10 (
+10 )
+10 keyword return
+10 name y
+10 keyword end
+10 keyword until
+10 name f
+10 (
+10 )
+10 ==
+10 integer 1
+11 keyword local
+11 name n
+11 =
+11 integer 0
+12 ::
+12 name top
+12 ::
+13 name n
+13 =
+13 name n
+13 +
+13 integer 1
+14 keyword if
+14 name n
+14 <
+14 integer 3
+14 keyword then
+14 keyword goto
+14 name top
+14 keyword end
+15 keyword do
+16 keyword local
+16 name u
+16 =
+16 integer 1
+17 keyword local
+17 name g
+17 =
+17 keyword function
+17 (
+17 )
+17 keyword return
+17 name u
+17 keyword end
+18 keyword goto
+18 name skip
+19 name print
+19 (
+19 name g
+19 )
+20 ::
+20 name skip
+20 ::
+21 keyword end
+22 keyword for
+22 name i
+22 =
+22 integer 1
+22 ,
+22 integer 3
+22 keyword do
+23 keyword local
+23 name v
+23 =
+23 name i
+24 keyword local
+24 name h
+24 =
+24 keyword function
+24 (
+24 )
+24 keyword return
+24 name v
+24 keyword end
+25 keyword if
+25 name i
+25 ==
+25 integer 2
+25 keyword then
+25 keyword goto
+25 name continue
+25 keyword end
+26 name print
+26 (
+26 name h
+26 (
+26 )
+26 )
+27 ::
+27 name continue
+27 ::
+28 keyword end
+29 keyword while
+29 keyword true
+29 keyword do
+30 keyword if
+30 name n
+30 keyword then
+30 keyword break
+30 keyword end
+31 keyword if
+31 name n
+31 >
+31 integer 1
+31 keyword then
+31 keyword break
+31 ;
+31 keyword end
+32 keyword if
+32 keyword not
+32 name n
+32 keyword then
+32 keyword break
+32 ;
+32 name print
+32 (
+32 name n
+32 )
+32 keyword end
+33 keyword end
+34 keyword if
+34 name n
+34 ==
+34 integer 1
+34 keyword then
+34 name print
+34 (
+34 integer 1
+34 )
+34 keyword elseif
+34 name n
+34 ==
+34 integer 2
+34 keyword then
+34 name print
+34 (
+34 integer 2
+34 )
+34 keyword elseif
+34 name n
+34 keyword then
+34 name print
+34 (
+34 integer 3
+34 )
+34 keyword else
+34 name print
+34 (
+34 integer 4
+34 )
+34 keyword end
+35 keyword if
+35 name n
+35 keyword and
+35 name t
+35 keyword or
+35 keyword not
+35 name n
+35 keyword then
+35 name print
+35 (
+35 name n
+35 )
+35 keyword end
+36 keyword local
+36 name z
+36 =
+36 name n
+36 keyword and
+36 integer 1
+36 keyword or
+36 integer 2
+37 keyword local
+37 name w
+37 =
+37 (
+37 name n
+37 >
+37 integer 1
+37 )
+37 keyword and
+37 (
+37 name n
+37 <
+37 integer 3
+37 )
+37 keyword or
+37 (
+37 name n
+37 ==
+37 integer 0
+37 )
+38 keyword local
+38 name v
+38 =
+38 name n
+38 keyword or
+38 keyword nil
+39 name print
+39 (
+39 name z
+39 ,
+39 name w
+39 ,
+39 name v
+39 ,
+39 name n
+39 ==
+39 integer 1
+39 keyword and
+39 name t
+39 )
+40 keyword do
+40 ::
+40 name a
+40 ::
+40 ::
+40 name b
+40 ::
+40 ;
+40 ::
+40 name c
+40 ::
+40 keyword end
+41 keyword while
+41 name n
+41 keyword do
+42 keyword if
+42 keyword false
+42 keyword then
+42 keyword break
+42 keyword end
+43 keyword if
+43 keyword nil
+43 keyword then
+43 keyword break
+43 ;
+43 name n
+43 =
+43 integer 1
+43 keyword end
+44 keyword if
+44 keyword true
+44 keyword then
+44 keyword break
+44 keyword end
+45 keyword end
+46 keyword goto
+46 name done
+47 keyword local
+47 keyword function
+47 name unused
+47 (
+47 )
+47 keyword end
+48 ::
+48 name done
+48 ::
+49 <eof>
+exit 0

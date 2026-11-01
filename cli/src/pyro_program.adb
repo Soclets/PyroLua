@@ -13,8 +13,11 @@ with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with GNAT.OS_Lib;
 with Interfaces;
+with Bytecode_Listing;
 with Pyro;
+with Pyro.Bytecode;
 with Pyro.Character_Arrays;
+with Pyro.Compiler;
 with Pyro.Diagnostics;
 with Pyro.Diagnostics.Rendering;
 with Pyro.Diagnostic_Lists;
@@ -38,7 +41,7 @@ procedure Pyro_Program is
    function To_Integer is new Ada.Unchecked_Conversion
      (Interfaces.Unsigned_64, Interfaces.Integer_64);
 
-   type Mode is (Tokens_Mode, Tree_Mode, Check_Mode);
+   type Mode is (Tokens_Mode, Tree_Mode, Check_Mode, Bytecode_Mode);
 
    --  Report errors as luac does (one line), rather than the rich report.
    Lua_Style : Boolean := False;
@@ -326,7 +329,7 @@ procedure Pyro_Program is
             if Pyro.Lexer.Failed (Lexer) then
                Report (Pyro.Lexer.Error (Lexer));
             end if;
-         when Tree_Mode | Check_Mode =>
+         when Tree_Mode | Check_Mode | Bytecode_Mode =>
             declare
                use Pyro.Syntax_Trees;
                Tree     : Syntax_Tree;
@@ -334,6 +337,7 @@ procedure Pyro_Program is
                Root     : Node_Index;
                Count    : Natural;
                Bindings : Pyro.Resolver.Binding_Table;
+               Compiled : Pyro.Bytecode.Chunk;
 
                --  Prints one node's line. Trees can be far deeper than the parser's nesting limit
                --  (a long chain of "a + a + ..."), so nothing here depends on the depth.
@@ -434,8 +438,17 @@ procedure Pyro_Program is
                Pyro.Parser.Parse (Source.all, Symbols, Budget, Tree, Problems, Root);
                Pyro.Resolver.Resolve (Tree, Root, Symbols, Budget, Problems, Bindings);
                Count := Natural (Pyro.Diagnostic_Lists.Length (Problems));
+               if Count = 0 and then Selected /= Tree_Mode then
+                  --  [differs] Compile-time limits are checked only in chunks without other
+                  --  errors.
+                  Pyro.Compiler.Compile
+                    (Source.all, Tree, Root, Symbols, Budget, Problems, Compiled);
+                  Count := Natural (Pyro.Diagnostic_Lists.Length (Problems));
+               end if;
                if Selected = Tree_Mode then
                   Print (Root);
+               elsif Selected = Bytecode_Mode and then Count = 0 then
+                  Bytecode_Listing.Print (Compiled, Symbols, Source.all, Lua_Style);
                end if;
                if Count > 0 and then Lua_Style then
                   --  The error PUC Lua would raise first.
@@ -497,6 +510,7 @@ procedure Pyro_Program is
                      Free (Order);
                   end;
                end if;
+               Pyro.Bytecode.Clear (Compiled, Budget);
                Clear (Tree, Budget);
                Pyro.Diagnostic_Lists.Clear (Problems, Budget);
                Pyro.Resolver.Clear (Bindings, Budget);
@@ -510,16 +524,17 @@ procedure Pyro_Program is
 
    procedure Usage is
    begin
-      Put_Error ("usage: pyro (--tokens | --ast | --check [--lua-style]) file.lua" & ASCII.LF);
+      Put_Error ("usage: pyro (--tokens | --ast | --check [--lua-style]"
+                 & " | --bytecode [--lua-style]) file.lua" & ASCII.LF);
       Set_Exit_Status (2);
    end Usage;
    procedure Main is
    begin
-      if Argument_Count = 3 and then Argument (1) = "--check"
+      if Argument_Count = 3 and then Argument (1) in "--check" | "--bytecode"
         and then Argument (2) = "--lua-style"
       then
          Lua_Style := True;
-         Run (Check_Mode, Argument (3));
+         Run ((if Argument (1) = "--check" then Check_Mode else Bytecode_Mode), Argument (3));
       elsif Argument_Count /= 2 then
          Usage;
       elsif Argument (1) = "--tokens" then
@@ -528,6 +543,8 @@ procedure Pyro_Program is
          Run (Tree_Mode, Argument (2));
       elsif Argument (1) = "--check" then
          Run (Check_Mode, Argument (2));
+      elsif Argument (1) = "--bytecode" then
+         Run (Bytecode_Mode, Argument (2));
       else
          Usage;
       end if;

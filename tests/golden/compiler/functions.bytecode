@@ -1,0 +1,262 @@
+
+main <tests/corpus/compiler/functions.lua:0,0> (115 instructions at #8)
+0+ params, 14 slots, 1 upvalue, 12 locals, 17 constants, 5 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	load_integer	0 1
+	3	[2]	load_nil 	1 1	; 2 out
+	4	[12]	closure  	3 0	; #3
+	5	[13]	closure  	4 1	; #4
+	6	[13]	set_table_upvalue	0 0 4	; _ENV "outer2"
+	7	[14]	new_table	4 0 0	; 0
+	8	[14]	extra_argument	0
+	9	[15]	closure  	5 2	; #5
+	10	[15]	set_field	4 1 5	; "f"
+	11	[16]	closure  	5 3	; #6
+	12	[16]	set_field	4 2 5	; "m"
+	13	[17]	get_field	5 4 3	; "nested"
+	14	[17]	get_field	5 5 4	; "deep"
+	15	[17]	closure  	6 4	; #7
+	16	[17]	set_field	5 5 6	; "method"
+	17	[18]	self     	5 4 2k	; "m"
+	18	[18]	load_integer	7 1
+	19	[18]	call     	5 3 2	; 2 in 1 out
+	20	[18]	load_integer	6 2
+	21	[18]	call     	5 2 2	; 1 in 1 out
+	22	[18]	load_constant	6 6	; "s"
+	23	[18]	call     	5 2 2	; 1 in 1 out
+	24	[18]	new_table	6 0 0	; 0
+	25	[18]	extra_argument	0
+	26	[18]	call     	5 2 1	; 1 in 0 out
+	27	[19]	get_table_upvalue	5 0 7	; _ENV "print"
+	28	[19]	get_field	6 4 1	; "f"
+	29	[19]	load_integer	7 1
+	30	[19]	call     	6 2 2	; 1 in 1 out
+	31	[19]	self     	7 4 2k	; "m"
+	32	[19]	load_integer	9 2
+	33	[19]	call     	7 3 2	; 2 in 1 out
+	34	[19]	move     	8 3
+	35	[19]	load_integer	9 1
+	36	[19]	load_integer	10 2
+	37	[19]	load_integer	11 3
+	38	[19]	call     	8 4 0	; 3 in all out
+	39	[19]	call     	5 0 1	; all in 0 out
+	40	[20]	new_table	5 3 5	; 5
+	41	[20]	extra_argument	0
+	42	[20]	load_integer	6 1
+	43	[20]	load_integer	7 2
+	44	[20]	load_integer	8 3
+	45	[20]	set_field	5 8 9k	; "x" 1
+	46	[20]	set_field	5 10 11k	; "y" 2
+	47	[20]	set_integer	5 3 12k	; 3
+	48	[20]	get_table_upvalue	9 0 1	; _ENV "f"
+	49	[20]	call     	9 1 2	; 0 in 1 out
+	50	[20]	get_table_upvalue	10 0 13	; _ENV "g"
+	51	[20]	call     	10 1 2	; 0 in 1 out
+	52	[20]	vararg   	11 0	; all out
+	53	[20]	set_list 	5 0 0
+	54	[21]	new_table	6 0 0	; 0
+	55	[21]	extra_argument	0
+	56	[21]	get_table_upvalue	7 0 1	; _ENV "f"
+	57	[21]	call     	7 1 0	; 0 in all out
+	58	[21]	set_list 	6 0 0
+	59	[22]	new_table	7 3 0	; 0
+	60	[22]	extra_argument	0
+	61	[22]	set_field	7 8 9k	; "x" 1
+	62	[22]	set_field	7 10 11k	; "y" 2
+	63	[22]	set_field	7 14 12k	; "z" 3
+	64	[22]	set_field	7 15 16k	; "w" 4
+	65	[23]	new_table	8 2 2	; 2
+	66	[23]	extra_argument	0
+	67	[23]	set_integer	8 1 9k	; 1
+	68	[23]	set_integer	8 2 11k	; 2
+	69	[23]	load_integer	9 3
+	70	[23]	load_integer	10 4
+	71	[23]	set_list 	8 2 0
+	72	[24]	move     	9 2
+	73	[24]	move     	10 1
+	74	[24]	move     	2 0
+	75	[24]	move     	1 10
+	76	[24]	move     	0 9
+	77	[25]	move     	9 0
+	78	[25]	load_integer	10 1
+	79	[25]	load_integer	0 2
+	80	[25]	set_field	9 8 10	; "x"
+	81	[26]	load_integer	9 1
+	82	[26]	set_field	0 8 11k	; "x" 2
+	83	[26]	move     	0 9
+	84	[27]	load_nil 	9 1	; 2 out
+	85	[28]	load_integer	11 1
+	86	[28]	load_integer	12 2
+	87	[28]	set_table	9 9 12k	; 3
+	88	[28]	set_field	9 8 12	; "x"
+	89	[28]	move     	9 11
+	90	[29]	get_table_upvalue	11 0 1	; _ENV "f"
+	91	[29]	call     	11 1 4	; 0 in 3 out
+	92	[29]	set_integer	5 3 13
+	93	[29]	set_integer	5 2 12
+	94	[29]	set_integer	5 1 11
+	95	[30]	get_table_upvalue	11 0 1	; _ENV "f"
+	96	[30]	call     	11 1 2	; 0 in 1 out
+	97	[30]	get_table_upvalue	12 0 13	; _ENV "g"
+	98	[30]	call     	12 1 2	; 0 in 1 out
+	99	[30]	move     	1 12
+	100	[30]	move     	0 11
+	101	[31]	get_table_upvalue	11 0 1	; _ENV "f"
+	102	[31]	call     	11 1 2	; 0 in 1 out
+	103	[31]	load_nil 	12 1	; 2 out
+	104	[31]	move     	2 13
+	105	[31]	move     	1 12
+	106	[31]	move     	0 11
+	107	[32]	vararg   	11 3	; 2 out
+	108	[32]	set_table_upvalue	0 10 12	; _ENV "y"
+	109	[32]	set_table_upvalue	0 8 11	; _ENV "x"
+	110	[33]	vararg   	11 2	; 1 out
+	111	[34]	get_table_upvalue	12 0 1	; _ENV "f"
+	112	[34]	vararg   	13 0	; all out
+	113	[34]	tail_call	12 0 1k	; -1 in
+	114	[34]	return_values	12 0 1k	; all out
+	115	[34]	return_values	12 1 1k	; 0 out
+constants (17) for #8:
+	0	S	"outer2"
+	1	S	"f"
+	2	S	"m"
+	3	S	"nested"
+	4	S	"deep"
+	5	S	"method"
+	6	S	"s"
+	7	S	"print"
+	8	S	"x"
+	9	I	1
+	10	S	"y"
+	11	I	2
+	12	I	3
+	13	S	"g"
+	14	S	"z"
+	15	S	"w"
+	16	I	4
+locals (12) for #8:
+	0	a	4	116
+	1	b	4	116
+	2	c	4	116
+	3	outer	5	116
+	4	obj	9	116
+	5	t	54	116
+	6	u	59	116
+	7	v	65	116
+	8	w	72	116
+	9	s	85	116
+	10	s2	85	116
+	11	q	111	116
+upvalues (1) for #8:
+	0	_ENV	1	0
+
+function <tests/corpus/compiler/functions.lua:3,12> (15 instructions at #3)
+1+ param, 7 slots, 4 upvalues, 3 locals, 2 constants, 1 function
+	1	[3]	vararg_prepare	1
+	2	[4]	vararg   	1 2	; 1 out
+	3	[10]	closure  	2 0	; #2
+	4	[11]	move     	3 2
+	5	[11]	get_table_upvalue	4 3 0	; _ENV "select"
+	6	[11]	load_constant	5 1	; "#"
+	7	[11]	vararg   	6 0	; all out
+	8	[11]	call     	4 0 2	; all in 1 out
+	9	[11]	new_table	5 0 0	; 0
+	10	[11]	extra_argument	0
+	11	[11]	vararg   	6 0	; all out
+	12	[11]	set_list 	5 0 0
+	13	[11]	vararg   	6 0	; all out
+	14	[11]	return_values	3 0 2k	; all out
+	15	[12]	return_values	3 1 2k	; 0 out
+constants (2) for #3:
+	0	S	"select"
+	1	S	"#"
+locals (3) for #3:
+	0	x	1	16
+	1	y	3	16
+	2	middle	4	16
+upvalues (4) for #3:
+	0	a	1	0
+	1	b	1	1
+	2	outer	1	3
+	3	_ENV	0	0
+
+function <tests/corpus/compiler/functions.lua:5,10> (3 instructions at #2)
+1 param, 2 slots, 6 upvalues, 2 locals, 0 constants, 1 function
+	1	[8]	closure  	1 0	; #1
+	2	[9]	return_values	1 2 0k	; 1 out
+	3	[10]	return_values	2 1 0k	; 0 out
+constants (0) for #2:
+locals (2) for #2:
+	0	z	1	4
+	1	inner	2	4
+upvalues (6) for #2:
+	0	x	1	0
+	1	y	1	1
+	2	a	0	0
+	3	b	0	1
+	4	outer	0	2
+	5	_ENV	0	3
+
+function <tests/corpus/compiler/functions.lua:6,8> (9 instructions at #1)
+0 params, 7 slots, 7 upvalues, 0 locals, 1 constant, 0 functions
+	1	[7]	get_upvalue	0 0	; x
+	2	[7]	get_upvalue	1 1	; y
+	3	[7]	get_upvalue	2 2	; z
+	4	[7]	get_upvalue	3 3	; a
+	5	[7]	get_upvalue	4 4	; b
+	6	[7]	get_upvalue	5 5	; outer
+	7	[7]	get_table_upvalue	6 6 0	; _ENV "print"
+	8	[7]	return_values	0 8 0	; 7 out
+	9	[8]	return_none	
+constants (1) for #1:
+	0	S	"print"
+locals (0) for #1:
+upvalues (7) for #1:
+	0	x	0	0
+	1	y	0	1
+	2	z	1	0
+	3	a	0	2
+	4	b	0	3
+	5	outer	0	4
+	6	_ENV	0	5
+
+function <tests/corpus/compiler/functions.lua:13,13> (4 instructions at #4)
+1+ param, 2 slots, 0 upvalues, 1 local, 0 constants, 0 functions
+	1	[13]	vararg_prepare	1
+	2	[13]	vararg   	1 0	; all out
+	3	[13]	return_values	1 0 2	; all out
+	4	[13]	return_values	1 1 2	; 0 out
+constants (0) for #4:
+locals (1) for #4:
+	0	self	1	5
+upvalues (0) for #4:
+
+function <tests/corpus/compiler/functions.lua:15,15> (2 instructions at #5)
+1 param, 2 slots, 0 upvalues, 1 local, 0 constants, 0 functions
+	1	[15]	return_one	0
+	2	[15]	return_none	
+constants (0) for #5:
+locals (1) for #5:
+	0	p	1	3
+upvalues (0) for #5:
+
+function <tests/corpus/compiler/functions.lua:16,16> (4 instructions at #6)
+2 params, 4 slots, 0 upvalues, 2 locals, 0 constants, 0 functions
+	1	[16]	move     	2 0
+	2	[16]	move     	3 1
+	3	[16]	return_values	2 3 0	; 2 out
+	4	[16]	return_none	
+constants (0) for #6:
+locals (2) for #6:
+	0	self	1	5
+	1	q	1	5
+upvalues (0) for #6:
+
+function <tests/corpus/compiler/functions.lua:17,17> (1 instruction at #7)
+1 param, 2 slots, 0 upvalues, 1 local, 0 constants, 0 functions
+	1	[17]	return_none	
+constants (0) for #7:
+locals (1) for #7:
+	0	self	1	2
+upvalues (0) for #7:
+exit 0

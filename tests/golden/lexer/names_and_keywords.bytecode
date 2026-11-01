@@ -1,0 +1,54 @@
+
+main <tests/corpus/lexer/names_and_keywords.lua:0,0> (24 instructions at #2)
+0+ params, 8 slots, 1 upvalue, 9 locals, 0 constants, 1 function
+	1	[1]	vararg_prepare	0
+	2	[1]	load_integer	0 1
+	3	[1]	load_integer	1 2
+	4	[1]	load_integer	2 3
+	5	[1]	load_integer	3 4
+	6	[2]	test     	1 0
+	7	[2]	jump     	2	; to 10
+	8	[2]	jump     	4	; to 13
+	9	[2]	jump     	3	; to 13
+	10	[2]	test     	2 0
+	11	[2]	jump     	1	; to 13
+	12	[2]	jump     	0	; to 13
+	13	[4]	load_false	4
+	14	[4]	test     	4 0
+	15	[4]	jump     	2	; to 18
+	16	[4]	jump     	1	; to 18
+	17	[4]	jump     	-5	; to 13
+	18	[6]	load_integer	4 1
+	19	[6]	load_integer	5 2
+	20	[6]	load_integer	6 1
+	21	[6]	for_prepare	4 0	; exit to 23
+	22	[6]	for_loop 	4 1	; to 22
+	23	[7]	closure  	4 0	; #1
+	24	[7]	return_values	5 1 1	; 0 out
+constants (0) for #2:
+locals (9) for #2:
+	0	_ok	6	25
+	1	x1	6	25
+	2	andx	6	25
+	3	End	6	25
+	4	(for state)	21	23
+	5	(for state)	21	23
+	6	(for state)	21	23
+	7	i	22	22
+	8	f	24	25
+upvalues (1) for #2:
+	0	_ENV	1	0
+
+function <tests/corpus/lexer/names_and_keywords.lua:7,7> (7 instructions at #1)
+0+ params, 2 slots, 0 upvalues, 0 locals, 0 constants, 0 functions
+	1	[7]	vararg_prepare	0
+	2	[7]	load_true	0
+	3	[7]	test     	0 1
+	4	[7]	jump     	1	; to 6
+	5	[7]	load_false	0
+	6	[7]	return_values	0 2 1	; 1 out
+	7	[7]	return_values	0 1 1	; 0 out
+constants (0) for #1:
+locals (0) for #1:
+upvalues (0) for #1:
+exit 0

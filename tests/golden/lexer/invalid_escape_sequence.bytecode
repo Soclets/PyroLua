@@ -1,0 +1,6 @@
+refused: tests/corpus/lexer/invalid_escape_sequence.lua:1:12, line 1 column 12
+ 1 | local a = "\q"
+   |            ^^
+ what: `\q` is not an escape sequence
+ why:  the escapes are \a \b \f \n \r \t \v \\ \" \' \z \xXX \ddd \u{XXX}, and \ before a line break (Lua 5.4 manual §3.1)
+exit 1

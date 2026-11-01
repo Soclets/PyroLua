@@ -1,0 +1,6 @@
+refused: tests/corpus/parser/function_arguments_expected.lua:1:5, line 1 column 5
+ 1 | a:b + 1
+   |     ^
+ what: a method call needs its arguments here, found `+`
+ why:  `object:name` is only valid as a call, followed by `(`...`)`, a string or a table (Lua 5.4 manual §3.4.10)
+exit 1

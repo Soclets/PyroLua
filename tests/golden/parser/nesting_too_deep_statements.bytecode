@@ -1,0 +1,6 @@
+refused: tests/corpus/parser/nesting_too_deep_statements.lua:199:1, line 199 column 1
+ 199 | do
+     | ^^
+ what: nesting goes deeper than 200 levels here
+ why:  PUC Lua's parser stops at 200 nested levels (LUAI_MAXCCALLS)
+exit 1

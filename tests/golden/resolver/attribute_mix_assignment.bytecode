@@ -1,0 +1,10 @@
+refused: tests/corpus/resolver/attribute_mix_assignment.lua:2:1, line 2 column 1
+ 2 | b = 1
+   | ^
+ what: `b` is assigned, but it is declared <const>
+ why:  a <const> variable can't be assigned after its declaration (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/resolver/attribute_mix_assignment.lua:1:18, line 1 column 18
+ 1 | local a <close>, b <const> = f(), g()
+   |                  ^
+     `b` is declared <const> here
+exit 1

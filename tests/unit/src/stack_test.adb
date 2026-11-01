@@ -1,7 +1,7 @@
 --  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 --
---  Parses and resolves each file given in a task whose stack is Pyro.Minimum_Stack_Size, so a
---  front end that needs more stack than Pyro promises fails here.
+--  Parses, resolves and compiles each file given in a task whose stack is
+--  Pyro.Minimum_Stack_Size, so a front end that needs more stack than Pyro promises fails here.
 
 pragma SPARK_Mode (Off);
 
@@ -10,6 +10,8 @@ with Ada.Directories;
 with Ada.Direct_IO;
 with Ada.Text_IO;
 with Pyro;
+with Pyro.Bytecode;
+with Pyro.Compiler;
 with Pyro.Diagnostic_Lists;
 with Pyro.Memory_Budgets;
 with Pyro.Parser;
@@ -52,12 +54,16 @@ procedure Stack_Test is
       Problems : Pyro.Diagnostic_Lists.Growable_Array;
       Root     : Pyro.Syntax_Trees.Node_Index;
       Bindings : Pyro.Resolver.Binding_Table;
+      Compiled : Pyro.Bytecode.Chunk;
    begin
       accept Start (Path : String) do
          Source := Load (Path);
       end Start;
       Pyro.Parser.Parse (Source.all, Symbols, Budget, Tree, Problems, Root);
       Pyro.Resolver.Resolve (Tree, Root, Symbols, Budget, Problems, Bindings);
+      if Natural (Pyro.Diagnostic_Lists.Length (Problems)) = 0 then
+         Pyro.Compiler.Compile (Source.all, Tree, Root, Symbols, Budget, Problems, Compiled);
+      end if;
       Ada.Text_IO.Put_Line
         (Source.Name & ":" & Pyro.Diagnostic_Lists.Length (Problems)'Image & " errors");
    end Worker;

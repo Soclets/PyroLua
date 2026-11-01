@@ -1,0 +1,84 @@
+
+main <tests/corpus/lexer/symbols.lua:0,0> (65 instructions at #1)
+0+ params, 13 slots, 1 upvalue, 7 locals, 4 constants, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[1]	load_integer	0 1
+	3	[1]	load_integer	1 2
+	4	[2]	add      	2 0 1
+	5	[2]	metamethod_binary	0 1 6	; __add
+	6	[2]	multiply 	3 0 1
+	7	[2]	metamethod_binary	0 1 8	; __mul
+	8	[2]	divide   	3 3 0
+	9	[2]	metamethod_binary	3 0 11	; __div
+	10	[2]	floor_divide	3 3 1
+	11	[2]	metamethod_binary	3 1 12	; __idiv
+	12	[2]	power    	4 0 1
+	13	[2]	metamethod_binary	0 1 10	; __pow
+	14	[2]	modulo   	3 3 4
+	15	[2]	metamethod_binary	3 4 9	; __mod
+	16	[2]	subtract 	2 2 3
+	17	[2]	metamethod_binary	2 3 7	; __sub
+	18	[3]	bitwise_and	3 0 1
+	19	[3]	metamethod_binary	0 1 13	; __band
+	20	[3]	shift_right_integer	4 0 -1
+	21	[3]	metamethod_binary_integer	0 1 16 0	; __shl
+	22	[3]	load_integer	5 1
+	23	[3]	load_constant	6 0	; ""
+	24	[3]	concatenate	5 2
+	25	[3]	shift_right	4 4 5
+	26	[3]	metamethod_binary	4 5 17	; __shr
+	27	[3]	bitwise_exclusive_or	4 1 4
+	28	[3]	metamethod_binary	1 4 15	; __bxor
+	29	[3]	bitwise_or	3 3 4
+	30	[3]	metamethod_binary	3 4 14	; __bor
+	31	[4]	equal    	0 1 1
+	32	[4]	jump     	1	; to 34
+	33	[4]	load_false_skip	4
+	34	[4]	load_true	4
+	35	[4]	equal    	0 1 0
+	36	[4]	jump     	1	; to 38
+	37	[4]	load_false_skip	5
+	38	[4]	load_true	5
+	39	[4]	less_equal	0 1 1
+	40	[4]	jump     	1	; to 42
+	41	[4]	load_false_skip	6
+	42	[4]	load_true	6
+	43	[4]	less_equal	1 0 1
+	44	[4]	jump     	1	; to 46
+	45	[4]	load_false_skip	7
+	46	[4]	load_true	7
+	47	[4]	less_than	0 1 1
+	48	[4]	jump     	1	; to 50
+	49	[4]	load_false_skip	8
+	50	[4]	load_true	8
+	51	[4]	less_than	1 0 1
+	52	[4]	jump     	1	; to 54
+	53	[4]	load_false_skip	9
+	54	[4]	load_true	9
+	55	[4]	load_constant	10 1	; "x"
+	56	[4]	length   	10 10
+	57	[4]	negate   	11 0
+	58	[4]	bitwise_not	12 0
+	59	[5]	new_table	5 2 0	; 0
+	60	[5]	extra_argument	0
+	61	[5]	set_integer	5 1 2k	; 2
+	62	[5]	set_field	5 1 3k	; "x" 3
+	63	[6]	get_field	6 5 1	; "x"
+	64	[6]	get_integer	7 5 1
+	65	[6]	return_values	7 1 1	; 0 out
+constants (4) for #1:
+	0	S	""
+	1	S	"x"
+	2	I	2
+	3	I	3
+locals (7) for #1:
+	0	a	4	66
+	1	b	4	66
+	2	c	18	66
+	3	d	31	66
+	4	e	59	66
+	5	t	63	66
+	6	y	65	66
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0

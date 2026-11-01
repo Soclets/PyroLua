@@ -1,0 +1,6 @@
+refused: tests/corpus/lexer/unfinished_long_comment.lua:2:1, line 2 column 1
+ 2 | --[[ abc
+   | ^^^^
+ what: this long comment has no closing `]]`
+ why:  a long bracket ends at the first closing bracket with as many `=` (Lua 5.4 manual §3.1)
+exit 1

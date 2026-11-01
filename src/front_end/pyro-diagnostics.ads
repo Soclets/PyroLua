@@ -27,8 +27,11 @@ package Pyro.Diagnostics with SPARK_Mode => On, Always_Terminates is
       --  Errors the resolver finds.
       Assignment_To_Constant, Label_Already_Defined, Goto_Into_Scope, Break_Outside_Loop,
       No_Visible_Label,
+      --  Compile-time limits (lparser.c, lcode.c).
+      Too_Many_Registers, Too_Many_Local_Variables, Too_Many_Upvalues,
+      Control_Structure_Too_Long,
       --  Errors of the whole load.
-      Not_Enough_Memory, Binary_Chunk);
+      Not_Enough_Memory, Binary_Chunk, Internal_Error);
 
    --  Problems that end the run: nothing after them can be reported with certainty.
    subtype Lexical_Problem is Problem range Malformed_Number .. Invalid_Escape_Sequence;
@@ -83,6 +86,9 @@ package Pyro.Diagnostics with SPARK_Mode => On, Always_Terminates is
       --  A variable, label or attribute name, and a second name (the local of Goto_Into_Scope).
       Name       : Symbol_Index := No_Symbol;
       Other_Name : Symbol_Index := No_Symbol;
+      --  Too_Many_Local_Variables and Too_Many_Upvalues: the limit is hit in the main function
+      --  (otherwise Other_Line is the line of the function).
+      In_Main_Function : Boolean := False;
       --  The token found (Unexpected_Symbol, Token_Expected ...), with its byte for Other_Byte.
       Found      : Token_Kind := End_Of_Stream;
       Found_Byte : Character := ASCII.NUL;

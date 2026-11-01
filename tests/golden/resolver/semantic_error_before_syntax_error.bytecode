@@ -1,0 +1,26 @@
+refused: tests/corpus/resolver/semantic_error_before_syntax_error.lua:2:1, line 2 column 1
+ 2 | x = 2
+   | ^
+ what: `x` is assigned, but it is declared <const>
+ why:  a <const> variable can't be assigned after its declaration (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/resolver/semantic_error_before_syntax_error.lua:1:7, line 1 column 7
+ 1 | local x <const> = 1
+   |       ^
+     `x` is declared <const> here
+
+refused: tests/corpus/resolver/semantic_error_before_syntax_error.lua:3:1, line 3 column 1
+ 3 | x = = 3
+   | ^
+ what: `x` is assigned, but it is declared <const>
+ why:  a <const> variable can't be assigned after its declaration (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/resolver/semantic_error_before_syntax_error.lua:1:7, line 1 column 7
+ 1 | local x <const> = 1
+   |       ^
+     `x` is declared <const> here
+
+refused: tests/corpus/resolver/semantic_error_before_syntax_error.lua:3:5, line 3 column 5
+ 3 | x = = 3
+   |     ^
+ what: `=` can't start an expression
+ why:  an expression starts with a value, a name, `(`, `{`, `function`, `...` or a unary operator (Lua 5.4 manual §3.4)
+exit 1

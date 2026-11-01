@@ -1,0 +1,14 @@
+refused: tests/corpus/resolver/goto_into_scope_with_labels_after.lua:1:1, line 1 column 1
+ 1 | goto l1; local aa ::l1:: ::l2:: print(3)
+   | ^^^^^^^
+ what: `goto l1` jumps into the scope of local `aa`
+ why:  a goto can jump to a visible label only if it does not enter the scope of a local variable (Lua 5.4 manual §3.3.4)
+ because: tests/corpus/resolver/goto_into_scope_with_labels_after.lua:1:16, line 1 column 16
+ 1 | goto l1; local aa ::l1:: ::l2:: print(3)
+   |                ^^
+     `aa` is declared here
+ because: tests/corpus/resolver/goto_into_scope_with_labels_after.lua:1:19, line 1 column 19
+ 1 | goto l1; local aa ::l1:: ::l2:: print(3)
+   |                   ^^^^^^
+     the label `l1` is here, inside its scope
+exit 1

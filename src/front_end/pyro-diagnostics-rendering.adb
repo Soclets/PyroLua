@@ -467,6 +467,23 @@ package body Pyro.Diagnostics.Rendering with SPARK_Mode => On is
             Append (Output, Budget, " is visible from this `goto`");
             Why ("a label is visible in the block where it is defined, except inside nested "
                  & "functions (Lua 5.4 manual §3.3.4)");
+         when Too_Many_Registers =>
+            What ("this function or expression needs more than 255 registers");
+            Why ("a Lua function has at most 255 registers for its locals and temporary values "
+                 & "(MAXREGS)");
+         when Too_Many_Local_Variables =>
+            What ("this function has more than 200 local variables active at once");
+            Why ("a Lua function can have at most 200 active local variables (MAXVARS)");
+         when Too_Many_Upvalues =>
+            What ("this function uses more than 255 upvalues");
+            Why ("a Lua function can capture at most 255 variables of enclosing functions "
+                 & "(MAXUPVAL)");
+         when Control_Structure_Too_Long =>
+            What ("this control structure jumps over too much code");
+            Why ("a Lua jump can skip at most 16777215 instructions");
+         when Internal_Error =>
+            What ("the compiler built bytecode that fails its validity check");
+            Why ("this is a bug in Pyro: please report it with this file");
          when Not_Enough_Memory =>
             What ("loading this chunk needs more memory than the limit allows");
             Why ("everything a load builds is charged to the memory limit");

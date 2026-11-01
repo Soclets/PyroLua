@@ -1,0 +1,19 @@
+
+main <tests/corpus/resolver/goto_both_branches.lua:0,0> (9 instructions at #1)
+0+ params, 2 slots, 1 upvalue, 1 local, 1 constant, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[1]	get_table_upvalue	0 0 0	; _ENV "x"
+	3	[1]	test     	0 0
+	4	[1]	jump     	4	; to 9
+	5	[1]	jump     	3	; to 9
+	6	[1]	jump     	1	; to 8
+	7	[1]	jump     	1	; to 9
+	8	[2]	load_nil 	0 0	; 1 out
+	9	[3]	return_values	1 1 1	; 0 out
+constants (1) for #1:
+	0	S	"x"
+locals (1) for #1:
+	0	z	9	10
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0

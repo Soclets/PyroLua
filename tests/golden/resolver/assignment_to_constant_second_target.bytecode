@@ -1,0 +1,10 @@
+refused: tests/corpus/resolver/assignment_to_constant_second_target.lua:3:6, line 3 column 6
+ 3 | y.z, x = 1, 2
+   |      ^
+ what: `x` is assigned, but it is declared <const>
+ why:  a <const> variable can't be assigned after its declaration (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/resolver/assignment_to_constant_second_target.lua:1:7, line 1 column 7
+ 1 | local x <const> = 1
+   |       ^
+     `x` is declared <const> here
+exit 1

@@ -1,0 +1,24 @@
+
+main <tests/corpus/lexer/decimal_floats.lua:0,0> (7 instructions at #1)
+0+ params, 5 slots, 1 upvalue, 5 locals, 4 constants, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[1]	load_constant	0 0	; 1e+308
+	3	[2]	load_constant	1 1	; inf
+	4	[3]	load_constant	2 2	; 2.2250738585072e-308
+	5	[4]	load_constant	3 3	; 0.1
+	6	[5]	load_float	4 0
+	7	[5]	return_values	5 1 1	; 0 out
+constants (4) for #1:
+	0	F	1e+308
+	1	F	inf
+	2	F	2.2250738585072e-308
+	3	F	0.1
+locals (5) for #1:
+	0	a	3	8
+	1	b	4	8
+	2	c	5	8
+	3	d	6	8
+	4	e	7	8
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0

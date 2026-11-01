@@ -1,0 +1,111 @@
+2 keyword local
+2 keyword function
+2 name f
+2 (
+2 )
+3 keyword local
+3 name x
+3 <
+3 name close
+3 >
+3 =
+3 keyword nil
+4 keyword local
+4 name y
+4 <
+4 name const
+4 >
+4 =
+4 integer 10
+5 keyword local
+5 name z
+5 <
+5 name const
+5 >
+5 =
+5 {
+5 }
+6 keyword do
+7 keyword local
+7 name w
+7 <
+7 name close
+7 >
+7 =
+7 name setmetatable
+7 (
+7 {
+7 }
+7 ,
+7 {
+7 name __close
+7 =
+7 name print
+7 }
+7 )
+8 keyword return
+8 name w
+8 ,
+8 name y
+8 ,
+8 name z
+9 keyword end
+10 keyword end
+11 keyword local
+11 keyword function
+11 name g
+11 (
+11 ...
+11 )
+12 keyword local
+12 name a
+12 <
+12 name close
+12 >
+12 =
+12 ...
+13 keyword return
+13 name g
+13 (
+13 ...
+13 )
+14 keyword end
+15 keyword local
+15 keyword function
+15 name h
+15 (
+15 )
+16 keyword local
+16 name a
+16 <
+16 name close
+16 >
+16 =
+16 keyword nil
+17 keyword return
+17 name h
+17 (
+17 )
+18 keyword end
+19 keyword for
+19 name k
+19 ,
+19 name v
+19 keyword in
+19 name pairs
+19 (
+19 {
+19 }
+19 )
+19 keyword do
+19 keyword return
+19 name k
+19 keyword end
+20 keyword return
+20 name f
+20 ,
+20 name g
+20 ,
+20 name h
+21 <eof>
+exit 0

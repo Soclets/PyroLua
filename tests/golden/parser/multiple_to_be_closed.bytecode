@@ -1,0 +1,10 @@
+refused: tests/corpus/parser/multiple_to_be_closed.lua:1:18, line 1 column 18
+ 1 | local a <close>, b <close> = nil, nil
+   |                  ^
+ what: `b` is a second <close> variable in this declaration
+ why:  a list of variables can contain at most one to-be-closed variable (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/parser/multiple_to_be_closed.lua:1:7, line 1 column 7
+ 1 | local a <close>, b <close> = nil, nil
+   |       ^
+     the first <close> variable is declared here
+exit 1

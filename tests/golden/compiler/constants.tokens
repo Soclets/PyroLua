@@ -1,0 +1,500 @@
+2 keyword local
+2 name a
+2 =
+2 integer 1
+2 +
+2 integer 2
+2 *
+2 integer 3
+2 -
+2 integer 4
+2 //
+2 integer 2
+2 %
+2 integer 3
+3 keyword local
+3 name b
+3 =
+3 integer 2
+3 ^
+3 integer 10
+3 ,
+3 integer 7
+3 /
+3 integer 2
+3 ,
+3 -
+3 integer 7
+3 //
+3 integer 2
+3 ,
+3 integer 7
+3 %
+3 -
+3 integer 3
+3 ,
+3 -
+3 integer 7
+3 %
+3 integer 3
+3 ,
+3 float 7.5 0x401E000000000000
+3 %
+3 -
+3 integer 2
+4 keyword local
+4 name c
+4 =
+4 integer 1
+4 /
+4 integer 0
+4 ,
+4 -
+4 integer 1
+4 /
+4 integer 0
+4 ,
+4 integer 0
+4 /
+4 integer 0
+4 ,
+4 float 0.0 0x0000000000000000
+4 *
+4 -
+4 integer 1
+4 ,
+4 integer 1
+4 //
+4 integer 0
+4 ,
+4 integer 1
+4 %
+4 integer 0
+5 keyword local
+5 name d
+5 =
+5 integer 3
+5 &
+5 integer 5
+5 |
+5 integer 6
+5 ~
+5 integer 9
+5 ,
+5 ~
+5 integer 0
+5 ,
+5 integer 1
+5 <<
+5 integer 63
+5 ,
+5 integer 1
+5 <<
+5 integer 64
+5 ,
+5 -
+5 integer 1
+5 >>
+5 integer 1
+5 ,
+5 float 2.0 0x4000000000000000
+5 &
+5 integer 3
+5 ,
+5 float 2.5 0x4004000000000000
+5 &
+5 integer 3
+6 keyword local
+6 name e
+6 =
+6 string "x"
+6 ..
+6 string "y"
+6 ,
+6 -
+6 (
+6 -
+6 integer 9223372036854775807
+6 -
+6 integer 1
+6 )
+6 ,
+6 name math
+6 .
+6 name huge
+7 keyword local
+7 name f
+7 <
+7 name const
+7 >
+7 =
+7 integer 42
+8 keyword local
+8 name g
+8 <
+8 name const
+8 >
+8 =
+8 string "a long string constant that is longer than forty bytes in total"
+9 keyword local
+9 name h
+9 <
+9 name const
+9 >
+9 =
+9 name f
+9 *
+9 integer 2
+9 +
+9 float 0.5 0x3FE0000000000000
+10 keyword local
+10 name i
+10 =
+10 name f
+10 +
+10 name h
+10 ,
+10 name g
+10 ..
+10 name g
+10 ,
+10 -
+10 name f
+10 ,
+10 keyword not
+10 name f
+10 ,
+10 #
+10 name g
+11 keyword local
+11 name j
+11 =
+11 float 0.1 0x3FB999999999999A
+11 +
+11 float 0.2 0x3FC999999999999A
+11 ,
+11 float 1e308 0x7FE1CCF385EBC8A0
+11 *
+11 integer 10
+11 ,
+11 -
+11 float 0.0 0x0000000000000000
+11 ,
+11 float 1e-320 0x00000000000007E8
+11 ,
+11 float 3.0 0x4008000000000000
+11 ,
+11 -
+11 float 3.0 0x4008000000000000
+11 ,
+11 float 65536.0 0x40F0000000000000
+11 ,
+11 float 65537.0 0x40F0001000000000
+11 ,
+11 -
+11 float 65535.0 0x40EFFFE000000000
+12 keyword local
+12 name k
+12 =
+12 integer 9007199254740993
+12 ,
+12 integer 2
+12 ^
+12 integer 53
+12 ,
+12 integer 2
+12 ^
+12 integer 63
+12 ,
+12 -
+12 integer 2
+12 ^
+12 integer 63
+12 ,
+12 float 1e15 0x430C6BF526340000
+12 ,
+12 integer 123456789012345
+13 keyword local
+13 name l
+13 =
+13 integer 127
+13 ,
+13 integer 128
+13 ,
+13 -
+13 integer 127
+13 ,
+13 -
+13 integer 128
+13 ,
+13 integer 65535
+13 ,
+13 integer 65536
+13 ,
+13 -
+13 integer 65535
+13 ,
+13 -
+13 integer 65536
+13 ,
+13 integer 131071
+14 keyword local
+14 name x
+14 ,
+14 name y
+14 =
+14 ...
+15 keyword local
+15 name m
+15 =
+15 name x
+15 +
+15 integer 1
+15 ,
+15 name x
+15 +
+15 integer 127
+15 ,
+15 name x
+15 +
+15 integer 128
+15 ,
+15 name x
+15 -
+15 integer 127
+15 ,
+15 name x
+15 -
+15 integer 128
+15 ,
+15 integer 1
+15 +
+15 name x
+15 ,
+15 name x
+15 *
+15 integer 2
+15 ,
+15 integer 2
+15 *
+15 name x
+15 ,
+15 name x
+15 /
+15 integer 3
+15 ,
+15 name x
+15 //
+15 integer 3
+16 keyword local
+16 name n
+16 =
+16 name x
+16 %
+16 integer 3
+16 ,
+16 name x
+16 ^
+16 integer 2
+16 ,
+16 name x
+16 &
+16 integer 1
+16 ,
+16 integer 1
+16 &
+16 name x
+16 ,
+16 name x
+16 |
+16 integer 2
+16 ,
+16 name x
+16 ~
+16 integer 3
+16 ,
+16 name x
+16 <<
+16 integer 1
+16 ,
+16 name x
+16 <<
+16 integer 200
+16 ,
+16 integer 1
+16 <<
+16 name x
+16 ,
+16 name x
+16 >>
+16 integer 2
+16 ,
+16 name x
+16 >>
+16 -
+16 integer 2
+17 keyword local
+17 name o
+17 =
+17 name x
+17 +
+17 float 0.5 0x3FE0000000000000
+17 ,
+17 name x
+17 -
+17 float 1.5 0x3FF8000000000000
+17 ,
+17 name x
+17 *
+17 float 1e10 0x4202A05F20000000
+17 ,
+17 name x
+17 +
+17 string "s"
+17 ,
+17 name x
+17 +
+17 name y
+17 ,
+17 name x
+17 ..
+17 name y
+17 ..
+17 string "z"
+17 ..
+17 integer 1
+18 keyword local
+18 name p
+18 =
+18 name x
+18 ==
+18 integer 1
+18 ,
+18 name x
+18 ~=
+18 float 1.0 0x3FF0000000000000
+18 ,
+18 name x
+18 ==
+18 string "s"
+18 ,
+18 name x
+18 ==
+18 keyword nil
+18 ,
+18 name x
+18 ==
+18 keyword true
+18 ,
+18 name x
+18 ==
+18 name y
+18 ,
+18 integer 1
+18 ==
+18 name x
+18 ,
+18 name x
+18 <
+18 integer 1
+18 ,
+18 integer 1
+18 <
+18 name x
+19 keyword local
+19 name q
+19 =
+19 name x
+19 <=
+19 integer 127
+19 ,
+19 name x
+19 >
+19 integer 128
+19 ,
+19 name x
+19 >=
+19 -
+19 integer 1
+19 ,
+19 float 1.5 0x3FF8000000000000
+19 <
+19 name x
+19 ,
+19 name x
+19 <
+19 float 2.0 0x4000000000000000
+19 ,
+19 string "a"
+19 <
+19 name x
+19 ,
+19 name x
+19 >
+19 name y
+19 ,
+19 name x
+19 >=
+19 name y
+20 keyword local
+20 name r
+20 =
+20 keyword not
+20 name x
+20 ,
+20 keyword not
+20 keyword nil
+20 ,
+20 keyword not
+20 integer 1
+20 ,
+20 keyword not
+20 keyword not
+20 name x
+20 ,
+20 -
+20 name x
+20 ,
+20 ~
+20 name x
+20 ,
+20 #
+20 name x
+21 keyword return
+21 name a
+21 ,
+21 name b
+21 ,
+21 name c
+21 ,
+21 name d
+21 ,
+21 name e
+21 ,
+21 name f
+21 ,
+21 name g
+21 ,
+21 name h
+21 ,
+21 name i
+21 ,
+21 name j
+21 ,
+21 name k
+21 ,
+21 name l
+21 ,
+21 name m
+21 ,
+21 name n
+21 ,
+21 name o
+21 ,
+21 name p
+21 ,
+21 name q
+21 ,
+21 name r
+22 <eof>
+exit 0

@@ -1,0 +1,10 @@
+refused: tests/corpus/resolver/assignment_to_close.lua:2:1, line 2 column 1
+ 2 | x = 1
+   | ^
+ what: `x` is assigned, but it is declared <close>
+ why:  a <close> variable behaves like a constant (Lua 5.4 manual §3.3.8)
+ because: tests/corpus/resolver/assignment_to_close.lua:1:7, line 1 column 7
+ 1 | local x <close> = nil
+   |       ^
+     `x` is declared <close> here
+exit 1

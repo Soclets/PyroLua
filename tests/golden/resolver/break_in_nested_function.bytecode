@@ -1,0 +1,6 @@
+refused: tests/corpus/resolver/break_in_nested_function.lua:3:5, line 3 column 5
+ 3 |     break
+   |     ^^^^^
+ what: `break` is not inside a loop
+ why:  a break ends the innermost enclosing loop (Lua 5.4 manual §3.3.4)
+exit 1

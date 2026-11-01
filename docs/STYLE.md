@@ -108,6 +108,16 @@ tools/where trusted         # every unproven spot
   accessor (for example an operand accessor whose `Post` says it is below
   `Stack_Size` when `Is_Valid` holds), otherwise as a ghost lemma procedure declared
   in the same package and proven in its body, where the definition is visible.
+- **Inside the package, hide large predicate bodies too** (`pragma Annotate (GNATprove,
+  Hide_Info, "Expression_Function_Body", …)`) and unhide them only in the subprograms
+  that need their contents. Give predicates used inside a quantifier preconditions
+  rather than guards, and avoid calling other preconditioned expression functions in a
+  quantified definition: gnatprove then fails to instantiate the quantifier.
+- **State records with many owning components get a hidden private part**
+  (`Hide_Info, "Private_Part"`, with the `Ownership` annotation it requires): otherwise
+  every client proof carries the pointer model of each component, and checks as simple
+  as a literal's length run out of steps (the compiler's walker: about 60 unproved
+  checks before, none after).
 - **`Contract_Cases`** where behaviour splits into clear cases (success, each kind of
   error).
 - **Termination is always proven:** `Always_Terminates` on subprograms,

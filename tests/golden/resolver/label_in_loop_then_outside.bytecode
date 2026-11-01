@@ -1,0 +1,15 @@
+
+main <tests/corpus/resolver/label_in_loop_then_outside.lua:0,0> (6 instructions at #1)
+0+ params, 2 slots, 1 upvalue, 0 locals, 1 constant, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[1]	get_table_upvalue	0 0 0	; _ENV "x"
+	3	[1]	test     	0 0
+	4	[1]	jump     	1	; to 6
+	5	[1]	jump     	-4	; to 2
+	6	[2]	return_values	0 1 1	; 0 out
+constants (1) for #1:
+	0	S	"x"
+locals (0) for #1:
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0

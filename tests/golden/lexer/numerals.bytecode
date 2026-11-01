@@ -1,0 +1,35 @@
+
+main <tests/corpus/lexer/numerals.lua:0,0> (13 instructions at #1)
+0+ params, 11 slots, 1 upvalue, 11 locals, 3 constants, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[1]	load_integer	0 3
+	3	[1]	load_integer	1 345
+	4	[1]	load_integer	2 255
+	5	[1]	load_constant	3 0	; 12499674
+	6	[2]	load_float	4 3
+	7	[2]	load_constant	5 1	; 3.1416
+	8	[2]	load_constant	6 1	; 3.1416
+	9	[3]	load_constant	7 1	; 3.1416
+	10	[3]	load_float	8 340
+	11	[3]	load_constant	9 2	; 0.5
+	12	[4]	load_float	10 5
+	13	[4]	return_values	11 1 1	; 0 out
+constants (3) for #1:
+	0	I	12499674
+	1	F	3.1416
+	2	F	0.5
+locals (11) for #1:
+	0	a	6	14
+	1	b	6	14
+	2	c	6	14
+	3	d	6	14
+	4	e	9	14
+	5	f	9	14
+	6	g	9	14
+	7	h	12	14
+	8	i	12	14
+	9	j	12	14
+	10	k	13	14
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0

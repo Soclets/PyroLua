@@ -1,0 +1,10 @@
+refused: tests/corpus/resolver/constant_vararg_assignment.lua:3:3, line 3 column 3
+ 3 |   x = 1
+   |   ^
+ what: `x` is assigned, but it is declared <const>
+ why:  a <const> variable can't be assigned after its declaration (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/resolver/constant_vararg_assignment.lua:2:9, line 2 column 9
+ 2 |   local x <const> = ...
+   |         ^
+     `x` is declared <const> here
+exit 1

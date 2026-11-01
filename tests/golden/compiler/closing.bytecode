@@ -1,0 +1,98 @@
+
+main <tests/corpus/compiler/closing.lua:0,0> (18 instructions at #4)
+0+ params, 10 slots, 1 upvalue, 9 locals, 1 constant, 3 functions
+	1	[1]	vararg_prepare	0
+	2	[10]	closure  	0 0	; #1
+	3	[14]	closure  	1 1	; #2
+	4	[18]	closure  	2 2	; #3
+	5	[19]	get_table_upvalue	3 0 0	; _ENV "pairs"
+	6	[19]	new_table	4 0 0	; 0
+	7	[19]	extra_argument	0
+	8	[19]	call     	3 2 5	; 1 in 4 out
+	9	[19]	generic_for_prepare	3 1	; to 11
+	10	[19]	return_values	7 2 1k	; 1 out
+	11	[19]	generic_for_call	3 2
+	12	[19]	generic_for_loop	3 3	; to 10
+	13	[19]	close    	3
+	14	[20]	move     	3 0
+	15	[20]	move     	4 1
+	16	[20]	move     	5 2
+	17	[20]	return_values	3 4 1k	; 3 out
+	18	[20]	return_values	3 1 1k	; 0 out
+constants (1) for #4:
+	0	S	"pairs"
+locals (9) for #4:
+	0	f	3	19
+	1	g	4	19
+	2	h	5	19
+	3	(for state)	9	13
+	4	(for state)	9	13
+	5	(for state)	9	13
+	6	(for state)	9	13
+	7	k	10	11
+	8	v	10	11
+upvalues (1) for #4:
+	0	_ENV	1	0
+
+function <tests/corpus/compiler/closing.lua:2,10> (19 instructions at #1)
+0 params, 6 slots, 1 upvalue, 3 locals, 3 constants, 0 functions
+	1	[3]	load_nil 	0 0	; 1 out
+	2	[3]	to_be_closed	0
+	3	[5]	new_table	1 0 0	; 0
+	4	[5]	extra_argument	0
+	5	[7]	get_table_upvalue	2 0 0	; _ENV "setmetatable"
+	6	[7]	new_table	3 0 0	; 0
+	7	[7]	extra_argument	0
+	8	[7]	new_table	4 1 0	; 0
+	9	[7]	extra_argument	0
+	10	[7]	get_table_upvalue	5 0 2	; _ENV "print"
+	11	[7]	set_field	4 1 5	; "__close"
+	12	[7]	call     	2 3 2	; 2 in 1 out
+	13	[7]	to_be_closed	2
+	14	[8]	move     	3 2
+	15	[8]	load_integer	4 10
+	16	[8]	move     	5 1
+	17	[8]	return_values	3 4 0k	; 3 out
+	18	[8]	close    	2
+	19	[10]	return_values	2 1 0k	; 0 out
+constants (3) for #1:
+	0	S	"setmetatable"
+	1	S	"__close"
+	2	S	"print"
+locals (3) for #1:
+	0	x	2	20
+	1	z	5	20
+	2	w	13	18
+upvalues (1) for #1:
+	0	_ENV	0	0
+
+function <tests/corpus/compiler/closing.lua:11,14> (8 instructions at #2)
+0+ params, 3 slots, 1 upvalue, 1 local, 0 constants, 0 functions
+	1	[11]	vararg_prepare	0
+	2	[12]	vararg   	0 2	; 1 out
+	3	[12]	to_be_closed	0
+	4	[13]	get_upvalue	1 0	; g
+	5	[13]	vararg   	2 0	; all out
+	6	[13]	call     	1 0 0	; all in all out
+	7	[13]	return_values	1 0 1k	; all out
+	8	[14]	return_values	1 1 1k	; 0 out
+constants (0) for #2:
+locals (1) for #2:
+	0	a	3	9
+upvalues (1) for #2:
+	0	g	1	1
+
+function <tests/corpus/compiler/closing.lua:15,18> (6 instructions at #3)
+0 params, 2 slots, 1 upvalue, 1 local, 0 constants, 0 functions
+	1	[16]	load_nil 	0 0	; 1 out
+	2	[16]	to_be_closed	0
+	3	[17]	get_upvalue	1 0	; h
+	4	[17]	call     	1 1 0	; 0 in all out
+	5	[17]	return_values	1 0 0k	; all out
+	6	[18]	return_values	1 1 0k	; 0 out
+constants (0) for #3:
+locals (1) for #3:
+	0	a	2	7
+upvalues (1) for #3:
+	0	h	1	2
+exit 0

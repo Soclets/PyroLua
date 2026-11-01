@@ -19,3 +19,21 @@ Source: `cli/src/pyro_program.adb`.
 Pyro's sources, positions and line numbers are bounded by `Pyro.Maximum_Source_Length`
 (2^28 bytes), so the proofs have fixed ranges. A larger file is refused with "not enough
 memory" without being read; luac reads it.
+
+## Listings show made-up addresses
+
+Source: `cli/src/bytecode_listing.adb`.
+
+`luac -l -l` prints the memory address of each prototype (in a function's header, before
+its constants, locals and upvalues, and after each CLOSURE). `pyro --bytecode --lua-style`
+prints a made-up address in the same places, so the listings differ there; `tests/run`
+masks every `0x…` number before comparing them. Everything else in the listing matches.
+
+## Compile-time limits are checked only in chunks without other errors
+
+Source: `cli/src/pyro_program.adb`.
+
+PUC Lua generates code while it parses, so in a chunk that both reaches a compile-time
+limit (too many local variables, upvalues or registers, or a control structure too long)
+and has a syntax or scope error later on, luac reports the limit. Pyro compiles a chunk
+only once the parser and resolver found nothing wrong, so it reports the other error.

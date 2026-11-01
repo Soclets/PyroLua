@@ -34,7 +34,7 @@ REFERENCE = Path(os.environ.get("PYRO_REF_LUA", "/opt/homebrew/opt/lua@5.4/bin")
 LUAC = REFERENCE / "luac"
 
 # The pyro modes whose output has golden files.
-GOLDEN_MODES = ("tokens", "ast", "check")
+GOLDEN_MODES = ("tokens", "ast", "check", "bytecode")
 
 PROCESS_LIMIT = 10  # seconds for one pyro, lua or luac process
 TOTAL_LIMIT = {"quick": 300, "full": 1800}
@@ -42,13 +42,16 @@ TOTAL_LIMIT = {"quick": 300, "full": 1800}
 # Wall-clock cap of each stage, in seconds, within the total.
 STAGE_LIMITS = {
     "quick": {"build": 120, "proof": 200, "tags": 10, "unit": 20, "golden": 30, "cli": 30,
-              "differential": 60, "fuzz": 30},
+              "differential": 60, "listing": 60, "fuzz": 30},
     "full": {"build": 120, "proof": 900, "tags": 10, "unit": 20, "golden": 30, "cli": 60,
-             "differential": 60, "fuzz": 600},
+             "differential": 60, "listing": 120, "fuzz": 600},
 }
 
 # Constructs that nest as deep as the parser allows, and the deepest nesting PUC Lua's parser
-# accepts for each (one level more is "C stack overflow"). The stack test parses both.
+# accepts for each (one level more is "C stack overflow"). The stack test parses and compiles
+# both. At that depth, method calls need too many registers and for loops declare too many
+# local variables, as in luac, so those report one error at the limit too.
+AT_LIMIT_ERRORS = {"method": 1, "for": 1}
 DEEP_CONSTRUCTS = {
     "parenthesis": (lambda n: "x = " + "(" * n + "1" + ")" * n, 196),
     "table": (lambda n: "x = " + "{" * n + "}" * n, 197),
@@ -72,6 +75,36 @@ DEEP_CONSTRUCTS = {
 # The front end's peak memory, in MB per MB of source, on the official test files (macOS
 # arm64, measured 2026-11-01). tests/run --full fails 25% above it (ROADMAP, Later).
 MEMORY_PER_SOURCE_MB = 58.1
+
+# Chunks that reach PUC Lua's compile-time limits, or come just short of them, generated
+# rather than kept in the corpus because of their size. luac -p and pyro --check must agree on
+# each, message included; luac -l -l and pyro --bytecode --lua-style on those accepted.
+def _upvalues(count):
+    locals_ = "".join(f"local u{i} = {i}\n" for i in range(150))
+    inner = locals_.replace("local u", "local w")
+    uses = "".join(f"x = u{i}\n" for i in range(150)) + "".join(f"x = w{i}\n"
+                                                              for i in range(count - 150))
+    return ("local function g()\n" + locals_ + "return function()\n" + inner
+            + "return function()\n" + uses + "end end end\n")
+
+
+LIMIT_CASES = {
+    "locals-200": lambda: "local " + ", ".join(f"a{i}" for i in range(200)) + "\n",
+    "locals-201": lambda: "local " + ", ".join(f"a{i}" for i in range(201)) + "\n",
+    "locals-in-function": lambda: "\n\nlocal function f()\n"
+                                  + "".join(f"local a{i}\n" for i in range(201)) + "end\n",
+    "upvalues-255": lambda: _upvalues(255),
+    "upvalues-256": lambda: _upvalues(256),
+    "registers": lambda: "local x = f(" + ", ".join("1" for i in range(300)) + ")\n",
+    "registers-concatenation": lambda: "local y = " + "..".join(f"a{i}" for i in range(260))
+                                       + "\n",
+    "constants": lambda: "local t = {}\n" + "".join(f"t[{i}.5] = 'v{i}'\n"
+                                                    for i in range(70000)) + "return t\n",
+    "table": lambda: "return {" + ", ".join(str(i) for i in range(70000)) + ", x = 1, f()}\n",
+    "for-too-long": lambda: "for i = 1, 2 do\n" + "t = i\n" * 140000 + "end\n",
+    "for-long": lambda: "for i = 1, 2 do\n" + "t = i\n" * 131000 + "end\n",
+    "goto-long": lambda: "goto e\n" + "t = 1\n" * 140000 + "::e::\n",
+}
 
 # Mutants per run, and the fixed seed of the quick run.
 FUZZ_MUTANTS = {"quick": 400, "full": 200000}
@@ -214,8 +247,10 @@ class Runner:
             lines = path.read_text(errors="replace").splitlines()
             for number, line in enumerate(lines, 1):
                 code = line.split("--", 1)[0] if path.suffix != ".c" else line
+                # Hide_Info and Unhide_Info only keep definitions out of proofs: not trust.
                 needs_trusted = (re.search(r"SPARK_Mode\s*(=>\s*|\(\s*)Off", code, re.I)
-                                 or re.search(r"pragma\s+Annotate", code, re.I))
+                                 or (re.search(r"pragma\s+Annotate", code, re.I)
+                                     and not re.search(r"Hide_Info|Unhide_Info", line)))
                 if needs_trusted:
                     window = "\n".join(lines[max(0, number - 4):number])
                     if "[trusted]" not in window:
@@ -268,7 +303,7 @@ class Runner:
                 path = directory / f"{name}-{depth + extra}.lua"
                 path.write_text(generate(depth + extra) + "\n")
                 files.append(path)
-                expected.append(extra)
+                expected.append(1 if extra else AT_LIMIT_ERRORS.get(name, 0))
         code, out, err = self.run([TESTS / "unit" / "bin" / "stack_test"] + files)
         text = (out + err).decode(errors="replace")
         self.log(text)
@@ -438,6 +473,40 @@ class Runner:
                     self.fail(f"{relative}: message differs (not in tests/known-differences.md): "
                               f"luac -p {verdict(reference)}, pyro --check {verdict(pyro)}")
 
+    def stage_listing(self):
+        """pyro --bytecode --lua-style against luac -l -l on every chunk luac accepts."""
+        if not OFFICIAL.exists():
+            self.fail("official test suite missing: run tools/fetch-lua-tests")
+        directory = OUTPUT / "limits"
+        shutil.rmtree(directory, ignore_errors=True)
+        directory.mkdir(parents=True)
+        generated = []
+        for name, generate in LIMIT_CASES.items():
+            path = directory / f"{name}.lua"
+            path.write_text(generate())
+            generated.append(path)
+        files = corpus_files() + (sorted(OFFICIAL.rglob("*.lua")) if OFFICIAL.exists() else [])
+
+        def compare(source):
+            relative = source.relative_to(ROOT)
+            reference = self.check_reference(relative)
+            if source in generated:
+                pyro = self.check_pyro(relative)
+                if reference is not None and pyro is not None and reference != pyro:
+                    return relative, (f"luac -p {verdict(reference)}, pyro --check "
+                                      f"{verdict(pyro)}")
+            if reference is None or not reference[0]:
+                return relative, None
+            return relative, self.compare_listing(relative)
+
+        compared = 0
+        with concurrent.futures.ThreadPoolExecutor(os.cpu_count() or 4) as pool:
+            for relative, difference in pool.map(compare, files + generated):
+                compared += 1
+                if difference is not None:
+                    self.fail(f"{relative}: {difference}")
+        self.log(f"listing: {compared} chunks compared")
+
     def stage_fuzz(self):
         seeds = [path.read_bytes() for path in corpus_files()]
         if OFFICIAL.exists():
@@ -462,31 +531,35 @@ class Runner:
             relative = path.relative_to(ROOT)
             reference = self.check_reference(relative)
             pyro = self.check_pyro(relative)
-            return index, path, text, reference, pyro
+            listing = None
+            if reference is not None and pyro is not None and reference[0] and pyro[0]:
+                listing = self.compare_listing(relative)
+            return index, path, text, reference, pyro, listing
 
         disagreements = 0
         done = 0
         try:
             with concurrent.futures.ThreadPoolExecutor(os.cpu_count() or 4) as pool:
-                for index, path, text, reference, pyro in pool.map(check, mutants):
+                for index, path, text, reference, pyro, listing in pool.map(check, mutants):
                     done += 1
                     if reference is None or pyro is None:
                         continue
-                    if reference[0] != pyro[0]:
+                    if reference[0] != pyro[0] or listing is not None:
                         disagreements += 1
                         failures.mkdir(parents=True, exist_ok=True)
                         kept = failures / f"seed{seed}-mutant{index}.lua"
                         kept.write_bytes(text)
                         if disagreements <= 10:
                             self.fail(f"{kept.relative_to(ROOT)}: luac -p {verdict(reference)}, "
-                                      f"pyro --check {verdict(pyro)}")
+                                      f"pyro --check {verdict(pyro)}"
+                                      + (f"; {listing}" if listing else ""))
                     path.unlink(missing_ok=True)
         except StageTimeout:
             if self.mode == "quick":
                 raise
             self.log(f"fuzz stopped by its time limit after {done} mutants")
         if disagreements > 10:
-            self.fail(f"{disagreements} accept/reject disagreements in all (first 10 shown; all "
+            self.fail(f"{disagreements} disagreements in all (first 10 shown; all "
                       "kept in tests/output/fuzz-failures)")
         self.log(f"fuzz: {done} mutants, {disagreements} disagreements")
 
@@ -498,6 +571,28 @@ class Runner:
         if code is None:
             return None
         return parse_check(code, err, LUAC.name, relative)
+
+    def compare_listing(self, relative):
+        """None when pyro --bytecode --lua-style prints what luac -l -l prints for relative
+        (addresses masked), else where they first differ."""
+        code, reference, err = self.run([LUAC, "-l", "-l", "-o", "/dev/null", relative],
+                                        what=str(relative))
+        if code is None:
+            return None
+        code, listing, err = self.run([PYRO, "--bytecode", "--lua-style", relative],
+                                      what=str(relative))
+        if code is None:
+            return None
+        if code != 0:
+            return f"pyro --bytecode exited with {code}: {(listing + err)[:300]!r}"
+        expected = mask_addresses(reference).splitlines()
+        actual = mask_addresses(listing).splitlines()
+        if expected == actual:
+            return None
+        for number, (left, right) in enumerate(zip(expected, actual), 1):
+            if left != right:
+                return f"listing line {number}: luac {left!r}, pyro {right!r}"
+        return f"listing lengths differ: luac {len(expected)} lines, pyro {len(actual)}"
 
     def check_pyro(self, relative):
         code, out, err = self.run([PYRO, "--check", "--lua-style", relative], what=str(relative))
@@ -609,6 +704,11 @@ def parse_check(code, err, program, relative):
     return (False, None, text)
 
 
+def mask_addresses(text):
+    """A listing with the addresses luac prints replaced (tests/known-differences.md)."""
+    return re.sub(rb"0x[0-9a-fA-F]+", b"ADDRESS", text)
+
+
 def verdict(result):
     if result[0]:
         return "accepts"
@@ -665,6 +765,7 @@ def main():
         ("golden", runner.stage_golden),
         ("cli", runner.stage_cli),
         ("differential", runner.stage_differential),
+        ("listing", runner.stage_listing),
         ("fuzz", runner.stage_fuzz),
     ]
     if arguments.only:

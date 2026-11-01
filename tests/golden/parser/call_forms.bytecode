@@ -1,0 +1,63 @@
+
+main <tests/corpus/parser/call_forms.lua:0,0> (45 instructions at #1)
+0+ params, 4 slots, 1 upvalue, 0 locals, 10 constants, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[1]	get_table_upvalue	0 0 0	; _ENV "f"
+	3	[1]	call     	0 1 1	; 0 in 0 out
+	4	[2]	get_table_upvalue	0 0 0	; _ENV "f"
+	5	[2]	load_integer	1 1
+	6	[2]	load_integer	2 2
+	7	[2]	vararg   	3 0	; all out
+	8	[2]	call     	0 0 1	; all in 0 out
+	9	[3]	get_table_upvalue	0 0 0	; _ENV "f"
+	10	[3]	new_table	1 0 2	; 2
+	11	[3]	extra_argument	0
+	12	[3]	load_integer	2 1
+	13	[3]	load_integer	3 2
+	14	[3]	set_list 	1 2 0
+	15	[3]	call     	0 2 1	; 1 in 0 out
+	16	[4]	get_table_upvalue	0 0 0	; _ENV "f"
+	17	[4]	load_constant	1 1	; "string"
+	18	[4]	call     	0 2 1	; 1 in 0 out
+	19	[5]	get_table_upvalue	0 0 0	; _ENV "f"
+	20	[5]	load_constant	1 2	; "long string"
+	21	[5]	call     	0 2 1	; 1 in 0 out
+	22	[6]	get_table_upvalue	0 0 3	; _ENV "a"
+	23	[6]	self     	0 0 4k	; "b"
+	24	[6]	load_integer	2 1
+	25	[6]	call     	0 3 1	; 2 in 0 out
+	26	[7]	get_table_upvalue	0 0 3	; _ENV "a"
+	27	[7]	get_field	0 0 4	; "b"
+	28	[7]	get_field	0 0 5	; "c"
+	29	[7]	self     	0 0 6k	; "d"
+	30	[7]	load_constant	2 7	; "x"
+	31	[7]	call     	0 3 2	; 2 in 1 out
+	32	[7]	new_table	1 0 1	; 1
+	33	[7]	extra_argument	0
+	34	[7]	get_table_upvalue	2 0 8	; _ENV "y"
+	35	[7]	set_list 	1 1 0
+	36	[7]	call     	0 2 1	; 1 in 0 out
+	37	[8]	get_table_upvalue	0 0 0	; _ENV "f"
+	38	[8]	load_integer	1 1
+	39	[8]	call     	0 2 2	; 1 in 1 out
+	40	[8]	load_integer	1 2
+	41	[8]	call     	0 2 2	; 1 in 1 out
+	42	[8]	get_integer	0 0 3
+	43	[8]	self     	0 0 9k	; "g"
+	44	[8]	call     	0 2 1	; 1 in 0 out
+	45	[8]	return_values	0 1 1	; 0 out
+constants (10) for #1:
+	0	S	"f"
+	1	S	"string"
+	2	S	"long string"
+	3	S	"a"
+	4	S	"b"
+	5	S	"c"
+	6	S	"d"
+	7	S	"x"
+	8	S	"y"
+	9	S	"g"
+locals (0) for #1:
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0
