@@ -114,12 +114,20 @@ of proofs (they then rely on contracts alone), so it is not trust and needs no e
 
 Current list of assumptions and justified checks:
 
+The four ownership annotations below exist so that a type's private part (its growable
+arrays and their pointers) can be hidden from its clients' proofs. The trust they add
+concerns leak checking only: GNATprove takes the type's `Is_Released` to mean "holds no
+heap memory". Each `Is_Released` is the conjunction of `Is_Released` of every array in the
+object, each proven to mean exactly that, and nothing about runtime safety depends on it.
+
 - `Pyro.Compiler.Code.Compiler_State` carries the ownership annotation
   `Needs_Reclamation`, with `Is_Released` as its `Is_Reclaimed` function, so that its
-  private part (seventeen growable arrays) can be hidden from the compiler's proofs.
-  GNATprove takes on trust that `Is_Released` is true only when the state holds no heap
-  memory; it is the conjunction of `Is_Released` of every array in the state, each of
-  which is proven to mean exactly that (M2).
+  private part (seventeen growable arrays) can be hidden from the compiler's proofs (M2).
+- `Pyro.Syntax_Trees.Syntax_Tree`, likewise: four growable arrays, hidden from the
+  parser's, resolver's and compiler's proofs (front-end memory work, after M2).
+- `Pyro.Symbols.Symbol_Table`, likewise: three growable arrays (same).
+- `Pyro.Bytecode.Chunk`, likewise: seven growable arrays, hidden from the compiler's
+  proofs (same).
 
 ## Assumptions
 
@@ -195,6 +203,29 @@ Rules:
   `Pyro.Bytecode`'s accessors, which carry the bounds it needs.
 - Runtime checks stay enabled in debug builds. A release build may suppress checks
   that are proven, never others.
+
+### Proof time
+
+The uncached proof (`tests/run --full`'s proof stage) took 584 s of its 900 s cap after
+the front-end memory work (632 s in another forced run on the same commit, so allow a
+few percent between runs; M2 ended at 484 s). Keep it at about two thirds of the cap or
+below: past that, restructure before adding proofs.
+
+When it grows, find where by unit rather than guessing:
+
+- Run `alr exec -- gnatprove -P pyro.gpr -f` with no cache, after removing
+  `obj/*/gnatprove` (as the stage does). Without `-f`, gnatprove reuses earlier sessions'
+  results, and a check can fail or pass depending on what ran before.
+- Sum the `time` of every proof attempt in each unit's `obj/*/gnatprove/<unit>.spark`
+  (JSON, under `proof`) and compare per unit with the same figures at an earlier commit
+  (a worktree). Compare check counts too: more time for the same checks means a heavier
+  context; more checks means more code or more instances.
+- The heavy context usually comes from a private part clients can see, such as owning
+  arrays with their pointer models. After the chunked arrays, the parser went from 333 s to
+  751 s with the same 491 checks. With the private parts of `Syntax_Tree`, `Symbol_Table`
+  and `Chunk` hidden it took 182 s.
+- Every instance of `Pyro.Growable_Arrays` proves the generic body again (267 checks,
+  about 9 s of prover time each; about 37 instances).
 
 ## Status
 

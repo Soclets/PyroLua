@@ -28,7 +28,8 @@ package Pyro.Symbols with SPARK_Mode => On, Always_Terminates is
      Default_Initial_Condition =>
        Is_Valid (Symbol_Table)
        and then Count (Symbol_Table) = 0
-       and then Is_Released (Symbol_Table);
+       and then Is_Released (Symbol_Table),
+     Annotate => (GNATprove, Ownership, "Needs_Reclamation");
 
    --  The number of symbols in Table.
    function Count (Table : Symbol_Table) return Symbol_Index
@@ -113,9 +114,12 @@ package Pyro.Symbols with SPARK_Mode => On, Always_Terminates is
 
    --  True when the table holds no heap memory.
    function Is_Released (Table : Symbol_Table) return Boolean
-   with Global => null;
+   with Global => null, Annotate => (GNATprove, Ownership, "Is_Reclaimed");
 
 private
+   --  Clients see the table through the operations above, which keeps its representation
+   --  (three growable arrays and their pointers) out of their proofs.
+   pragma Annotate (GNATprove, Hide_Info, "Private_Part");
 
    use type Interfaces.Unsigned_32;
 

@@ -127,7 +127,8 @@ package Pyro.Syntax_Trees with SPARK_Mode => On, Always_Terminates is
        Is_Well_Formed (Syntax_Tree)
        and then Node_Count (Syntax_Tree) = 0
        and then Pending (Syntax_Tree) = 0
-       and then Is_Released (Syntax_Tree);
+       and then Is_Released (Syntax_Tree),
+     Annotate => (GNATprove, Ownership, "Needs_Reclamation");
 
    --  The number of nodes.
    function Node_Count (Tree : Syntax_Tree) return Node_Index
@@ -262,9 +263,12 @@ package Pyro.Syntax_Trees with SPARK_Mode => On, Always_Terminates is
 
    --  True when the tree holds no heap memory.
    function Is_Released (Tree : Syntax_Tree) return Boolean
-   with Global => null;
+   with Global => null, Annotate => (GNATprove, Ownership, "Is_Reclaimed");
 
 private
+   --  Clients see the tree through the operations above, which keeps its representation
+   --  (four growable arrays and their pointers) out of their proofs.
+   pragma Annotate (GNATprove, Hide_Info, "Private_Part");
 
    subtype Node_Position is Node_Index range 1 .. Node_Index'Last;
    subtype List_Position is List_Index range 1 .. List_Index'Last;

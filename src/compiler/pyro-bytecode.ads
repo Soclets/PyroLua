@@ -210,7 +210,8 @@ package Pyro.Bytecode with SPARK_Mode => On, Always_Terminates is
    --  The prototypes of a compiled chunk. It owns heap memory: release it with Clear.
    type Chunk is limited private
    with
-     Default_Initial_Condition => Prototype_Count (Chunk) = 0 and then Is_Released (Chunk);
+     Default_Initial_Condition => Prototype_Count (Chunk) = 0 and then Is_Released (Chunk),
+     Annotate => (GNATprove, Ownership, "Needs_Reclamation");
 
    --  Every prototype's arrays lie inside the chunk's, and nested prototypes come before
    --  their parent. Every operation keeps this.
@@ -725,9 +726,12 @@ package Pyro.Bytecode with SPARK_Mode => On, Always_Terminates is
 
    --  True when the chunk holds no heap memory.
    function Is_Released (Item : Chunk) return Boolean
-   with Global => null;
+   with Global => null, Annotate => (GNATprove, Ownership, "Is_Reclaimed");
 
 private
+   --  Clients see the chunk through the operations above, which keeps its representation
+   --  (seven growable arrays and their pointers) out of their proofs.
+   pragma Annotate (GNATprove, Hide_Info, "Private_Part");
 
    subtype Arena_Position is Prototype_Index range 1 .. Prototype_Index'Last;
 
