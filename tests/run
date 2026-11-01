@@ -9,6 +9,9 @@
 #   tests/run --update   regenerate golden files, then run everything
 #
 # Only failures and a timing table are printed. The full log is tests/output/run.log.
+#
+# On a cap, an error, Ctrl-C or SIGTERM, every process the run started is killed, provers
+# included (they leave their parent's process group); the unit stage checks this.
 
 import argparse
 import concurrent.futures
@@ -19,6 +22,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
@@ -46,6 +50,20 @@ STAGE_LIMITS = {
     "full": {"build": 120, "proof": 900, "tags": 10, "unit": 20, "golden": 30, "cli": 60,
              "differential": 60, "listing": 120, "fuzz": 600},
 }
+# The stages of the process check (tests/run --process-check).
+for _limits in STAGE_LIMITS.values():
+    _limits.update({"probe": 2, "probe-wait": 60})
+
+# A command that leaves processes behind as provers do: a child in its own process group
+# (as SPARK's wrapper starts cvc5 and z3) and one in the command's group, both long-lived.
+# The marker (argv[1]) lets the check find them.
+SPAWNER = """
+import subprocess, sys, time
+sleeper = [sys.executable, "-c", "import time; time.sleep(600)", sys.argv[1]]
+subprocess.Popen(sleeper, start_new_session=True)
+subprocess.Popen(sleeper)
+time.sleep(600)
+"""
 
 # Constructs that nest as deep as the parser allows, and the deepest nesting PUC Lua's parser
 # accepts for each (one level more is "C stack overflow"). The stack test parses and compiles
@@ -115,8 +133,75 @@ class StageTimeout(Exception):
     """A stage or one of its processes went over its time limit."""
 
 
+# --------------------------------------------------------------------------------------------
+# Process trees
+#
+# Each command runs in a process group of its own, but provers do not stay there: SPARK's
+# wrapper starts cvc5 and z3 in groups of their own. So a command is stopped by freezing its
+# whole tree (its group and every descendant, found through parent links while the parents
+# are still alive), then killing every process in it.
+
+
+def marker_processes(marker):
+    """The processes whose command line contains marker."""
+    listing = subprocess.run(["pgrep", "-f", marker], capture_output=True, text=True).stdout
+    return [int(pid) for pid in listing.split()]
+
+
+def process_table():
+    """(pid, parent pid, process group) of every process."""
+    listing = subprocess.run(["ps", "-A", "-o", "pid=,ppid=,pgid="], capture_output=True,
+                             text=True).stdout
+    rows = []
+    for line in listing.splitlines():
+        fields = line.split()
+        if len(fields) == 3 and all(field.isdigit() for field in fields):
+            rows.append(tuple(int(field) for field in fields))
+    return rows
+
+
+def process_tree(root):
+    """The processes of root's process group and all their descendants."""
+    rows = process_table()
+    children = {}
+    for pid, parent, _ in rows:
+        children.setdefault(parent, []).append(pid)
+    tree = {pid for pid, _, group in rows if group == root}
+    if any(pid == root for pid, _, _ in rows):
+        tree.add(root)
+    pending = list(tree)
+    while pending:
+        for child in children.get(pending.pop(), []):
+            if child not in tree:
+                tree.add(child)
+                pending.append(child)
+    tree.discard(os.getpid())
+    return tree
+
+
+def signal_process(pid, number):
+    try:
+        os.kill(pid, number)
+    except (ProcessLookupError, PermissionError):
+        pass
+
+
+def kill_tree(root):
+    """Kills root's process tree: frozen first, so that nothing escapes while it is found."""
+    frozen = set()
+    for _ in range(20):
+        new = process_tree(root) - frozen
+        if not new:
+            break
+        for pid in new:
+            signal_process(pid, signal.SIGSTOP)
+        frozen |= new
+    for pid in frozen:
+        signal_process(pid, signal.SIGKILL)
+
+
 class Runner:
-    def __init__(self, mode, update):
+    def __init__(self, mode, update, log_name="run.log"):
         self.mode = mode
         self.update = update
         self.start = time.monotonic()
@@ -125,7 +210,37 @@ class Runner:
         self.stage = None
         self.stage_deadline = None
         OUTPUT.mkdir(parents=True, exist_ok=True)
-        self.log_file = open(OUTPUT / "run.log", "w", encoding="utf-8", errors="replace")
+        self.log_file = open(OUTPUT / log_name, "w", encoding="utf-8", errors="replace")
+        # The process groups of the commands running now, and whether the run is stopping.
+        self.active = set()
+        self.active_lock = threading.Lock()
+        self.stopping = False
+
+    def launch(self, command, **options):
+        """Starts command in a process group of its own, which kill_all can find."""
+        if self.stopping:
+            raise StageTimeout("the run is stopping")
+        process = subprocess.Popen([str(part) for part in command], start_new_session=True,
+                                   **options)
+        with self.active_lock:
+            self.active.add(process.pid)
+        return process
+
+    def finish(self, process):
+        """Kills whatever is left of process's tree and forgets it."""
+        kill_tree(process.pid)
+        if process.poll() is None:
+            process.wait()
+        with self.active_lock:
+            self.active.discard(process.pid)
+
+    def kill_all(self):
+        """Stops the run: kills the tree of every command still running."""
+        self.stopping = True
+        with self.active_lock:
+            groups = list(self.active)
+        for group in groups:
+            kill_tree(group)
 
     # ----------------------------------------------------------------------------------------
     # Reporting
@@ -156,22 +271,19 @@ class Runner:
             raise StageTimeout(f"time limit reached before running {' '.join(map(str, command))}")
         stage_bound = left < limit
         limit = min(limit, left)
-        process = subprocess.Popen(
-            [str(part) for part in command], cwd=cwd, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE, start_new_session=True)
+        process = self.launch(command, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             out, err = process.communicate(timeout=limit)
         except subprocess.TimeoutExpired:
-            try:
-                os.killpg(process.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
+            kill_tree(process.pid)
             process.communicate()
             description = " ".join(map(str, command))
             if stage_bound:
                 raise StageTimeout(f"time limit reached while running {description}")
             self.fail(f"timeout after {limit:.0f} s: {description}" + (f" ({what})" if what else ""))
             return None, b"", b""
+        finally:
+            self.finish(process)
         return process.returncode, out, err
 
     # ----------------------------------------------------------------------------------------
@@ -289,6 +401,39 @@ class Runner:
         if code != 0:
             self.fail("grapheme conformance test failed:\n" + tail((out + err).decode(errors="replace")))
         self.stack_test()
+        self.process_check()
+
+    def process_check(self):
+        """tests/run leaves no process behind when a stage hits its cap, or when it is stopped
+        with SIGTERM or SIGINT, even processes that left its process group (as provers do)."""
+        for case, stop in (("probe", None), ("probe-wait", signal.SIGTERM),
+                           ("probe-wait", signal.SIGINT)):
+            marker = f"pyro-process-check-{os.getpid()}-{case}-{stop or 'cap'}"
+            child = subprocess.Popen([sys.executable, str(Path(__file__).resolve()),
+                                      "--process-check", case, marker],
+                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            if stop is not None:
+                # The command and its two long-lived processes are running.
+                for _ in range(100):
+                    if len(set(marker_processes(marker)) - {child.pid}) >= 3:
+                        break
+                    time.sleep(0.1)
+                child.send_signal(stop)
+            try:
+                child.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                self.fail(f"process check: tests/run did not stop ({case}, {stop})")
+            left = marker_processes(marker)
+            if left:
+                self.fail(f"process check: {len(left)} process(es) left behind "
+                          f"({case}, {'cap' if stop is None else stop.name})")
+                for pid in left:
+                    signal_process(pid, signal.SIGKILL)
+
+    def stage_probe(self, marker):
+        """The stage of the process check: a command that starts long-lived processes."""
+        self.run([sys.executable, "-c", SPAWNER, marker], limit=600)
 
     def stack_test(self):
         """Parses each construct at the nesting limit, and one level deeper, in a task whose
@@ -402,10 +547,12 @@ class Runner:
 
     def peak_memory(self, command):
         """The peak resident memory of command, in bytes, or None if it failed."""
-        process = subprocess.Popen([str(part) for part in command], stdout=subprocess.DEVNULL,
-                                   stderr=subprocess.DEVNULL)
-        _, status, usage = os.wait4(process.pid, 0)
-        process.returncode = os.waitstatus_to_exitcode(status)
+        process = self.launch(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            _, status, usage = os.wait4(process.pid, 0)
+            process.returncode = os.waitstatus_to_exitcode(status)
+        finally:
+            self.finish(process)
         if process.returncode != 0:
             self.fail(f"{' '.join(map(str, command))} exited with {process.returncode}")
             return None
@@ -606,6 +753,17 @@ class Runner:
     # ----------------------------------------------------------------------------------------
 
     def execute(self, stages):
+        try:
+            return self.execute_stages(stages)
+        except KeyboardInterrupt:
+            self.kill_all()
+            print("tests/run interrupted: every process it started has been killed")
+            return 130
+        except BaseException:
+            self.kill_all()
+            raise
+
+    def execute_stages(self, stages):
         for name, function in stages:
             self.stage = name
             limit = STAGE_LIMITS[self.mode][name]
@@ -746,6 +904,15 @@ def mutate(generator, text):
     return bytes(data)
 
 
+def install_signal_handlers(runner):
+    """SIGINT and SIGTERM kill every process the run started, then end the run."""
+    def stop(number, frame):
+        runner.kill_all()
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGINT, stop)
+    signal.signal(signal.SIGTERM, stop)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Pyro test runner")
     parser.add_argument("--full", action="store_true",
@@ -755,8 +922,18 @@ def main():
     parser.add_argument("--only", metavar="STAGES",
                         help="run only these comma-separated stages (a partial check, not a "
                              "green run)")
+    parser.add_argument("--process-check", nargs=2, metavar=("STAGE", "MARKER"),
+                        help=argparse.SUPPRESS)
     arguments = parser.parse_args()
+    if arguments.process_check:
+        stage, marker = arguments.process_check
+        runner = Runner("quick", False, log_name=f"{marker}.log")
+        install_signal_handlers(runner)
+        runner.execute([(stage, lambda: runner.stage_probe(marker))])
+        (OUTPUT / f"{marker}.log").unlink(missing_ok=True)
+        sys.exit(0)
     runner = Runner("full" if arguments.full else "quick", arguments.update)
+    install_signal_handlers(runner)
     stages = [
         ("build", runner.stage_build),
         ("proof", runner.stage_proof),
