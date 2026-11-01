@@ -1,0 +1,6 @@
+refused: tests/corpus/resolver/label_cut_short_duplicate.lua:3:6, line 3 column 6
+ 3 | ::top:
+   |      ^
+ what: expected `::`, found `:`
+ why:  Lua's grammar needs `::` here (Lua 5.4 manual §9)
+exit 1

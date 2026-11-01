@@ -1,0 +1,6 @@
+refused: tests/corpus/resolver/label_group_cut_short.lua:2:33, line 2 column 33
+ 2 | do goto l; local a; ::l:: ;; ::m: end
+   |                                 ^
+ what: expected `::`, found `:`
+ why:  Lua's grammar needs `::` here (Lua 5.4 manual §9)
+exit 1

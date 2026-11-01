@@ -1168,8 +1168,11 @@ package body Pyro.Parser with SPARK_Mode => On is
       Item.First_Child := Target;
       Item.Second_Child := Body_Node;
       Item.Is_Method := Is_Method;
-      --  [puc lparser.c:funcstat] check_readonly comes after the body.
-      Item.Check_Point := (Ordinal => P.Current.Ordinal, During => Resolving);
+      --  [puc lparser.c:funcstat] check_readonly comes after the body; PUC Lua never gets
+      --  there when a syntax error cuts the body short.
+      Item.Check_Point :=
+        (if P.Failed then (Ordinal => Token_Ordinal'Last, During => Parsing)
+         else (Ordinal => P.Current.Ordinal, During => Resolving));
       Item.Check_Line := Pyro.Lexer.Line (P.Lexer);
       Make (P, Source, Item, Result);
    end Function_Statement;
@@ -1355,6 +1358,9 @@ package body Pyro.Parser with SPARK_Mode => On is
       Item.Last := Label_Last;
       Item.Symbol := Symbol;
       Item.Is_Last_Label := Block_Follow (P, With_Until => False);
+      --  A syntax error in the label or in the no-op statements read before its checks: PUC
+      --  Lua never makes them.
+      Item.Is_Incomplete := P.Failed;
       Item.Check_Point := (Ordinal => P.Current.Ordinal, During => Resolving);
       Item.Check_Line := Pyro.Lexer.Line (P.Lexer);
       Make_List (P, Source, Item, Mark, Result);

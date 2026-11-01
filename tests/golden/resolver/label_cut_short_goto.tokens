@@ -1,0 +1,9 @@
+2 keyword goto
+2 name l
+3 keyword local
+3 name a
+4 ::
+4 name l
+4 :
+5 <eof>
+exit 0

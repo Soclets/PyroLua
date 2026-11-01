@@ -1,0 +1,13 @@
+1 function_body vararg incomplete
+  1 block incomplete
+    2 goto_statement "l"
+    3 local_statement
+      3 name_list
+        3 local_name "a"
+    4 label_statement "l" incomplete
+refused: tests/corpus/resolver/label_cut_short_goto.lua:4:4, line 4 column 4
+ 4 | ::l:
+   |    ^
+ what: expected `::`, found `:`
+ why:  Lua's grammar needs `::` here (Lua 5.4 manual §9)
+exit 1

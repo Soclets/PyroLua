@@ -1,0 +1,14 @@
+2 keyword local
+2 name f
+2 <
+2 name const
+2 >
+2 =
+2 keyword nil
+3 keyword function
+3 name f
+3 (
+3 )
+3 name endS
+4 <eof>
+exit 0

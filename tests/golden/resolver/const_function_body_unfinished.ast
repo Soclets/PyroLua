@@ -1,0 +1,28 @@
+1 function_body vararg incomplete
+  1 block incomplete
+    2 local_statement
+      2 name_list
+        2 local_name "f" constant_attribute
+      2 expression_list
+        2 nil_literal
+    3 function_statement
+      3 name_expression "f" local@1
+      3 function_body incomplete
+        3 name_list
+        3 block incomplete
+refused: tests/corpus/resolver/const_function_body_unfinished.lua:3:10, line 3 column 10
+ 3 | function f() endS
+   |          ^
+ what: `f` is assigned, but it is declared <const>
+ why:  a <const> variable can't be assigned after its declaration (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/resolver/const_function_body_unfinished.lua:2:7, line 2 column 7
+ 2 | local f <const> = nil
+   |       ^
+     `f` is declared <const> here
+
+refused: tests/corpus/resolver/const_function_body_unfinished.lua:3:14, line 3 column 14
+ 3 | function f() endS
+   |              ^^^^
+ what: this expression is not a statement
+ why:  only function calls and assignments are statements (Lua 5.4 manual §3.3)
+exit 1

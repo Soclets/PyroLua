@@ -697,9 +697,11 @@ class Runner:
                     done += 1
                     if reference is None or pyro is None:
                         continue
+                    # Both reject: the same line and message (luac -p's first error), except
+                    # for precompiled chunks (tests/known-differences.md).
                     if (reference[0] != pyro[0] or listing is not None
-                            or (is_limit_error(reference) or is_limit_error(pyro))
-                            and reference != pyro):
+                            or (not reference[0] and reference != pyro
+                                and not is_binary_chunk(pyro))):
                         disagreements += 1
                         failures.mkdir(parents=True, exist_ok=True)
                         kept = failures / f"seed{seed}-mutant{index}.lua"
@@ -716,7 +718,8 @@ class Runner:
         if disagreements > 10:
             self.fail(f"{disagreements} disagreements in all (first 10 shown; all "
                       "kept in tests/output/fuzz-failures)")
-        self.log(f"fuzz: {done} mutants, {disagreements} disagreements")
+        self.log(f"fuzz: {done} mutants, {disagreements} disagreements (acceptance, messages "
+                 "or listings)")
 
     # ----------------------------------------------------------------------------------------
     # Checking one file
@@ -870,16 +873,9 @@ def parse_check(code, err, program, relative):
     return (False, None, text)
 
 
-LIMIT_MESSAGES = ("too many local variables", "too many upvalues",
-                  "function or expression needs too many registers",
-                  "control structure too long")
-
-
-def is_limit_error(result):
-    """The (accepted, line, message) of luac -p or pyro --check reports a compile-time
-    limit."""
-    return (not result[0] and result[2] is not None
-            and any(text in result[2] for text in LIMIT_MESSAGES))
+def is_binary_chunk(result):
+    """The (accepted, line, message) of pyro --check refuses a precompiled chunk."""
+    return not result[0] and result[2] is not None and "precompiled chunks" in result[2]
 
 
 def mask_addresses(text):

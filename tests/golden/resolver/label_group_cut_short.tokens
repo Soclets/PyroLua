@@ -1,0 +1,18 @@
+2 keyword do
+2 keyword goto
+2 name l
+2 ;
+2 keyword local
+2 name a
+2 ;
+2 ::
+2 name l
+2 ::
+2 ;
+2 ;
+2 ::
+2 name m
+2 :
+2 keyword end
+3 <eof>
+exit 0

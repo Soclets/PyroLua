@@ -691,7 +691,10 @@ package body Pyro.Resolver with SPARK_Mode => On is
             if At_Step < Length then
                Visit (W, Tree, List_Item (Tree, Index, List_Index (At_Step + 1)), Budget);
             else
-               Declare_Label (W, Tree, Index, Budget, Problems);
+               --  A label whose closing '::' is missing is no label PUC Lua would declare.
+               if not Get (Tree, Index).Is_Incomplete then
+                  Declare_Label (W, Tree, Index, Budget, Problems);
+               end if;
                Finish (W);
             end if;
          when Name_Expression =>

@@ -173,8 +173,11 @@ package body Pyro.Diagnostics with SPARK_Mode => On is
       case Item.Near is
          when No_Near => null;
          when Near_Token =>
-            Append (Output, Budget, " near ");
-            Append_Token (Output, Budget, Item.Near_Token, Item.Near_Byte);
+            --  [puc llex.c:lexerror] A NUL byte is token 0, "no token": no "near" part.
+            if Item.Near_Token /= Other_Byte or else Item.Near_Byte /= ASCII.NUL then
+               Append (Output, Budget, " near ");
+               Append_Token (Output, Budget, Item.Near_Token, Item.Near_Byte);
+            end if;
          when Near_Text =>
             Append (Output, Budget, " near '");
             Append_Symbol (Output, Budget, Table, Item.Near_Text);

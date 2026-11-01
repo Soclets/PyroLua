@@ -1,0 +1,16 @@
+refused: tests/corpus/resolver/const_function_body_cut_short.lua:3:10, line 3 column 10
+ 3 | function f()#end
+   |          ^
+ what: `f` is assigned, but it is declared <const>
+ why:  a <const> variable can't be assigned after its declaration (Lua 5.4 manual §3.3.7)
+ because: tests/corpus/resolver/const_function_body_cut_short.lua:2:7, line 2 column 7
+ 2 | local f <const> = nil
+   |       ^
+     `f` is declared <const> here
+
+refused: tests/corpus/resolver/const_function_body_cut_short.lua:3:13, line 3 column 13
+ 3 | function f()#end
+   |             ^
+ what: `#` can't start a statement
+ why:  a statement starts with a keyword, a name, `(` or `;` (Lua 5.4 manual §3.3)
+exit 1
