@@ -69,6 +69,10 @@ DEEP_CONSTRUCTS = {
     "assignment": (lambda n: "a" + ", a" * n + " = 1", 196),
 }
 
+# The front end's peak memory, in MB per MB of source, on the official test files (macOS
+# arm64, measured 2026-11-01). tests/run --full fails 25% above it (ROADMAP, Later).
+MEMORY_PER_SOURCE_MB = 58.1
+
 # Mutants per run, and the fixed seed of the quick run.
 FUZZ_MUTANTS = {"quick": 400, "full": 200000}
 FUZZ_SEED = 1954
@@ -307,27 +311,23 @@ class Runner:
                               f"{(out + err)!r}, expected exit 1, {expected!r}")
         unreadable.chmod(0o644)
         # About 10 MB of real code: every corpus and official file, each in a block of its own.
-        sources = corpus_files() + (sorted(OFFICIAL.rglob("*.lua")) if OFFICIAL.exists() else [])
-        blocks = []
-        block_file = directory / "block.lua"
-        for source in sources:
-            text = source.read_bytes()
-            if text.startswith(b"#"):
-                text = b"--" + text
-            block = b"do local function f(...)\n" + text + b"\nend end\n"
-            block_file.write_bytes(block)
-            code, _, _ = self.run([LUAC, "-p", block_file])
-            if code == 0:
-                blocks.append(block)
+        official = sorted(OFFICIAL.rglob("*.lua")) if OFFICIAL.exists() else []
         large = directory / "large.lua"
-        with open(large, "wb") as file:
-            written = 0
-            while blocks and written < 10 * 2 ** 20:
-                for block in blocks:
-                    file.write(block)
-                    written += len(block)
-        self.log(f"large file: {written} bytes, {len(blocks)} blocks")
+        written, blocks = self.write_real_code(corpus_files() + official, large, 10 * 2 ** 20)
+        self.log(f"large file: {written} bytes, {blocks} blocks")
         self.expect_check(large, 0, b"")
+        if self.mode == "full" and official:
+            # Peak memory of the front end per MB of source, on the official files.
+            measured = directory / "official.lua"
+            size, _ = self.write_real_code(official, measured, 10 * 2 ** 20)
+            peak = self.peak_memory([PYRO, "--check", measured])
+            if peak is not None:
+                ratio = peak / (size / 2 ** 20) / 2 ** 20
+                self.log(f"front-end memory: {ratio:.1f} MB per source MB")
+                if ratio > MEMORY_PER_SOURCE_MB * 1.25:
+                    self.fail(f"the front end needs {ratio:.1f} MB of memory per MB of source, more "
+                              f"than 25% above the baseline of {MEMORY_PER_SOURCE_MB} (ROADMAP, Later)")
+            measured.unlink()
         if self.mode == "full":
             # The largest chunk Pyro accepts, and one byte more.
             limit = 2 ** 28
@@ -341,6 +341,41 @@ class Runner:
                 self.expect_check(path, code, output, ["--lua-style"])
                 path.unlink()
         large.unlink()
+
+    def write_real_code(self, sources, path, size):
+        """Writes size bytes or more of Lua code to path: the sources luac accepts, each in a
+        block of its own, repeated. Returns (bytes written, number of blocks)."""
+        blocks = []
+        block_file = path.with_suffix(".block.lua")
+        for source in sources:
+            text = source.read_bytes()
+            if text.startswith(b"#"):
+                text = b"--" + text
+            block = b"do local function f(...)\n" + text + b"\nend end\n"
+            block_file.write_bytes(block)
+            code, _, _ = self.run([LUAC, "-p", block_file])
+            if code == 0:
+                blocks.append(block)
+        block_file.unlink(missing_ok=True)
+        written = 0
+        with open(path, "wb") as file:
+            while blocks and written < size:
+                for block in blocks:
+                    file.write(block)
+                    written += len(block)
+        return written, len(blocks)
+
+    def peak_memory(self, command):
+        """The peak resident memory of command, in bytes, or None if it failed."""
+        process = subprocess.Popen([str(part) for part in command], stdout=subprocess.DEVNULL,
+                                   stderr=subprocess.DEVNULL)
+        _, status, usage = os.wait4(process.pid, 0)
+        process.returncode = os.waitstatus_to_exitcode(status)
+        if process.returncode != 0:
+            self.fail(f"{' '.join(map(str, command))} exited with {process.returncode}")
+            return None
+        # ru_maxrss is in bytes on macOS and in kilobytes on Linux.
+        return usage.ru_maxrss if sys.platform == "darwin" else usage.ru_maxrss * 1024
 
     def expect_check(self, path, expected_code, expected_output, style=()):
         code, out, err = self.run([PYRO, "--check", *style, path], limit=60)

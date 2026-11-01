@@ -130,6 +130,12 @@ recursion, string bombs) and get clean Lua errors; the README documents embeddin
 
 - Performance work: profiling, instruction specialisation, table and string fast
   paths, faster collector. Proofs stay complete.
+- Front-end memory: about 60 bytes per source byte on dense code (luac: about 1),
+  from 96-byte tree nodes and arenas that double. Levers: side tables for rare node
+  fields, chunked arenas instead of doubling (no copy and no 2x peak on growth, probably
+  the biggest win), and dropping the tree once the compiler is done with it. Target:
+  real code of at least 50 MB within the default 1 GiB budget. `tests/run --full`
+  guards today's figure (design session).
 - More Gold where it pays off, for example proving the lexer against a formal token
   grammar.
 - Optional companion crate implementing parts of the standard library on top of
