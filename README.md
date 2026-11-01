@@ -24,8 +24,14 @@ Gold for growable arrays and syntax-tree well-formedness, termination of lexer a
 parser). `pyro --tokens`, `pyro --ast` and `pyro --check` work, with Radium-style
 messages. `pyro --check --lua-style` prints exactly what `luac -p` 5.4.9 prints on the
 official test suite and Pyro's corpus, and agrees with it on accepting or rejecting
-every mutated file of the fuzzing runs. Next milestone: **M2,
-compiler and bytecode**. See [docs/ROADMAP.md](docs/ROADMAP.md).
+every mutated file of the fuzzing runs.
+
+M2 (compiler and bytecode) is done: the compiler is a port of PUC Lua's code generator,
+and every prototype it returns is proven valid (checked by the proven predicate
+`Is_Valid`). `pyro --bytecode --lua-style` prints exactly what `luac -l -l` 5.4.9 prints
+(memory addresses aside) on the official test suite, Pyro's corpus, generated chunks at
+the compile-time limits, and the fuzzing runs. Next milestone: **M3, values, heap,
+tables and garbage collector**. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Documentation
 
@@ -98,6 +104,8 @@ pyro --tokens file.lua    # dump the token stream
 pyro --ast file.lua       # dump the syntax tree
 pyro --check file.lua     # syntax and scope check, every certain error in Pyro's layout
 pyro --check --lua-style file.lua   # the one error `luac -p` would print, in its words
+pyro --bytecode file.lua  # the compiled prototypes
+pyro --bytecode --lua-style file.lua   # the same, as `luac -l -l` prints them
 ```
 
 Before the first `tests/run`, fetch the official Lua test suite and Unicode's grapheme
@@ -108,7 +116,7 @@ tools/fetch-lua-tests
 tools/generate-grapheme-tables
 ```
 
-Later milestones add `pyro --bytecode file.lua` and `pyro file.lua` (run).
+Later milestones add `pyro file.lua` (run).
 
 ## Repository layout
 
