@@ -131,12 +131,13 @@ alr exec -- gnatprove -P pyro.gpr
 ```
 
 Proof settings live in the `Prove` package of `pyro.gpr` so everyone uses the same
-ones. Planned defaults:
+ones:
 
 - `--level=2`;
-- an explicit `--steps` limit and no wall-clock `--timeout`, so a proof that is too
-  hard fails the same way every time, whatever the machine load. The value is chosen
-  during M1 setup, recorded here, and raised only with the owner's OK;
+- `--steps=30000` and `--timeout=0` (no wall-clock timeout), so a proof that is too
+  hard fails the same way every time, whatever the machine load. The steps value was
+  chosen during M1 setup and is raised only with the owner's OK;
+- `--counterexamples=off`, so runs do not spend time on counterexamples;
 - `--checks-as-errors=on` and `--warnings=error`, so an unproved check fails the run;
 - `--proof-warnings=on` to catch dead code and inconsistent assumptions;
 - `-j0` to use all cores.

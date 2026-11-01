@@ -1,0 +1,36 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# Downloads the official Lua 5.4.9 test suite from lua.org into tests/official/, checking its
+# SHA-256 first. The suite is not committed; tests/run reads it from there.
+
+set -eu
+
+version=5.4.9
+archive=lua-$version-tests.tar.gz
+url=https://www.lua.org/tests/$archive
+sha256=7d971845f545ffc09fbb3128a86b2c6524161c70d0fdf0154a16e8c00c343fca
+
+root=$(cd "$(dirname "$0")/.." && pwd)
+target=$root/tests/official
+download=$(mktemp -d)
+trap 'rm -rf "$download"' EXIT
+
+curl -fsSL -o "$download/$archive" "$url"
+
+if command -v sha256sum > /dev/null 2>&1; then
+   actual=$(sha256sum "$download/$archive" | cut -d ' ' -f 1)
+else
+   actual=$(shasum -a 256 "$download/$archive" | cut -d ' ' -f 1)
+fi
+if [ "$actual" != "$sha256" ]; then
+   echo "fetch-lua-tests: checksum mismatch for $archive" >&2
+   echo "  expected $sha256" >&2
+   echo "  got      $actual" >&2
+   exit 1
+fi
+
+rm -rf "$target"
+mkdir -p "$target"
+tar -xzf "$download/$archive" -C "$target"
+echo "Lua $version test suite in tests/official/lua-$version-tests"

@@ -1,0 +1,461 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# Pyro's test runner: build, proofs, tag/doc agreement, golden files, differential tests against
+# reference Lua 5.4.9 and mutation fuzzing (see docs/STYLE.md, "Testing").
+#
+#   tests/run            everything, 5 minute cap (every commit)
+#   tests/run --full     clean proofs and long fuzzing, 30 minute cap (end of milestone)
+#   tests/run --update   regenerate golden files, then run everything
+#
+# Only failures and a timing table are printed. The full log is tests/output/run.log.
+
+import argparse
+import concurrent.futures
+import os
+import random
+import re
+import shutil
+import signal
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+TESTS = ROOT / "tests"
+OUTPUT = TESTS / "output"
+CORPUS = TESTS / "corpus"
+GOLDEN = TESTS / "golden"
+OFFICIAL = TESTS / "official" / "lua-5.4.9-tests"
+KNOWN_DIFFERENCES = TESTS / "known-differences.md"
+PYRO = ROOT / "cli" / "bin" / "pyro"
+REFERENCE = Path(os.environ.get("PYRO_REF_LUA", "/opt/homebrew/opt/lua@5.4/bin"))
+LUAC = REFERENCE / "luac"
+
+PROCESS_LIMIT = 10  # seconds for one pyro, lua or luac process
+TOTAL_LIMIT = {"quick": 300, "full": 1800}
+
+# Wall-clock cap of each stage, in seconds, within the total.
+STAGE_LIMITS = {
+    "quick": {"build": 120, "proof": 200, "tags": 10, "golden": 30, "differential": 60, "fuzz": 30},
+    "full": {"build": 120, "proof": 900, "tags": 10, "golden": 30, "differential": 60, "fuzz": 1200},
+}
+
+# Mutants per run, and the fixed seed of the quick run.
+FUZZ_MUTANTS = {"quick": 400, "full": 200000}
+FUZZ_SEED = 1954
+
+
+class StageTimeout(Exception):
+    """A stage or one of its processes went over its time limit."""
+
+
+class Runner:
+    def __init__(self, mode, update):
+        self.mode = mode
+        self.update = update
+        self.start = time.monotonic()
+        self.failures = []
+        self.timings = []
+        self.stage = None
+        self.stage_deadline = None
+        OUTPUT.mkdir(parents=True, exist_ok=True)
+        self.log_file = open(OUTPUT / "run.log", "w", encoding="utf-8", errors="replace")
+
+    # ----------------------------------------------------------------------------------------
+    # Reporting
+
+    def log(self, text):
+        self.log_file.write(text if text.endswith("\n") else text + "\n")
+        self.log_file.flush()
+
+    def fail(self, text):
+        self.failures.append(f"[{self.stage}] {text}")
+        self.log(f"FAIL [{self.stage}] {text}")
+
+    # ----------------------------------------------------------------------------------------
+    # Processes
+
+    def remaining(self):
+        total_left = TOTAL_LIMIT[self.mode] - (time.monotonic() - self.start)
+        stage_left = self.stage_deadline - time.monotonic()
+        return min(total_left, stage_left)
+
+    def run(self, command, limit=PROCESS_LIMIT, cwd=ROOT, what=None):
+        """Runs command, killing its process tree when it exceeds limit or the stage's time.
+
+        Returns (exit code, stdout bytes, stderr bytes). A timeout raises StageTimeout when the
+        stage ran out of time, and is reported as a failure of what (a file) otherwise."""
+        left = self.remaining()
+        if left <= 0:
+            raise StageTimeout(f"time limit reached before running {' '.join(map(str, command))}")
+        stage_bound = left < limit
+        limit = min(limit, left)
+        process = subprocess.Popen(
+            [str(part) for part in command], cwd=cwd, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, start_new_session=True)
+        try:
+            out, err = process.communicate(timeout=limit)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.communicate()
+            description = " ".join(map(str, command))
+            if stage_bound:
+                raise StageTimeout(f"time limit reached while running {description}")
+            self.fail(f"timeout after {limit:.0f} s: {description}" + (f" ({what})" if what else ""))
+            return None, b"", b""
+        return process.returncode, out, err
+
+    # ----------------------------------------------------------------------------------------
+    # Stages
+
+    def stage_build(self):
+        for directory in (ROOT, ROOT / "cli"):
+            code, out, err = self.run(["alr", "-n", "build"], limit=self.remaining(), cwd=directory)
+            self.log((out + err).decode(errors="replace"))
+            if code != 0:
+                self.fail(f"build failed in {directory.relative_to(ROOT) or '.'}:\n"
+                          + tail((out + err).decode(errors="replace")))
+                return False
+        return True
+
+    def stage_proof(self):
+        command = ["alr", "exec", "--", "gnatprove", "-P", "pyro.gpr"]
+        if self.mode == "full":
+            command.append("-f")
+        code, out, err = self.run(command, limit=self.remaining())
+        text = (out + err).decode(errors="replace")
+        self.log(text)
+        if code != 0:
+            self.fail("gnatprove reported unproved checks or errors:\n" + tail(text, 60))
+            return
+        summary = ROOT / "obj" / "development" / "gnatprove" / "gnatprove.out"
+        if summary.exists():
+            trusted = trusted_units()
+            for line in summary.read_text(errors="replace").splitlines():
+                match = re.match(r"\s+(Pyro[\w.]*) at (\S+) .*skipped; (body is )?SPARK_Mode => Off",
+                                 line)
+                if not match:
+                    continue
+                unit = match.group(1)
+                if not any(unit == name or unit.startswith(name + ".") for name in trusted) \
+                        and not is_generic_noise(unit):
+                    self.fail(f"not analysed by gnatprove (SPARK_Mode => Off) and not listed as "
+                              f"trusted in docs/PROOFS.md: {unit} at {match.group(2)}")
+
+    def stage_tags(self):
+        proofs = (ROOT / "docs" / "PROOFS.md").read_text()
+        trusted = trusted_units()
+        differences = KNOWN_DIFFERENCES.read_text() if KNOWN_DIFFERENCES.exists() else ""
+        for path in sorted(list((ROOT / "src").rglob("*.ad[sb]")) + list((ROOT / "src").rglob("*.c"))):
+            relative = path.relative_to(ROOT).as_posix()
+            lines = path.read_text(errors="replace").splitlines()
+            for number, line in enumerate(lines, 1):
+                code = line.split("--", 1)[0] if path.suffix != ".c" else line
+                needs_trusted = (re.search(r"SPARK_Mode\s*(=>\s*|\(\s*)Off", code, re.I)
+                                 or re.search(r"pragma\s+Annotate", code, re.I))
+                if needs_trusted:
+                    window = "\n".join(lines[max(0, number - 4):number])
+                    if "[trusted]" not in window:
+                        self.fail(f"{relative}:{number}: SPARK_Mode => Off or pragma Annotate "
+                                  "without a [trusted] tag")
+                if "[trusted]" in line:
+                    unit = unit_name(path)
+                    if path.suffix == ".c":
+                        unit = None
+                    if unit is not None and not any(unit == name or unit.startswith(name + ".")
+                                                    for name in trusted):
+                        self.fail(f"{relative}:{number}: [trusted] spot in {unit}, which is not "
+                                  "listed in docs/PROOFS.md#trusted-code")
+                    if path.suffix == ".c" and relative not in proofs:
+                        self.fail(f"{relative}:{number}: [trusted] C file not named in "
+                                  "docs/PROOFS.md#trusted-code")
+                if "[differs]" in line and relative not in differences:
+                    self.fail(f"{relative}:{number}: [differs] spot not listed in "
+                              "tests/known-differences.md")
+                if re.search(r"--\s*TODO", line):
+                    self.fail(f"{relative}:{number}: TODO comment (unfinished work goes in "
+                              "docs/ROADMAP.md)")
+        for path in sorted((ROOT / "src").rglob("*.ad[sb]")):
+            head = path.read_text(errors="replace").splitlines()[:3]
+            if not head or head[0] != "--  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception":
+                self.fail(f"{path.relative_to(ROOT)}: missing SPDX line")
+
+    def stage_golden(self):
+        if self.update:
+            shutil.rmtree(GOLDEN, ignore_errors=True)
+        expected_files = set()
+        for source in corpus_files():
+            relative = source.relative_to(CORPUS)
+            for mode in ("tokens", "ast"):
+                golden = GOLDEN / relative.with_suffix("." + mode)
+                expected_files.add(golden)
+                code, out, err = self.run([PYRO, "--" + mode, source.relative_to(ROOT)],
+                                          what=str(relative))
+                if code is None:
+                    continue
+                actual = out + err + f"exit {code}\n".encode()
+                if self.update:
+                    golden.parent.mkdir(parents=True, exist_ok=True)
+                    golden.write_bytes(actual)
+                elif not golden.exists():
+                    self.fail(f"no golden file {golden.relative_to(ROOT)} "
+                              "(run tests/run --update and review the diff)")
+                elif golden.read_bytes() != actual:
+                    self.fail(f"--{mode} output of {source.relative_to(ROOT)} differs from "
+                              f"{golden.relative_to(ROOT)}")
+                    self.log(actual.decode(errors="replace"))
+        if GOLDEN.exists():
+            for golden in GOLDEN.rglob("*"):
+                if golden.is_file() and golden not in expected_files:
+                    self.fail(f"stale golden file {golden.relative_to(ROOT)}")
+
+    def stage_differential(self):
+        if not OFFICIAL.exists():
+            self.fail("official test suite missing: run tools/fetch-lua-tests")
+        files = corpus_files() + (sorted(OFFICIAL.rglob("*.lua")) if OFFICIAL.exists() else [])
+        exempt = message_exemptions()
+
+        def compare(source):
+            relative = source.relative_to(ROOT)
+            reference = self.check_reference(relative)
+            pyro = self.check_pyro(relative)
+            return relative, reference, pyro
+
+        with concurrent.futures.ThreadPoolExecutor(os.cpu_count() or 4) as pool:
+            for relative, reference, pyro in pool.map(compare, files):
+                if reference is None or pyro is None:
+                    continue
+                if reference[0] != pyro[0]:
+                    self.fail(f"{relative}: luac -p {verdict(reference)}, pyro --check "
+                              f"{verdict(pyro)}")
+                elif reference[1] != pyro[1]:
+                    self.fail(f"{relative}: error line differs: luac -p {verdict(reference)}, "
+                              f"pyro --check {verdict(pyro)}")
+                elif reference[2] != pyro[2] and relative.as_posix() not in exempt:
+                    self.fail(f"{relative}: message differs (not in tests/known-differences.md): "
+                              f"luac -p {verdict(reference)}, pyro --check {verdict(pyro)}")
+
+    def stage_fuzz(self):
+        seeds = [path.read_bytes() for path in corpus_files()]
+        if OFFICIAL.exists():
+            seeds += [path.read_bytes() for path in sorted(OFFICIAL.rglob("*.lua"))]
+        if not seeds:
+            return
+        scratch = OUTPUT / "fuzz"
+        shutil.rmtree(scratch, ignore_errors=True)
+        scratch.mkdir(parents=True)
+        failures = OUTPUT / "fuzz-failures"
+        seed = FUZZ_SEED if self.mode == "quick" else int(time.time())
+        self.log(f"fuzz seed {seed}")
+        generator = random.Random(seed)
+        count = FUZZ_MUTANTS[self.mode]
+        mutants = [(index, mutate(generator, generator.choice(seeds)))
+                   for index in range(count)]
+
+        def check(item):
+            index, text = item
+            path = scratch / f"mutant{index}.lua"
+            path.write_bytes(text)
+            relative = path.relative_to(ROOT)
+            reference = self.check_reference(relative)
+            pyro = self.check_pyro(relative)
+            return index, path, text, reference, pyro
+
+        disagreements = 0
+        done = 0
+        try:
+            with concurrent.futures.ThreadPoolExecutor(os.cpu_count() or 4) as pool:
+                for index, path, text, reference, pyro in pool.map(check, mutants):
+                    done += 1
+                    if reference is None or pyro is None:
+                        continue
+                    if reference[0] != pyro[0]:
+                        disagreements += 1
+                        failures.mkdir(parents=True, exist_ok=True)
+                        kept = failures / f"seed{seed}-mutant{index}.lua"
+                        kept.write_bytes(text)
+                        if disagreements <= 10:
+                            self.fail(f"{kept.relative_to(ROOT)}: luac -p {verdict(reference)}, "
+                                      f"pyro --check {verdict(pyro)}")
+                    path.unlink(missing_ok=True)
+        except StageTimeout:
+            if self.mode == "quick":
+                raise
+            self.log(f"fuzz stopped by its time limit after {done} mutants")
+        if disagreements > 10:
+            self.fail(f"{disagreements} accept/reject disagreements in all (first 10 shown; all "
+                      "kept in tests/output/fuzz-failures)")
+        self.log(f"fuzz: {done} mutants, {disagreements} disagreements")
+
+    # ----------------------------------------------------------------------------------------
+    # Checking one file
+
+    def check_reference(self, relative):
+        code, out, err = self.run([LUAC, "-p", relative], what=str(relative))
+        if code is None:
+            return None
+        return parse_check(code, err, LUAC.name, relative)
+
+    def check_pyro(self, relative):
+        code, out, err = self.run([PYRO, "--check", relative], what=str(relative))
+        if code is None:
+            return None
+        if code not in (0, 1) or out:
+            self.fail(f"{relative}: pyro --check exited with {code}: {(out + err)[:300]!r}")
+            return None
+        return parse_check(code, err, "pyro", relative)
+
+    # ----------------------------------------------------------------------------------------
+
+    def execute(self, stages):
+        for name, function in stages:
+            self.stage = name
+            limit = STAGE_LIMITS[self.mode][name]
+            self.stage_deadline = time.monotonic() + limit
+            started = time.monotonic()
+            stamp = time.strftime("%H:%M:%S")
+            failures_before = len(self.failures)
+            proceed = True
+            try:
+                result = function()
+                proceed = result is not False
+            except StageTimeout as timeout:
+                self.fail(f"stage over its {limit} s limit: {timeout}")
+                proceed = False
+            elapsed = time.monotonic() - started
+            status = "ok" if len(self.failures) == failures_before else "FAIL"
+            self.timings.append((stamp, name, elapsed, limit, status))
+            if not proceed or time.monotonic() - self.start > TOTAL_LIMIT[self.mode]:
+                break
+        for failure in self.failures:
+            print(failure)
+        if self.failures:
+            print()
+        print(f"{'started':<10}{'stage':<14}{'seconds':>9}{'limit':>8}  result")
+        for stamp, name, elapsed, limit, status in self.timings:
+            print(f"{stamp:<10}{name:<14}{elapsed:>9.1f}{limit:>8}  {status}")
+        total = time.monotonic() - self.start
+        print(f"{'':<10}{'total':<14}{total:>9.1f}{TOTAL_LIMIT[self.mode]:>8}  "
+              f"{'FAIL' if self.failures else 'ok'}")
+        if self.failures:
+            print(f"\n{len(self.failures)} failure(s); full log in {(OUTPUT / 'run.log').relative_to(ROOT)}")
+        return 1 if self.failures else 0
+
+
+# --------------------------------------------------------------------------------------------
+# Helpers
+
+
+def tail(text, lines=30):
+    return "\n".join(text.rstrip().splitlines()[-lines:])
+
+
+def corpus_files():
+    return sorted(CORPUS.rglob("*.lua")) if CORPUS.exists() else []
+
+
+def unit_name(path):
+    """Ada unit name of a GNAT-named source file: pyro-floats.adb is Pyro.Floats."""
+    return ".".join("_".join(word.capitalize() for word in part.split("_"))
+                    for part in path.stem.split("-"))
+
+
+def trusted_units():
+    """Unit names in the trusted-code table of docs/PROOFS.md."""
+    text = (ROOT / "docs" / "PROOFS.md").read_text()
+    section = text.split("## Trusted code", 1)[-1].split("\n## ", 1)[0]
+    return re.findall(r"^\|\s*`(Pyro[\w.]*)`", section, re.M)
+
+
+def is_generic_noise(unit):
+    """Entities gnatprove reports as skipped inside every growable-array instance: the
+    deallocation instance and the SPARKlib model, which SPARKlib proves itself."""
+    return re.search(r"\.Free\w*\.Free$|\.Models(\.|$)", unit) is not None
+
+
+def message_exemptions():
+    """Files whose error message may differ from luac's: backquoted paths in the
+    known-differences list."""
+    if not KNOWN_DIFFERENCES.exists():
+        return set()
+    return set(re.findall(r"`(tests/[^`]+\.lua)`", KNOWN_DIFFERENCES.read_text()))
+
+
+def parse_check(code, err, program, relative):
+    """(accepted, line, message) from the output of luac -p or pyro --check."""
+    if code == 0:
+        return (True, None, None)
+    text = err.decode("latin-1").rstrip("\n")
+    for prefix in (str(program) + ": ", str(LUAC) + ": "):
+        if text.startswith(prefix):
+            text = text[len(prefix):]
+            break
+    name = relative.as_posix()
+    if len(name) + 1 > 60:
+        name = "..." + name[-56:]
+    match = re.match(re.escape(name) + r":(\d+): (.*)", text, re.S)
+    if match:
+        return (False, int(match.group(1)), match.group(2))
+    return (False, None, text)
+
+
+def verdict(result):
+    if result[0]:
+        return "accepts"
+    where = f"line {result[1]}" if result[1] is not None else "no line"
+    return f"rejects ({where}: {result[2]!r})"
+
+
+TOKENS = [b"end", b"(", b")", b"=", b",", b"local", b"function", b"..", b"...", b"[[", b"]]",
+          b"--", b"\"", b"'", b"\\", b"::", b"goto", b"break", b"<const>", b"<close>", b"0x",
+          b"1e", b".", b"{", b"}", b"[", b"]", b"\n", b"return", b"if", b"then", b"do", b"<", b">",
+          b"\\u{", b"\\x", b"\\z", b"[=[", b"]=]", b";", b":", b"#", b"~", b"//", b"\r"]
+
+
+def mutate(generator, text):
+    """A random mutation of a Lua source: byte edits, token insertions, deletions and copies."""
+    data = bytearray(text)
+    for _ in range(generator.choice((1, 1, 1, 2, 3))):
+        position = generator.randrange(len(data) + 1)
+        choice = generator.randrange(7)
+        if choice == 0 and data:
+            del data[position:position + generator.randint(1, 16)]
+        elif choice == 1:
+            data[position:position] = generator.choice(TOKENS)
+        elif choice == 2 and data:
+            start = generator.randrange(len(data))
+            data[position:position] = data[start:start + generator.randint(1, 40)]
+        elif choice == 3 and position < len(data):
+            data[position] = generator.randrange(256)
+        elif choice == 4 and position < len(data):
+            data[position] = generator.choice(b"(){}[]=.,;:'\"\\-+*/%^#&|~<>0123456789xeEpP \n")
+        elif choice == 5:
+            data = data[:position]
+        else:
+            data[position:position] = bytes([generator.randrange(32, 127)])
+    return bytes(data)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Pyro test runner")
+    parser.add_argument("--full", action="store_true",
+                        help="clean proofs and long fuzzing (30 minute cap)")
+    parser.add_argument("--update", action="store_true",
+                        help="regenerate golden files before running")
+    arguments = parser.parse_args()
+    runner = Runner("full" if arguments.full else "quick", arguments.update)
+    stages = [
+        ("build", runner.stage_build),
+        ("proof", runner.stage_proof),
+        ("tags", runner.stage_tags),
+    ]
+    sys.exit(runner.execute(stages))
+
+
+if __name__ == "__main__":
+    main()

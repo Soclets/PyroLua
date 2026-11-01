@@ -1,0 +1,47 @@
+--  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+--
+--  Library crate: every SPARK unit of Pyro, with the build, style and proof settings.
+
+with "config/pyro_config.gpr";
+with "sparklib.gpr";
+
+project Pyro is
+
+   for Library_Name use "pyro";
+   for Library_Version use Project'Library_Name & ".so." & Pyro_Config.Crate_Version;
+   for Source_Dirs use ("src/common", "src/front_end", "config");
+   for Object_Dir use "obj/" & Pyro_Config.Build_Profile;
+   for Create_Missing_Dirs use "True";
+   for Library_Dir use "lib";
+   for Library_Kind use "static";
+   for Languages use ("Ada", "C");
+
+   Style_Switches :=
+     ("-gnaty3",     --  3-space indentation
+      "-gnatyaAbBcdefhiIklnOprStux",
+      "-gnatyM100"); --  lines of at most 100 characters
+
+   package Compiler is
+      --  Runtime checks stay on (no -gnatp). Contracts are proven, not executed, so assertions
+      --  and ghost code are off (no -gnata).
+      for Default_Switches ("Ada") use
+        ("-gnat2022", "-g", "-O1", "-gnatwa", "-gnatw.X", "-gnatwe", "-gnatVa", "-gnatf")
+        & Style_Switches;
+      for Default_Switches ("C") use ("-g", "-O1", "-Wall", "-Wextra", "-Werror");
+   end Compiler;
+
+   package Prove is
+      --  Proof steps bound every proof the same way whatever the machine load; no wall-clock
+      --  timeout. Raising the steps value needs the owner's OK (see docs/PROOFS.md).
+      for Proof_Switches ("Ada") use
+        ("--level=2",
+         "--timeout=0",
+         "--steps=30000",
+         "--checks-as-errors=on",
+         "--warnings=error",
+         "--proof-warnings=on",
+         "--counterexamples=off",
+         "-j0");
+   end Prove;
+
+end Pyro;

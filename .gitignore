@@ -1,0 +1,21 @@
+# Build outputs
+/obj/
+/lib/
+/alire/
+/config/
+/cli/obj/
+/cli/bin/
+/cli/alire/
+/cli/config/
+/tests/unit/obj/
+/tests/unit/bin/
+/tests/unit/alire/
+/tests/unit/config/
+
+# Downloaded official Lua test suite (tools/fetch-lua-tests)
+/tests/official/
+
+# Test runner logs and fuzzing scratch files
+/tests/output/
+
+__pycache__/

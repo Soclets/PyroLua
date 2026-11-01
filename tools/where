@@ -1,0 +1,39 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# Finds tagged comments in Pyro's sources (see docs/STYLE.md, "Tags").
+#
+#   tools/where lua §3.4.1    every place implementing that manual section
+#   tools/where puc llex.c    everything mirroring llex.c
+#   tools/where limit         every enforced Lua limit
+#   tools/where differs       every deliberate difference from PUC Lua
+#   tools/where proof         proof code
+#   tools/where trusted       every unproven spot
+
+set -eu
+
+if [ $# -lt 1 ]; then
+   echo "usage: tools/where TAG [TEXT...]   (TAG: lua, puc, limit, differs, proof, trusted)" >&2
+   exit 2
+fi
+
+root=$(cd "$(dirname "$0")/.." && pwd)
+tag=$1
+shift
+case $tag in
+   lua | puc | limit | differs | proof | trusted) ;;
+   *)
+      echo "tools/where: unknown tag '$tag'" >&2
+      exit 2
+      ;;
+esac
+
+if [ $# -gt 0 ]; then
+   pattern="--  \\[$tag $*"
+else
+   pattern="--  \\[$tag[] ]"
+fi
+
+cd "$root"
+grep -rn --include='*.ads' --include='*.adb' --include='*.c' --include='*.gpr' \
+   -e "$pattern" src cli/src 2>/dev/null || true
