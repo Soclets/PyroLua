@@ -71,7 +71,11 @@ Project setup, lexer, parser and resolver, all proven.
 
 **Done when:** the compiler is proven to produce valid prototypes (`Is_Valid`); the corpus
 compiles; files that hit compile-time limits are rejected in agreement with
-`luac -p`; golden bytecode listings exist for the own corpus.
+`luac -p`; golden bytecode listings exist for the own corpus; and, as a check before
+the VM can run anything, every function of the own corpus and the official test
+files has the same upvalue list (names, and whether each comes from the enclosing
+function's locals or from its upvalues, in order), parameter count and vararg flag
+as `luac -l -l` 5.4.9 shows (design session).
 
 ## M3: Values, heap, tables, GC
 
