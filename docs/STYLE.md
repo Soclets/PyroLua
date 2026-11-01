@@ -174,8 +174,9 @@ tools/where trusted         # every unproven spot
 - **Co-author trailer by role:** `Co-Authored-By: design claude
   <noreply@anthropic.com>` for the design session, `Co-Authored-By: implementation
   claude <noreply@anthropic.com>` for the implementing one.
-- **Every commit on `main` is green:** `tests/run` passes. No work-in-progress
-  commits.
+- **Every commit on `main` is green:** `tests/run` passes locally before the push, and
+  the Linux CI run that the push starts passes too. A red CI run is fixed by the next
+  push, before other work. No work-in-progress commits.
 - **One commit per coherent step:** "lexer reads all numerals", not "all of M1" and
   not ten "fix typo" commits. Proofs, tests and doc updates go in the same commit as
   the code they belong to.
@@ -187,6 +188,11 @@ tools/where trusted         # every unproven spot
 - **`tests/run` checks everything:** build, gnatprove, tag/doc agreement, golden
   files, differential tests against Lua 5.4.9, a short fuzzing run. A commit is
   green when it passes.
+- **Linux CI** (`.github/workflows/linux.yml`) runs `tests/run --skip-proof` on every
+  push to `main`: ubuntu-latest, Alire toolchain at pinned versions (cached), PUC Lua
+  5.4.9 built from the lua.org tarball checked by SHA-256, the official tests fetched.
+  Every stage runs but proof: proof results don't depend on the OS, and proofs already
+  run locally before every push. The job is capped at 20 minutes.
 - **Every feature commit adds tests** in `tests/corpus/<area>/`, one feature or edge
   case per file. Files that must be rejected are named for the error they should
   produce (`unfinished_long_string.lua`).
@@ -234,6 +240,10 @@ silent stall.
   `tail` of its log, no checking on it.
 - **No retry loops.** A failure or timeout is investigated, not rerun in the hope it
   passes.
+- After each push, `gh run watch <run-id> --exit-status` runs with a timeout a little
+  above the job's 20-minute cap. A failure is read with `gh run view --log-failed` and
+  fixed; a failure outside Pyro (runner, network, download) is rerun once with
+  `gh run rerun`, never more.
 
 ## Working rules
 

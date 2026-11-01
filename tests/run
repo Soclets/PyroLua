@@ -952,6 +952,9 @@ def main():
     parser.add_argument("--only", metavar="STAGES",
                         help="run only these comma-separated stages (a partial check, not a "
                              "green run)")
+    parser.add_argument("--skip-proof", action="store_true",
+                        help="every stage but proof (Linux CI: proofs run locally before each "
+                             "push)")
     parser.add_argument("--process-check", nargs=2, metavar=("STAGE", "MARKER"),
                         help=argparse.SUPPRESS)
     arguments = parser.parse_args()
@@ -975,6 +978,8 @@ def main():
         ("listing", runner.stage_listing),
         ("fuzz", runner.stage_fuzz),
     ]
+    if arguments.skip_proof:
+        stages = [(name, function) for name, function in stages if name != "proof"]
     if arguments.only:
         wanted = arguments.only.split(",")
         unknown = [name for name in wanted if name not in dict(stages)]
