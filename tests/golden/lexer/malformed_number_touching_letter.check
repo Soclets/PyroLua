@@ -1,0 +1,6 @@
+refused: tests/corpus/lexer/malformed_number_touching_letter.lua:1:11, line 1 column 11
+ 1 | local a = 0x1g
+   |           ^^^^
+ what: `0x1g` is not a valid number
+ why:  a numeral is decimal or 0x-hexadecimal digits with an optional fraction and exponent, and no letter may touch it (Lua 5.4 manual §3.1)
+exit 1

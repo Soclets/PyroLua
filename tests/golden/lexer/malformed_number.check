@@ -1,0 +1,6 @@
+refused: tests/corpus/lexer/malformed_number.lua:1:11, line 1 column 11
+ 1 | local a = 3..2
+   |           ^^^^
+ what: `3..2` is not a valid number
+ why:  a numeral is decimal or 0x-hexadecimal digits with an optional fraction and exponent, and no letter may touch it (Lua 5.4 manual §3.1)
+exit 1

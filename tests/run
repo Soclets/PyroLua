@@ -34,7 +34,7 @@ REFERENCE = Path(os.environ.get("PYRO_REF_LUA", "/opt/homebrew/opt/lua@5.4/bin")
 LUAC = REFERENCE / "luac"
 
 # The pyro modes whose output has golden files.
-GOLDEN_MODES = ("tokens",)
+GOLDEN_MODES = ("tokens", "check")
 
 PROCESS_LIMIT = 10  # seconds for one pyro, lua or luac process
 TOTAL_LIMIT = {"quick": 300, "full": 1800}
@@ -138,8 +138,10 @@ class Runner:
         if code != 0:
             self.fail("gnatprove reported unproved checks or errors:\n" + tail(text, 60))
             return
-        summary = ROOT / "obj" / "development" / "gnatprove" / "gnatprove.out"
-        if summary.exists():
+        summaries = sorted((ROOT / "obj").glob("*/gnatprove/gnatprove.out"),
+                           key=lambda path: path.stat().st_mtime)
+        summary = summaries[-1] if summaries else None
+        if summary is not None:
             trusted = trusted_units()
             for line in summary.read_text(errors="replace").splitlines():
                 match = re.match(r"\s+(Pyro[\w.]*) at (\S+) .*skipped; (body is )?SPARK_Mode => Off",

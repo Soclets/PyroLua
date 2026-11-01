@@ -30,7 +30,15 @@ package body Pyro.Diagnostics with SPARK_Mode => On is
          Remaining := Remaining / 10;
          exit when Remaining = 0;
       end loop;
-      return Result (First .. 10);
+      declare
+         Count   : constant Positive := 11 - First;
+         Shifted : String (1 .. 10) := [others => '0'];
+      begin
+         for Index in 1 .. Count loop
+            Shifted (Index) := Result (First + Index - 1);
+         end loop;
+         return Shifted (1 .. Count);
+      end;
    end Image;
 
    --  Appends the symbol's bytes.

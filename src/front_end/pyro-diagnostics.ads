@@ -33,11 +33,17 @@ package Pyro.Diagnostics with SPARK_Mode => On, Always_Terminates is
    --  Problems that end the run: nothing after them can be reported with certainty.
    subtype Lexical_Problem is Problem range Malformed_Number .. Invalid_Escape_Sequence;
 
+   --  The last byte of a span: 0 for an empty span at the start.
+   subtype Span_End is Source_Position'Base range 0 .. Source_Position'Last;
+
    --  A run of source bytes, First .. Last; Last = First - 1 for a point (the end of the chunk).
    type Span is record
       First : Source_Position := 1;
-      Last  : Source_Position'Base := 0;
+      Last  : Span_End := 0;
    end record;
+
+   --  Tokens with a fixed spelling: the ones a message can say were expected.
+   subtype Spelled_Token is Token_Kind range Keyword_And .. Dot;
 
    --  What PUC Lua prints after "near" in a syntax error.
    type Near_Kind is
@@ -82,8 +88,8 @@ package Pyro.Diagnostics with SPARK_Mode => On, Always_Terminates is
       Found      : Token_Kind := End_Of_Stream;
       Found_Byte : Character := ASCII.NUL;
       --  The token that was expected, and the token it would close.
-      Expected : Token_Kind := End_Of_Stream;
-      Opener   : Token_Kind := End_Of_Stream;
+      Expected : Spelled_Token := End_Of_Stream;
+      Opener   : Spelled_Token := End_Of_Stream;
       --  Assignment_To_Constant: the variable is <close> rather than <const>.
       Is_Close : Boolean := False;
       --  The parser was reading a statement rather than an expression (Unexpected_Symbol).
@@ -130,6 +136,6 @@ package Pyro.Diagnostics with SPARK_Mode => On, Always_Terminates is
 
    --  The decimal digits of Value.
    function Image (Value : Natural) return String
-   with Global => null, Post => Image'Result'Length in 1 .. 10;
+   with Global => null, Post => Image'Result'First = 1 and then Image'Result'Length in 1 .. 10;
 
 end Pyro.Diagnostics;

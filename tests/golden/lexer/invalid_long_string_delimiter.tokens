@@ -1,5 +1,9 @@
 1 keyword local
 1 name a
 1 =
-pyro: tests/corpus/lexer/invalid_long_string_delimiter.lua:1: invalid long string delimiter near '[=='
+refused: tests/corpus/lexer/invalid_long_string_delimiter.lua:1:11, line 1 column 11
+ 1 | local a = [==x
+   |           ^^^
+ what: `[==` is not followed by `[`
+ why:  an opening long bracket is `[`, any number of `=`, and `[` (Lua 5.4 manual §3.1)
 exit 1

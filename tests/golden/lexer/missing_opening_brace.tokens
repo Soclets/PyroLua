@@ -1,5 +1,9 @@
 1 keyword local
 1 name a
 1 =
-pyro: tests/corpus/lexer/missing_opening_brace.lua:1: missing '{' near '"\u4'
+refused: tests/corpus/lexer/missing_opening_brace.lua:1:12, line 1 column 12
+ 1 | local a = "\u48"
+   |            ^^^
+ what: `\u4`: `\u` must be followed by `{`
+ why:  a UTF-8 escape is written `\u{XXX}` (Lua 5.4 manual §3.1)
 exit 1

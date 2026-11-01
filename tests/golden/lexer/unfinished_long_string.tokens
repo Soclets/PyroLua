@@ -5,5 +5,9 @@
 2 keyword local
 2 name b
 2 =
-pyro: tests/corpus/lexer/unfinished_long_string.lua:5: unfinished long string (starting at line 2) near <eof>
+refused: tests/corpus/lexer/unfinished_long_string.lua:2:11, line 2 column 11
+ 2 | local b = [==[abc
+   |           ^^^^
+ what: this long string has no closing `]==]`
+ why:  a long bracket ends at the first closing bracket with as many `=` (Lua 5.4 manual §3.1)
 exit 1

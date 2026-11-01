@@ -1,5 +1,9 @@
 1 keyword local
 1 name a
 1 =
-pyro: tests/corpus/lexer/unfinished_string_at_end.lua:1: unfinished string near <eof>
+refused: tests/corpus/lexer/unfinished_string_at_end.lua:1:11, line 1 column 11
+ 1 | local a = 'abc
+   |           ^^^^
+ what: this string has no closing `'`
+ why:  a short string ends on the line where it starts (Lua 5.4 manual §3.1)
 exit 1

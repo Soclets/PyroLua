@@ -1,5 +1,9 @@
 1 keyword local
 1 name a
 1 =
-pyro: tests/corpus/lexer/utf_8_value_too_large.lua:1: UTF-8 value too large near '"\u{80000000'
+refused: tests/corpus/lexer/utf_8_value_too_large.lua:1:12, line 1 column 12
+ 1 | local a = "\u{80000000}"
+   |            ^^^^^^^^^^^
+ what: the value in `\u{80000000` is 2^31 or more
+ why:  a UTF-8 escape encodes a value below 2^31 (Lua 5.4 manual §3.1)
 exit 1

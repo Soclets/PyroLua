@@ -1,5 +1,9 @@
 1 keyword local
 1 name a
 1 =
-pyro: tests/corpus/lexer/decimal_escape_too_large.lua:1: decimal escape too large near '"\256"'
+refused: tests/corpus/lexer/decimal_escape_too_large.lua:1:12, line 1 column 12
+ 1 | local a = "\256"
+   |            ^^^^^
+ what: this decimal escape is more than 255
+ why:  a decimal escape `\ddd` is one byte, from 0 to 255 (Lua 5.4 manual §3.1)
 exit 1

@@ -13,6 +13,7 @@ with GNAT.OS_Lib;
 with Interfaces;
 with Pyro.Character_Arrays;
 with Pyro.Diagnostics;
+with Pyro.Diagnostics.Rendering;
 with Pyro.Lexer;
 with Pyro.Memory_Budgets;
 with Pyro.Sources;
@@ -28,6 +29,9 @@ procedure Pyro_Program is
    procedure Free is new Ada.Unchecked_Deallocation (Pyro.Sources.Source, Source_Access);
 
    type Mode is (Tokens_Mode, Check_Mode);
+
+   --  Report errors as luac does (one line), rather than the rich report.
+   Lua_Style : Boolean := False;
 
    procedure Write (File : GNAT.OS_Lib.File_Descriptor; Text : String) is
       Written : Integer;
@@ -162,9 +166,14 @@ procedure Pyro_Program is
 
       procedure Report (Item : Pyro.Diagnostics.Diagnostic) is
       begin
-         Pyro.Diagnostics.Append (Output, Budget, "pyro: ");
-         Pyro.Diagnostics.Append_Lua_Message (Output, Budget, Item, Symbols, Source.all);
-         Pyro.Diagnostics.Append (Output, Budget, [1 => ASCII.LF]);
+         if Lua_Style then
+            Pyro.Diagnostics.Append (Output, Budget, "pyro: ");
+            Pyro.Diagnostics.Append_Lua_Message (Output, Budget, Item, Symbols, Source.all);
+            Pyro.Diagnostics.Append (Output, Budget, [1 => ASCII.LF]);
+         else
+            Pyro.Diagnostics.Rendering.Append_Rich_Message
+              (Output, Budget, Item, Symbols, Source.all, Path);
+         end if;
          Flush_Output (Error => True);
          Set_Exit_Status (Failure);
       end Report;
@@ -225,11 +234,15 @@ procedure Pyro_Program is
 
    procedure Usage is
    begin
-      Put_Error ("usage: pyro (--tokens | --check) file.lua" & ASCII.LF);
+      Put_Error ("usage: pyro (--tokens | --check [--lua-style]) file.lua" & ASCII.LF);
       Set_Exit_Status (2);
    end Usage;
 begin
-   if Argument_Count /= 2 then
+   if Argument_Count = 3 and then Argument (1) = "--check" and then Argument (2) = "--lua-style"
+   then
+      Lua_Style := True;
+      Run (Check_Mode, Argument (3));
+   elsif Argument_Count /= 2 then
       Usage;
    elsif Argument (1) = "--tokens" then
       Run (Tokens_Mode, Argument (2));

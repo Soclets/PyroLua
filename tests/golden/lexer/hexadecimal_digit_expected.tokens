@@ -1,5 +1,9 @@
 1 keyword local
 1 name a
 1 =
-pyro: tests/corpus/lexer/hexadecimal_digit_expected.lua:1: hexadecimal digit expected near '"\x4g'
+refused: tests/corpus/lexer/hexadecimal_digit_expected.lua:1:12, line 1 column 12
+ 1 | local a = "\x4g"
+   |            ^^^^
+ what: `\x4g` needs a hexadecimal digit here
+ why:  `\x` takes two hexadecimal digits, `\u{` at least one (Lua 5.4 manual §3.1)
 exit 1
