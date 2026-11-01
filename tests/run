@@ -33,14 +33,14 @@ CORPUS = TESTS / "corpus"
 GOLDEN = TESTS / "golden"
 OFFICIAL = TESTS / "official" / "lua-5.4.9-tests"
 KNOWN_DIFFERENCES = TESTS / "known-differences.md"
-PYRO = ROOT / "cli" / "bin" / "pyro"
+PYRO = ROOT / "cli" / "bin" / "pyrolua"
 REFERENCE = Path(os.environ.get("PYRO_REF_LUA", "/opt/homebrew/opt/lua@5.4/bin"))
 LUAC = REFERENCE / "luac"
 
-# The pyro modes whose output has golden files.
+# The pyrolua modes whose output has golden files.
 GOLDEN_MODES = ("tokens", "ast", "check", "bytecode")
 
-PROCESS_LIMIT = 10  # seconds for one pyro, lua or luac process
+PROCESS_LIMIT = 10  # seconds for one pyrolua, lua or luac process
 TOTAL_LIMIT = {"quick": 300, "full": 1800}
 
 # Wall-clock cap of each stage, in seconds, within the total.
@@ -96,8 +96,8 @@ DEEP_CONSTRUCTS = {
 MEMORY_PER_SOURCE_MB = 16.9
 
 # Chunks that reach PUC Lua's compile-time limits, or come just short of them, generated
-# rather than kept in the corpus because of their size. luac -p and pyro --check must agree on
-# each, message included; luac -l -l and pyro --bytecode --lua-style on those accepted.
+# rather than kept in the corpus because of their size. luac -p and pyrolua --check must agree on
+# each, message included; luac -l -l and pyrolua --bytecode --lua-style on those accepted.
 def _upvalues(count):
     locals_ = "".join(f"local u{i} = {i}\n" for i in range(150))
     inner = locals_.replace("local u", "local w")
@@ -327,7 +327,7 @@ class Runner:
         # Results of earlier runs (possibly of units that no longer exist) must not count.
         for stale in (ROOT / "obj").glob("*/gnatprove"):
             shutil.rmtree(stale, ignore_errors=True)
-        command = ["alr", "exec", "--", "gnatprove", "-P", "pyro.gpr", "-f"]
+        command = ["alr", "exec", "--", "gnatprove", "-P", "pyro_lua.gpr", "-f"]
         key = self.toolchain_key() if self.mode == "quick" else None
         if key is not None:
             cache = ROOT / "obj" / "proof-cache" / key
@@ -491,7 +491,7 @@ class Runner:
         self.log(f"most stack used: {max(usages)} bytes")
 
     def stage_cli(self):
-        """The pyro program on files it cannot read and on large files."""
+        """The pyrolua program on files it cannot read and on large files."""
         directory = OUTPUT / "cli"
         shutil.rmtree(directory, ignore_errors=True)
         directory.mkdir(parents=True)
@@ -505,9 +505,9 @@ class Runner:
         for path, what, why in cases:
             for style in ([], ["--lua-style"]):
                 code, out, err = self.run([PYRO, "--check"] + style + [path])
-                expected = f"pyro: {what} {path}{why}\n".encode()
+                expected = f"pyrolua: {what} {path}{why}\n".encode()
                 if code != 1 or out or err != expected:
-                    self.fail(f"pyro --check {' '.join(style)} {path}: exit {code}, "
+                    self.fail(f"pyrolua --check {' '.join(style)} {path}: exit {code}, "
                               f"{(out + err)!r}, expected exit 1, {expected!r}")
         unreadable.chmod(0o644)
         # About 10 MB of real code: every corpus and official file, each in a block of its own.
@@ -531,7 +531,7 @@ class Runner:
         if self.mode == "full":
             # The largest chunk Pyro accepts, and one byte more.
             limit = 2 ** 28
-            for size, code, output in ((limit, 0, b""), (limit + 1, 1, b"pyro: not enough memory\n")):
+            for size, code, output in ((limit, 0, b""), (limit + 1, 1, b"pyrolua: not enough memory\n")):
                 path = directory / f"size-{size}.lua"
                 head, end = b"x = 1 --[[", b"]]\nreturn x\n"
                 with open(path, "wb") as file:
@@ -582,7 +582,7 @@ class Runner:
     def expect_check(self, path, expected_code, expected_output, style=()):
         code, out, err = self.run([PYRO, "--check", *style, path], limit=60)
         if code is not None and (code != expected_code or out + err != expected_output):
-            self.fail(f"pyro --check {path.relative_to(ROOT)}: exit {code}, "
+            self.fail(f"pyrolua --check {path.relative_to(ROOT)}: exit {code}, "
                       f"{tail((out + err).decode(errors='replace'))!r}")
 
     def stage_golden(self):
@@ -631,17 +631,17 @@ class Runner:
                 if reference is None or pyro is None:
                     continue
                 if reference[0] != pyro[0]:
-                    self.fail(f"{relative}: luac -p {verdict(reference)}, pyro --check "
+                    self.fail(f"{relative}: luac -p {verdict(reference)}, pyrolua --check "
                               f"{verdict(pyro)}")
                 elif reference[1] != pyro[1]:
                     self.fail(f"{relative}: error line differs: luac -p {verdict(reference)}, "
-                              f"pyro --check {verdict(pyro)}")
+                              f"pyrolua --check {verdict(pyro)}")
                 elif reference[2] != pyro[2] and relative.as_posix() not in exempt:
                     self.fail(f"{relative}: message differs (not in tests/known-differences.md): "
-                              f"luac -p {verdict(reference)}, pyro --check {verdict(pyro)}")
+                              f"luac -p {verdict(reference)}, pyrolua --check {verdict(pyro)}")
 
     def stage_listing(self):
-        """pyro --bytecode --lua-style against luac -l -l on every chunk luac accepts."""
+        """pyrolua --bytecode --lua-style against luac -l -l on every chunk luac accepts."""
         if not OFFICIAL.exists():
             self.fail("official test suite missing: run tools/fetch-lua-tests")
         directory = OUTPUT / "limits"
@@ -660,7 +660,7 @@ class Runner:
             if source in generated:
                 pyro = self.check_pyro(relative)
                 if reference is not None and pyro is not None and reference != pyro:
-                    return relative, (f"luac -p {verdict(reference)}, pyro --check "
+                    return relative, (f"luac -p {verdict(reference)}, pyrolua --check "
                                       f"{verdict(pyro)}")
             if reference is None or not reference[0]:
                 return relative, None
@@ -722,7 +722,7 @@ class Runner:
                         kept.write_bytes(text)
                         if disagreements <= 10:
                             self.fail(f"{kept.relative_to(ROOT)}: luac -p {verdict(reference)}, "
-                                      f"pyro --check {verdict(pyro)}"
+                                      f"pyrolua --check {verdict(pyro)}"
                                       + (f"; {listing}" if listing else ""))
                     path.unlink(missing_ok=True)
         except StageTimeout:
@@ -745,7 +745,7 @@ class Runner:
         return parse_check(code, err, LUAC.name, relative)
 
     def compare_listing(self, relative):
-        """None when pyro --bytecode --lua-style prints what luac -l -l prints for relative
+        """None when pyrolua --bytecode --lua-style prints what luac -l -l prints for relative
         (addresses masked), else where they first differ."""
         code, reference, err = self.run([LUAC, "-l", "-l", "-o", "/dev/null", relative],
                                         what=str(relative))
@@ -756,24 +756,24 @@ class Runner:
         if code is None:
             return None
         if code != 0:
-            return f"pyro --bytecode exited with {code}: {(listing + err)[:300]!r}"
+            return f"pyrolua --bytecode exited with {code}: {(listing + err)[:300]!r}"
         expected = mask_addresses(reference).splitlines()
         actual = mask_addresses(listing).splitlines()
         if expected == actual:
             return None
         for number, (left, right) in enumerate(zip(expected, actual), 1):
             if left != right:
-                return f"listing line {number}: luac {left!r}, pyro {right!r}"
-        return f"listing lengths differ: luac {len(expected)} lines, pyro {len(actual)}"
+                return f"listing line {number}: luac {left!r}, pyrolua {right!r}"
+        return f"listing lengths differ: luac {len(expected)} lines, pyrolua {len(actual)}"
 
     def check_pyro(self, relative):
         code, out, err = self.run([PYRO, "--check", "--lua-style", relative], what=str(relative))
         if code is None:
             return None
         if code not in (0, 1) or out:
-            self.fail(f"{relative}: pyro --check exited with {code}: {(out + err)[:300]!r}")
+            self.fail(f"{relative}: pyrolua --check exited with {code}: {(out + err)[:300]!r}")
             return None
-        return parse_check(code, err, "pyro", relative)
+        return parse_check(code, err, "pyrolua", relative)
 
     # ----------------------------------------------------------------------------------------
 
@@ -870,7 +870,7 @@ def message_exemptions():
 
 
 def parse_check(code, err, program, relative):
-    """(accepted, line, message) from the output of luac -p or pyro --check."""
+    """(accepted, line, message) from the output of luac -p or pyrolua --check."""
     if code == 0:
         return (True, None, None)
     text = err.decode("latin-1").rstrip("\n")
@@ -888,7 +888,7 @@ def parse_check(code, err, program, relative):
 
 
 def is_binary_chunk(result):
-    """The (accepted, line, message) of pyro --check refuses a precompiled chunk."""
+    """The (accepted, line, message) of pyrolua --check refuses a precompiled chunk."""
     return not result[0] and result[2] is not None and "precompiled chunks" in result[2]
 
 

@@ -1,15 +1,15 @@
-name = "pyro_unit"
-description = "Unit tests for what the pyro program cannot reach"
+name = "pyro_lua_unit"
+description = "Unit tests for what the pyrolua program cannot reach"
 version = "0.1.0-dev"
 authors = ["Soclets"]
 maintainers = ["Soclets <tandz.we89@gmail.com>"]
 maintainers-logins = ["Soclets"]
 licenses = "Apache-2.0 WITH LLVM-exception"
 executables = ["grapheme_test", "stack_test"]
-project-files = ["pyro_unit.gpr"]
+project-files = ["pyro_lua_unit.gpr"]
 
 [[depends-on]]
-pyro = "*"
+pyro_lua = "*"
 
 [[pins]]
-pyro = { path = "../.." }
+pyro_lua = { path = "../.." }

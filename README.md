@@ -1,6 +1,6 @@
-# Pyro
+# Pyro Lua
 
-Pyro is an implementation of the **Lua 5.4** core language written in **SPARK** (the
+Pyro Lua is an implementation of the **Lua 5.4** core language written in **SPARK** (the
 formally verifiable subset of Ada). The goal is an embeddable Lua interpreter with a
 machine-checked proof that the interpreter itself cannot crash or corrupt memory,
 whatever script it is given.
@@ -21,14 +21,14 @@ whatever script it is given.
 
 M1 (front end) is done: the lexer, parser and resolver are proven (Silver everywhere,
 Gold for growable arrays and syntax-tree well-formedness, termination of lexer and
-parser). `pyro --tokens`, `pyro --ast` and `pyro --check` work, with Radium-style
-messages. `pyro --check --lua-style` prints exactly what `luac -p` 5.4.9 prints on the
+parser). `pyrolua --tokens`, `pyrolua --ast` and `pyrolua --check` work, with Radium-style
+messages. `pyrolua --check --lua-style` prints exactly what `luac -p` 5.4.9 prints on the
 official test suite and Pyro's corpus, and agrees with it on accepting or rejecting
 every mutated file of the fuzzing runs.
 
 M2 (compiler and bytecode) is done: the compiler is a port of PUC Lua's code generator,
 and every prototype it returns is proven valid (checked by the proven predicate
-`Is_Valid`). `pyro --bytecode --lua-style` prints exactly what `luac -l -l` 5.4.9 prints
+`Is_Valid`). `pyrolua --bytecode --lua-style` prints exactly what `luac -l -l` 5.4.9 prints
 (memory addresses aside) on the official test suite, Pyro's corpus, generated chunks at
 the compile-time limits, and the fuzzing runs. Next milestone: **M3, values, heap,
 tables and garbage collector**. See [docs/ROADMAP.md](docs/ROADMAP.md).
@@ -54,7 +54,7 @@ In scope:
   coroutine resume/yield, table traversal).
 - Sandbox limits: instruction budget and memory limit, so untrusted scripts can be
   stopped cleanly.
-- A small `pyro` command-line program for running and inspecting `.lua` files.
+- A small `pyrolua` command-line program for running and inspecting `.lua` files.
 
 Out of scope:
 
@@ -91,8 +91,8 @@ Layout and commands:
 
 ```bash
 alr build                                   # build the library
-cd cli && alr build                         # build the pyro executable
-alr exec -- gnatprove -P pyro.gpr           # run the proofs (settings live in pyro.gpr)
+cd cli && alr build                         # build the pyrolua executable
+alr exec -- gnatprove -P pyro_lua.gpr       # run the proofs (settings live in pyro_lua.gpr)
 tests/run                                   # everything: build, proofs, tests (5 min cap)
 tests/run --full                            # clean proofs and long fuzzing (30 min cap)
 ```
@@ -100,12 +100,12 @@ tests/run --full                            # clean proofs and long fuzzing (30 
 Command-line program (M1 subset):
 
 ```bash
-pyro --tokens file.lua    # dump the token stream
-pyro --ast file.lua       # dump the syntax tree
-pyro --check file.lua     # syntax and scope check, every certain error in Pyro's layout
-pyro --check --lua-style file.lua   # the one error `luac -p` would print, in its words
-pyro --bytecode file.lua  # the compiled prototypes
-pyro --bytecode --lua-style file.lua   # the same, as `luac -l -l` prints them
+pyrolua --tokens file.lua      # dump the token stream
+pyrolua --ast file.lua         # dump the syntax tree
+pyrolua --check file.lua       # syntax and scope check, every certain error in Pyro's layout
+pyrolua --check --lua-style file.lua      # the one error `luac -p` would print, in its words
+pyrolua --bytecode file.lua    # the compiled prototypes
+pyrolua --bytecode --lua-style file.lua   # the same, as `luac -l -l` prints them
 ```
 
 Before the first `tests/run`, fetch the official Lua test suite and Unicode's grapheme
@@ -116,19 +116,19 @@ tools/fetch-lua-tests
 tools/generate-grapheme-tables
 ```
 
-Later milestones add `pyro file.lua` (run).
+Later milestones add `pyrolua file.lua` (run).
 
 ## Repository layout
 
 ```
-pyro.gpr, alire.toml   Library crate (all SPARK code lives here)
-src/                   Library sources, packages named Pyro.*, one folder per
-                       pipeline stage (common, front_end, compiler, runtime,
-                       embedding)
-cli/                   Nested crate for the `pyro` executable
-tests/                 Test runner, corpus, golden files
-tools/                 Helper scripts (reference Lua setup, corpus download, fuzzing)
-docs/                  Design, proof and roadmap documents
+pyro_lua.gpr, alire.toml   Library crate (all SPARK code lives here)
+src/                       Library sources, packages named Pyro.*, one folder per
+                           pipeline stage (common, front_end, compiler, runtime,
+                           embedding)
+cli/                       Nested crate for the `pyrolua` executable
+tests/                     Test runner, corpus, golden files
+tools/                     Helper scripts (reference Lua setup, corpus download, fuzzing)
+docs/                      Design, proof and roadmap documents
 ```
 
 ## Development rules

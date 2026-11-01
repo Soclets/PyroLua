@@ -1,4 +1,4 @@
-# Pyro implementation style
+# Pyro Lua implementation style
 
 How Pyro's code is written, tested, committed and worked on. These rules apply to
 everyone working on Pyro, human or Claude. [DESIGN.md](DESIGN.md) says *what* is
@@ -10,7 +10,7 @@ Changing a rule here is a decision for the owner (see [Asking](#asking)).
 
 - Standard Ada style: `Mixed_Case_With_Underscores` for identifiers, lowercase
   keywords, 3-space indentation, lines of at most 100 characters.
-- Enforced by the compiler: GNAT style checks are switched on in `pyro.gpr` with
+- Enforced by the compiler: GNAT style checks are switched on in `pyro_lua.gpr` with
   warnings as errors, so badly formatted code does not build.
 - Types are named for what they are (`Token_Kind`, `Node_Index`), with no `T_`
   prefix or `_Type` suffix.
@@ -136,7 +136,7 @@ tools/where trusted         # every unproven spot
 
 - GNAT's default file naming: `Pyro.Syntax_Trees` is `pyro-syntax_trees.ads` and
   `pyro-syntax_trees.adb`.
-- Source folders by pipeline stage, all included by `pyro.gpr`:
+- Source folders by pipeline stage, all included by `pyro_lua.gpr`:
 
   | Folder | Contents |
   | --- | --- |
@@ -150,7 +150,7 @@ tools/where trusted         # every unproven spot
   see operations and predicates.
 - **Private child packages for internals** (`private package Pyro.Lexer.Numerals`),
   so other units cannot depend on implementation details.
-- **Only `Pyro.Embedding` is the stable public API.** The `pyro` executable may use
+- **Only `Pyro.Embedding` is the stable public API.** The `pyrolua` executable may use
   internal packages (it needs the lexer for `--tokens`); hosts use only
   `Pyro.Embedding`.
 - **Split by proof time, not line count.** When a unit is slow to prove or hard to
@@ -193,7 +193,7 @@ tools/where trusted         # every unproven spot
 - **Every bug fix adds a test that failed before the fix.**
 - **Golden files are updated deliberately:** `tests/run --update` regenerates them,
   and the change is reviewed in the commit diff.
-- **Most testing goes through `pyro`** (golden and differential). Ada unit tests, in a
+- **Most testing goes through `pyrolua`** (golden and differential). Ada unit tests, in a
   nested `tests/unit` crate, are only for what the command line cannot reach.
 - **Fuzzing at two speeds:** a short fixed-seed run in every `tests/run`, long runs
   in `tests/run --full` at the end of a milestone.
@@ -209,7 +209,7 @@ silent stall.
 
 | Limit | Value |
 | --- | --- |
-| One `pyro`, `lua` or `luac` process in a test | 10 seconds |
+| One `pyrolua`, `lua` or `luac` process in a test | 10 seconds |
 | `tests/run` (every commit) | 5 minutes |
 | `tests/run --full` (end of milestone) | 30 minutes |
 
@@ -220,7 +220,7 @@ silent stall.
   splitting slow units, adding lemmas or trimming redundant tests.
 - Proofs are bounded by gnatprove's `--steps`, not wall-clock `--timeout`, so a hard
   proof fails the same way every time regardless of machine load. The value is set in
-  `pyro.gpr`.
+  `pyro_lua.gpr`.
 - The runner prints only failures plus one timing table at the end, with timestamps
   per stage. Full logs go to a file, read only for what failed.
 - Raising any limit or the steps value needs the owner's OK.

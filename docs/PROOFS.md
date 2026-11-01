@@ -1,4 +1,4 @@
-# Pyro proofs
+# Pyro Lua proofs
 
 This document states what Pyro proves, what it trusts without proof, and what it only
 tests. It is the authority on proof policy: if code and this document disagree,
@@ -99,7 +99,7 @@ kept small and conservative.
 | Unit | Reason | Since |
 | --- | --- | --- |
 | `Pyro.Floats` (body) and its C helper `src/common/pyro_floats.c` | IEEE 754 arithmetic with infinities and NaN, correctly rounded decimal-to-float conversion, `%.14g` formatting. SPARK assumes floats are finite, so these must operate on raw bits outside SPARK. Decimal conversion is libc's `strtod_l` with an explicit "C" locale, so a host calling `setlocale` cannot change how numerals are read. Constant folding (M2) uses libc's `pow`, `fmod` and `floor` as luac does, so folded constants are bit-identical to luac's. | M1, M2 |
-| `cli/` (`pyro` executable) | File and console I/O, command-line handling, bytecode listings (with `%.14g` from libc in `cli/src/pyro_cli_floats.c`). Not part of the library. | M1 |
+| `cli/` (`pyrolua` executable) | File and console I/O, command-line handling, bytecode listings (with `%.14g` from libc in `cli/src/pyro_cli_floats.c`). Not part of the library. | M1 |
 
 Any new entry needs a reason here and should be as small as possible.
 
@@ -146,7 +146,7 @@ These are outside what SPARK can prove and are accepted:
   with exactly that stack, built with GNAT's stack usage report (`gnatbind -u`): at most
   about 220 KB (macOS arm64, GNAT 16.1, development build). `tests/run` fails when the
   measured use passes a quarter of the constant, leaving a fourfold margin for other
-  compilers, optimisation levels and targets. The `pyro` executable runs its work in a
+  compilers, optimisation levels and targets. The `pyrolua` executable runs its work in a
   task with that stack plus 1 MiB for its own frames, so the main thread's stack (on
   Linux, `ulimit -s`) does not matter.
 
@@ -167,10 +167,10 @@ Covered by tests (see [ROADMAP.md](ROADMAP.md) for the test suites), not proofs:
 ## Running the proofs
 
 ```bash
-alr exec -- gnatprove -P pyro.gpr
+alr exec -- gnatprove -P pyro_lua.gpr
 ```
 
-Proof settings live in the `Prove` package of `pyro.gpr` so everyone uses the same
+Proof settings live in the `Prove` package of `pyro_lua.gpr` so everyone uses the same
 ones:
 
 - `--level=2` with `--prover=cvc5,z3`. Alt-ergo was dropped: it ran for more than 13
@@ -213,7 +213,7 @@ below: past that, restructure before adding proofs.
 
 When it grows, find where by unit rather than guessing:
 
-- Run `alr exec -- gnatprove -P pyro.gpr -f` with no cache, after removing
+- Run `alr exec -- gnatprove -P pyro_lua.gpr -f` with no cache, after removing
   `obj/*/gnatprove` (as the stage does). Without `-f`, gnatprove reuses earlier sessions'
   results, and a check can fail or pass depending on what ran before.
 - Sum the `time` of every proof attempt in each unit's `obj/*/gnatprove/<unit>.spark`

@@ -1,13 +1,13 @@
-name = "pyro"
+name = "pyro_lua"
 description = "Lua 5.4 interpreter written in SPARK"
 version = "0.1.0-dev"
 authors = ["Soclets"]
 maintainers = ["Soclets <tandz.we89@gmail.com>"]
 maintainers-logins = ["Soclets"]
 licenses = "Apache-2.0 WITH LLVM-exception"
-website = "https://github.com/Soclets/Pyro"
+website = "https://github.com/Soclets/PyroLua"
 tags = ["lua", "spark", "interpreter"]
-project-files = ["pyro.gpr"]
+project-files = ["pyro_lua.gpr"]
 
 [[depends-on]]
 sparklib = "^16.1.0"

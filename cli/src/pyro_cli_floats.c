@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
  *
- * Float formatting for the pyro program's listings.
+ * Float formatting for the pyrolua program's listings.
  *
  * [trusted] luac prints float constants with LUA_NUMBER_FMT ("%.14g"); this does the same with
  * the C library, as luac does.

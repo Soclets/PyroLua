@@ -1,6 +1,6 @@
 # Known differences from PUC Lua 5.4.9
 
-Where Pyro deliberately or knowingly differs from reference Lua (`luac -p` 5.4.9 for the
+Where Pyro Lua deliberately or knowingly differs from reference Lua (`luac -p` 5.4.9 for the
 front end). Every `[differs]` tag in the sources is listed here with its file. Files whose
 `--check --lua-style` message may differ from luac's are listed by path, in backquotes.
 
@@ -25,6 +25,6 @@ memory" without being read; luac reads it.
 Source: `cli/src/bytecode_listing.adb`.
 
 `luac -l -l` prints the memory address of each prototype (in a function's header, before
-its constants, locals and upvalues, and after each CLOSURE). `pyro --bytecode --lua-style`
+its constants, locals and upvalues, and after each CLOSURE). `pyrolua --bytecode --lua-style`
 prints a made-up address in the same places, so the listings differ there; `tests/run`
 masks every `0x…` number before comparing them. Everything else in the listing matches.

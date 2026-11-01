@@ -10,7 +10,7 @@ package Pyro.Memory_Budgets with SPARK_Mode => On, Pure, Always_Terminates is
    --  The largest limit a budget can have.
    Maximum_Limit : constant Byte_Count := 2 ** 48;
 
-   --  Memory limit used by the pyro executable when none is given: 1 GiB.
+   --  Memory limit used by the pyrolua executable when none is given: 1 GiB.
    Default_Limit : constant Byte_Count := 2 ** 30;
 
    --  How many bytes may be in use (the limit) and how many are (charged, not yet released).

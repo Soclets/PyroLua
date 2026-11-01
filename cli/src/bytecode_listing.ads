@@ -1,6 +1,6 @@
 --  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 --
---  Listings of compiled chunks for the pyro program.
+--  Listings of compiled chunks for the pyrolua program.
 
 --  [trusted] Console output, outside the proven library.
 pragma SPARK_Mode (Off);

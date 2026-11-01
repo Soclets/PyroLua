@@ -1,16 +1,16 @@
-name = "pyro_cli"
-description = "The pyro command-line program: inspect and check Lua 5.4 files"
+name = "pyro_lua_cli"
+description = "The pyrolua command-line program: inspect and check Lua 5.4 files"
 version = "0.1.0-dev"
 authors = ["Soclets"]
 maintainers = ["Soclets <tandz.we89@gmail.com>"]
 maintainers-logins = ["Soclets"]
 licenses = "Apache-2.0 WITH LLVM-exception"
-website = "https://github.com/Soclets/Pyro"
-executables = ["pyro"]
-project-files = ["pyro_cli.gpr"]
+website = "https://github.com/Soclets/PyroLua"
+executables = ["pyrolua"]
+project-files = ["pyro_lua_cli.gpr"]
 
 [[depends-on]]
-pyro = "*"
+pyro_lua = "*"
 
 [[pins]]
-pyro = { path = ".." }
+pyro_lua = { path = ".." }

@@ -1,4 +1,4 @@
-# Pyro design
+# Pyro Lua design
 
 This document describes how Pyro is built and why. It covers the whole interpreter;
 parts that belong to later milestones are marked as such and can be refined when
@@ -98,7 +98,7 @@ locale.
 Source folders, file naming and the rules for private and public packages are in
 [STYLE.md](STYLE.md#packages-and-files).
 
-The `pyro` executable (`cli/`) is ordinary Ada. It handles files, command-line
+The `pyrolua` executable (`cli/`) is ordinary Ada. It handles files, command-line
 arguments and output, and calls into the library.
 
 ## Front end (M1)
@@ -219,7 +219,7 @@ Points where Lua's grammar needs care:
 ### Resolver
 
 PUC Lua reports some errors at compile time that are not grammar errors.
-`luac -p` reports them, so `pyro --check` must too. `Pyro.Resolver` walks the tree
+`luac -p` reports them, so `pyrolua --check` must too. `Pyro.Resolver` walks the tree
 with a scope stack and reports:
 
 - `break` outside a loop;
@@ -246,7 +246,7 @@ Lua and are checked by the compiler in M2.
 
 Owner's decision (M1). Errors are reported in two forms.
 
-**Rich messages**, for what the `pyro` program or a host prints, in the layout of
+**Rich messages**, for what the `pyrolua` program or a host prints, in the layout of
 Radium's messages (Soclets/Radium DECISIONS.md D116–D119, D121–D123):
 
 ```
@@ -289,7 +289,7 @@ at the first syntax error that is not enclosed like that (an unclosed bracket, a
 missing `end`, any lexical error). Errors print in source order.
 
 **Lua-style.** Lua error values stay Lua's one-line strings (`chunk:line: message`),
-since scripts see them through `pcall`. `pyro --check --lua-style` prints exactly what
+since scripts see them through `pcall`. `pyrolua --check --lua-style` prints exactly what
 `luac -p` prints: the single error PUC Lua would detect first, in its exact text and
 line. Every diagnostic therefore records its PUC detection point (the token PUC's
 parser would be looking at when it raises the error, for example the token after a
@@ -305,7 +305,7 @@ instruction a typed record (opcode, A, B, C, k and one wide operand for Bx, sBx,
 sJ) rather than a packed 32-bit word. The compiler is a faithful port of `lcode.c` and of
 the code generation in `lparser.c`, driven by a walk of the tree in the order PUC's parser
 reads the source, so it produces the same instructions, registers, constants and line
-info as `luac`. `pyro --bytecode --lua-style` prints them in `luac -l -l`'s format, which
+info as `luac`. `pyrolua --bytecode --lua-style` prints them in `luac -l -l`'s format, which
 makes the compiler testable against luac before the VM exists.
 
 A **prototype** holds the instructions, constants, nested prototypes, upvalue
@@ -456,7 +456,7 @@ form instead of a raw stack:
 
 The thread that calls Pyro needs `Pyro.Minimum_Stack_Size` bytes of stack (PROOFS.md,
 Assumptions); a host whose threads may have less runs Pyro in an Ada task with that
-`Storage_Size`, as the `pyro` program does.
+`Storage_Size`, as the `pyrolua` program does.
 
 Pyro has no standard library, so these primitives are how a host exposes things like
 `setmetatable`, `pcall`, `error`, `pairs` or `coroutine.resume` to scripts, if it

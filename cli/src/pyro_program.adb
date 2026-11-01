@@ -1,6 +1,6 @@
 --  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 --
---  The pyro command-line program: reads a Lua file and inspects or checks it.
+--  The pyrolua command-line program: reads a Lua file and inspects or checks it.
 
 --  [trusted] File and console I/O and argument handling, outside the proven library.
 pragma SPARK_Mode (Off);
@@ -260,7 +260,7 @@ procedure Pyro_Program is
       procedure Report (Item : Pyro.Diagnostics.Diagnostic) is
       begin
          if Lua_Style then
-            Pyro.Diagnostics.Append (Output, Budget, "pyro: ");
+            Pyro.Diagnostics.Append (Output, Budget, "pyrolua: ");
             Pyro.Diagnostics.Append_Lua_Message (Output, Budget, Item, Symbols, Source.all);
             Pyro.Diagnostics.Append (Output, Budget, [1 => ASCII.LF]);
          else
@@ -278,7 +278,7 @@ procedure Pyro_Program is
          when Loaded => null;
          when Cannot_Open | Cannot_Read =>
             --  [puc lauxlib.c:errfile]
-            Put_Error ("pyro: cannot " & (if Loading = Cannot_Open then "open" else "read") & " "
+            Put_Error ("pyrolua: cannot " & (if Loading = Cannot_Open then "open" else "read") & " "
                        & Path & ": " & GNAT.OS_Lib.Errno_Message (Err => Error) & ASCII.LF);
             Set_Exit_Status (Failure);
             return;
@@ -525,7 +525,7 @@ procedure Pyro_Program is
 
    procedure Usage is
    begin
-      Put_Error ("usage: pyro (--tokens | --ast | --check [--lua-style]"
+      Put_Error ("usage: pyrolua (--tokens | --ast | --check [--lua-style]"
                  & " | --bytecode [--lua-style]) file.lua" & ASCII.LF);
       Set_Exit_Status (2);
    end Usage;
@@ -561,7 +561,7 @@ procedure Pyro_Program is
    exception
       when Error : others =>
          --  An exception would otherwise end the task silently.
-         Put_Error ("pyro: internal error: "
+         Put_Error ("pyrolua: internal error: "
                     & Ada.Exceptions.Exception_Information (Error) & ASCII.LF);
          Set_Exit_Status (Failure);
    end Worker;

@@ -1,14 +1,14 @@
 --  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 --
---  Unit tests for what the pyro program cannot reach.
+--  Unit tests for what the pyrolua program cannot reach.
 
-with "config/pyro_unit_config.gpr";
-with "pyro.gpr";
+with "config/pyro_lua_unit_config.gpr";
+with "pyro_lua.gpr";
 
-project Pyro_Unit is
+project Pyro_Lua_Unit is
 
    for Source_Dirs use ("src", "config");
-   for Object_Dir use "obj/" & Pyro_Unit_Config.Build_Profile;
+   for Object_Dir use "obj/" & Pyro_Lua_Unit_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
    for Main use ("grapheme_test.adb", "stack_test.adb");
@@ -25,4 +25,4 @@ project Pyro_Unit is
       for Switches ("stack_test.adb") use ("-u100");
    end Binder;
 
-end Pyro_Unit;
+end Pyro_Lua_Unit;
