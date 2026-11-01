@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# Generates src/common/pyro-grapheme_tables.ads, the Unicode property tables that
+# Pyro.Graphemes uses to find grapheme cluster boundaries (UAX #29), from Unicode's data files
+# at a pinned version. Also fetches GraphemeBreakTest.txt into tests/unit/data/ for the
+# conformance test. The files are checked against pinned SHA-256 sums.
+#
+#   tools/generate-grapheme-tables          download, check and generate
+#
+# Changing VERSION means updating the sums, regenerating, and running the unit tests.
+
+import hashlib
+import sys
+import tempfile
+import urllib.request
+from pathlib import Path
+
+VERSION = "18.0.0"
+BASE = f"https://www.unicode.org/Public/{VERSION}/ucd/"
+FILES = {
+    "auxiliary/GraphemeBreakProperty.txt":
+        "0839dcb79e4ac639ecd538b1abf7c9d22e3f9dd265b7e182d33627aa4d75b45a",
+    "emoji/emoji-data.txt":
+        "80d00f8e616a0ef27fd6b8de3b758c06383b5d917e2977709578e68baf733bf1",
+    "DerivedCoreProperties.txt":
+        "09c928886a178fcafd93c29e4bd59073a058e5a100b716d425cb563ab50f68c9",
+    "auxiliary/GraphemeBreakTest.txt":
+        "b0cf047ee94485bbdc846de2b902f5f8a815f6b674f9d04223cddadd91c9df31",
+}
+
+ROOT = Path(__file__).resolve().parent.parent
+OUTPUT = ROOT / "src" / "common" / "pyro-grapheme_tables.ads"
+TEST_DATA = ROOT / "tests" / "unit" / "data" / "GraphemeBreakTest.txt"
+
+# Grapheme_Cluster_Break values, as Ada enumeration literals.
+BREAK_NAMES = {
+    "CR": "Carriage_Return", "LF": "Line_Feed", "Control": "Control", "Extend": "Extend",
+    "ZWJ": "Zero_Width_Joiner", "Regional_Indicator": "Regional_Indicator",
+    "Prepend": "Prepend", "SpacingMark": "Spacing_Mark", "L": "Hangul_L", "V": "Hangul_V",
+    "T": "Hangul_T", "LV": "Hangul_LV", "LVT": "Hangul_LVT",
+}
+CONJUNCT_NAMES = {"Consonant": "Consonant", "Extend": "Conjunct_Extend", "Linker": "Linker"}
+
+
+def fetch(directory):
+    texts = {}
+    for name, digest in FILES.items():
+        path = directory / Path(name).name
+        with urllib.request.urlopen(BASE + name) as response:
+            data = response.read()
+        actual = hashlib.sha256(data).hexdigest()
+        if actual != digest:
+            sys.exit(f"generate-grapheme-tables: checksum mismatch for {name}: {actual}")
+        path.write_bytes(data)
+        texts[name] = data.decode("utf-8")
+    return texts
+
+
+def ranges(text, wanted_field, value_map, field_index=1):
+    """Sorted, merged (first, last, value) ranges of lines whose field matches."""
+    result = []
+    for line in text.splitlines():
+        line = line.split("#", 1)[0].strip()
+        if not line:
+            continue
+        fields = [field.strip() for field in line.split(";")]
+        if wanted_field is not None and fields[1] != wanted_field:
+            continue
+        value = fields[field_index if wanted_field is None else 2]
+        if value not in value_map:
+            continue
+        span = fields[0].split("..")
+        first = int(span[0], 16)
+        last = int(span[-1], 16)
+        result.append((first, last, value_map[value]))
+    result.sort()
+    merged = []
+    for first, last, value in result:
+        if merged and merged[-1][1] + 1 == first and merged[-1][2] == value:
+            merged[-1] = (merged[-1][0], last, value)
+        else:
+            if merged and first <= merged[-1][1]:
+                sys.exit(f"generate-grapheme-tables: overlapping ranges at {first:04X}")
+            merged.append((first, last, value))
+    return merged
+
+
+def main():
+    with tempfile.TemporaryDirectory() as temporary:
+        texts = fetch(Path(temporary))
+    breaks = ranges(texts["auxiliary/GraphemeBreakProperty.txt"], None, BREAK_NAMES)
+    pictographic = ranges(texts["emoji/emoji-data.txt"], None,
+                          {"Extended_Pictographic": True})
+    conjunct = ranges(texts["DerivedCoreProperties.txt"], "InCB", CONJUNCT_NAMES)
+
+    def table(entries, with_value):
+        rows = []
+        for first, last, value in entries:
+            row = f"16#{first:04X}#, 16#{last:04X}#"
+            if with_value:
+                row += f", {value}"
+            rows.append(f"      ({row})")
+        return ",\n".join(rows)
+
+    text = f"""--  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+--
+--  Unicode {VERSION} properties for grapheme cluster boundaries, generated from Unicode's data
+--  files by tools/generate-grapheme-tables. Do not edit by hand.
+
+package Pyro.Grapheme_Tables with SPARK_Mode => On, Pure is
+
+   --  The Unicode version these tables come from.
+   Unicode_Version : constant String := "{VERSION}";
+
+   --  A Unicode code point.
+   type Code_Point is range 0 .. 16#10FFFF#;
+
+   --  Grapheme_Cluster_Break property values (UAX #29), Other being the default.
+   type Break_Property is
+     (Other,
+      {(","+chr(10)+"      ").join(dict.fromkeys(BREAK_NAMES.values()))});
+
+   --  Indic_Conjunct_Break property values, None being the default.
+   type Conjunct_Property is (None, {", ".join(CONJUNCT_NAMES.values())});
+
+   type Break_Range is record
+      First, Last : Code_Point;
+      Property    : Break_Property;
+   end record;
+
+   type Conjunct_Range is record
+      First, Last : Code_Point;
+      Property    : Conjunct_Property;
+   end record;
+
+   type Plain_Range is record
+      First, Last : Code_Point;
+   end record;
+
+   type Break_Table is array (Positive range <>) of Break_Range;
+   type Conjunct_Table is array (Positive range <>) of Conjunct_Range;
+   type Plain_Table is array (Positive range <>) of Plain_Range;
+
+   --  Code points with a Grapheme_Cluster_Break other than Other, sorted, not overlapping.
+   Breaks : constant Break_Table (1 .. {len(breaks)}) :=
+     [
+{table(breaks, True)}];
+
+   --  Code points with Extended_Pictographic, sorted, not overlapping.
+   Pictographic : constant Plain_Table (1 .. {len(pictographic)}) :=
+     [
+{table(pictographic, False)}];
+
+   --  Code points with an Indic_Conjunct_Break other than None, sorted, not overlapping.
+   Conjuncts : constant Conjunct_Table (1 .. {len(conjunct)}) :=
+     [
+{table(conjunct, True)}];
+
+end Pyro.Grapheme_Tables;
+"""
+    OUTPUT.write_text(text)
+    print(f"wrote {OUTPUT.relative_to(ROOT)} (Unicode {VERSION}: {len(breaks)} break ranges, "
+          f"{len(pictographic)} pictographic ranges, {len(conjunct)} conjunct ranges)")
+    return texts
+
+
+if __name__ == "__main__":
+    texts = main()
+    TEST_DATA.parent.mkdir(parents=True, exist_ok=True)
+    TEST_DATA.write_text(texts["auxiliary/GraphemeBreakTest.txt"])
+    print(f"wrote {TEST_DATA.relative_to(ROOT)}")

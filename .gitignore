@@ -12,8 +12,10 @@
 /tests/unit/alire/
 /tests/unit/config/
 
-# Downloaded official Lua test suite (tools/fetch-lua-tests)
+# Downloaded official Lua test suite (tools/fetch-lua-tests) and Unicode's grapheme break
+# test (tools/generate-grapheme-tables)
 /tests/official/
+/tests/unit/data/
 
 # Test runner logs and fuzzing scratch files
 /tests/output/

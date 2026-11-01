@@ -41,8 +41,10 @@ TOTAL_LIMIT = {"quick": 300, "full": 1800}
 
 # Wall-clock cap of each stage, in seconds, within the total.
 STAGE_LIMITS = {
-    "quick": {"build": 120, "proof": 200, "tags": 10, "golden": 30, "differential": 60, "fuzz": 30},
-    "full": {"build": 120, "proof": 900, "tags": 10, "golden": 30, "differential": 60, "fuzz": 1200},
+    "quick": {"build": 120, "proof": 200, "tags": 10, "unit": 20, "golden": 30, "differential": 60,
+              "fuzz": 30},
+    "full": {"build": 120, "proof": 900, "tags": 10, "unit": 20, "golden": 30, "differential": 60,
+             "fuzz": 1200},
 }
 
 # Mutants per run, and the fixed seed of the quick run.
@@ -117,7 +119,7 @@ class Runner:
     # Stages
 
     def stage_build(self):
-        for directory in (ROOT, ROOT / "cli"):
+        for directory in (ROOT, ROOT / "cli", ROOT / "tests" / "unit"):
             code, out, err = self.run(["alr", "-n", "build"], limit=self.remaining(), cwd=directory)
             self.log((out + err).decode(errors="replace"))
             if code != 0:
@@ -187,6 +189,17 @@ class Runner:
             head = path.read_text(errors="replace").splitlines()[:3]
             if not head or head[0] != "--  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception":
                 self.fail(f"{path.relative_to(ROOT)}: missing SPDX line")
+
+    def stage_unit(self):
+        unit = TESTS / "unit"
+        if not (unit / "data" / "GraphemeBreakTest.txt").exists():
+            self.fail("Unicode's GraphemeBreakTest.txt missing: run tools/generate-grapheme-tables")
+            return
+        code, out, err = self.run([unit / "bin" / "grapheme_test",
+                                   unit / "data" / "GraphemeBreakTest.txt"])
+        self.log((out + err).decode(errors="replace"))
+        if code != 0:
+            self.fail("grapheme conformance test failed:\n" + tail((out + err).decode(errors="replace")))
 
     def stage_golden(self):
         if self.update:
@@ -456,6 +469,7 @@ def main():
         ("build", runner.stage_build),
         ("proof", runner.stage_proof),
         ("tags", runner.stage_tags),
+        ("unit", runner.stage_unit),
         ("golden", runner.stage_golden),
     ]
     sys.exit(runner.execute(stages))
