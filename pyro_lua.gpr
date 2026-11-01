@@ -31,6 +31,11 @@ project Pyro_Lua is
       for Default_Switches ("C") use ("-g", "-O1", "-Wall", "-Wextra", "-Werror");
    end Compiler;
 
+   --  pyro_floats.c calls pow, fmod and floor from libm, which Linux does not link by default.
+   package Linker is
+      for Linker_Options use ("-lm");
+   end Linker;
+
    package Prove is
       --  Proof steps bound every proof the same way whatever the machine load; no wall-clock
       --  timeout. Raising the steps value needs the owner's OK (see docs/PROOFS.md).
