@@ -1,0 +1,5 @@
+1 keyword local
+1 name a
+1 =
+pyro: tests/corpus/lexer/invalid_long_string_delimiter.lua:1: invalid long string delimiter near '[=='
+exit 1

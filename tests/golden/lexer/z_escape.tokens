@@ -1,0 +1,6 @@
+1 keyword local
+1 name a
+1 =
+2 string "onetwothree"
+3 <eof>
+exit 0

@@ -1,0 +1,5 @@
+1 keyword local
+1 name a
+1 =
+pyro: tests/corpus/lexer/hexadecimal_digit_expected.lua:1: hexadecimal digit expected near '"\x4g'
+exit 1

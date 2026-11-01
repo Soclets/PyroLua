@@ -1,0 +1,10 @@
+1 keyword local
+1 name a
+1 =
+1 string "\0\1\255\127"
+2 keyword local
+2 name b
+2 =
+2 string "\0\226\130\172"
+3 <eof>
+exit 0

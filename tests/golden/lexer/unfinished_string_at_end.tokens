@@ -1,0 +1,5 @@
+1 keyword local
+1 name a
+1 =
+pyro: tests/corpus/lexer/unfinished_string_at_end.lua:1: unfinished string near <eof>
+exit 1

@@ -1,0 +1,18 @@
+1 keyword local
+1 name a
+1 =
+1 integer 9223372036854775807
+2 keyword local
+2 name b
+2 =
+2 float 9223372036854775808 0x43E0000000000000
+3 keyword local
+3 name c
+3 =
+3 integer -1
+4 keyword local
+4 name d
+4 =
+4 integer 0
+5 <eof>
+exit 0

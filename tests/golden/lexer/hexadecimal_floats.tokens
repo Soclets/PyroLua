@@ -1,0 +1,26 @@
+1 keyword local
+1 name a
+1 ,
+1 name b
+1 ,
+1 name c
+1 =
+1 float 0x0.1E 0x3FBE000000000000
+1 ,
+1 float 0xA23p-4 0x4064460000000000
+1 ,
+1 float 0X1.921FB54442D18P+1 0x400921FB54442D18
+2 keyword local
+2 name d
+2 ,
+2 name e
+2 =
+2 float 0x1p-1074 0x0000000000000001
+2 ,
+2 float 0x1p1024 0x7FF0000000000000
+3 keyword local
+3 name f
+3 =
+3 float 0x1.FFFFFFFFFFFFF8p0 0x4000000000000000
+4 <eof>
+exit 0

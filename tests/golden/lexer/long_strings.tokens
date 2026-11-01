@@ -1,0 +1,14 @@
+1 keyword local
+1 name a
+1 =
+2 string "first line dropped"
+3 keyword local
+3 name b
+3 =
+4 string "]]]=]"
+5 keyword local
+5 name c
+5 =
+8 string "a\10b\10c\10d"
+9 <eof>
+exit 0

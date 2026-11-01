@@ -1,0 +1,5 @@
+1 keyword local
+1 name a
+1 =
+pyro: tests/corpus/lexer/missing_closing_brace.lua:1: missing '}' near '"\u{48"'
+exit 1

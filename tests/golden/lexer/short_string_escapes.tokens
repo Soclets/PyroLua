@@ -1,0 +1,14 @@
+1 keyword local
+1 name a
+1 =
+1 string "a\7\8\12\10\13\9\11\\\"'"
+2 keyword local
+2 name b
+2 =
+2 string "AzA\0\255"
+3 keyword local
+3 name c
+3 =
+4 string "line\10break"
+5 <eof>
+exit 0

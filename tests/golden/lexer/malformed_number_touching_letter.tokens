@@ -1,0 +1,5 @@
+1 keyword local
+1 name a
+1 =
+pyro: tests/corpus/lexer/malformed_number_touching_letter.lua:1: malformed number near '0x1g'
+exit 1

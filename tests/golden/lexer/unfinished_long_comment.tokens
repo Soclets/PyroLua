@@ -1,0 +1,6 @@
+1 keyword local
+1 name a
+1 =
+1 integer 1
+pyro: tests/corpus/lexer/unfinished_long_comment.lua:3: unfinished long comment (starting at line 2) near <eof>
+exit 1

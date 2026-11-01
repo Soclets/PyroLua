@@ -1,0 +1,61 @@
+1 keyword local
+1 name _ok
+1 ,
+1 name x1
+1 ,
+1 name andx
+1 ,
+1 name End
+1 =
+1 integer 1
+1 ,
+1 integer 2
+1 ,
+1 integer 3
+1 ,
+1 integer 4
+2 keyword if
+2 name x1
+2 keyword then
+2 keyword goto
+2 name done
+2 keyword elseif
+2 name andx
+2 keyword then
+2 keyword else
+2 keyword end
+3 ::
+3 name done
+3 ::
+4 keyword while
+4 keyword false
+4 keyword do
+4 keyword break
+4 keyword end
+5 keyword repeat
+5 keyword until
+5 keyword true
+6 keyword for
+6 name i
+6 =
+6 integer 1
+6 ,
+6 integer 2
+6 keyword do
+6 keyword end
+7 keyword local
+7 keyword function
+7 name f
+7 (
+7 ...
+7 )
+7 keyword return
+7 keyword not
+7 keyword nil
+7 keyword or
+7 keyword true
+7 keyword and
+7 keyword false
+7 keyword end
+8 <eof>
+exit 0

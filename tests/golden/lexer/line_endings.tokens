@@ -1,0 +1,26 @@
+1 keyword local
+1 name a
+1 =
+1 integer 1
+2 keyword local
+2 name b
+2 =
+2 integer 2
+3 keyword local
+3 name c
+3 =
+3 integer 3
+4 keyword local
+4 name d
+4 =
+4 integer 4
+6 keyword local
+6 name e
+6 =
+6 integer 5
+8 keyword local
+8 name f
+8 =
+8 name x
+9 <eof>
+exit 0

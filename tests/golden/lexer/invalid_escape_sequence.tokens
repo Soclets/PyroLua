@@ -1,0 +1,5 @@
+1 keyword local
+1 name a
+1 =
+pyro: tests/corpus/lexer/invalid_escape_sequence.lua:1: invalid escape sequence near '"\q'
+exit 1

@@ -1,0 +1,5 @@
+1 keyword local
+1 name a
+1 =
+pyro: tests/corpus/lexer/decimal_escape_too_large.lua:1: decimal escape too large near '"\256"'
+exit 1

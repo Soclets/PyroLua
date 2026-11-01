@@ -18,6 +18,8 @@ project Pyro_Cli is
    end Builder;
 
    package Compiler is
+      --  The library's configuration pragmas also apply when its specs are compiled here.
+      for Local_Configuration_Pragmas use "../pyro.adc";
       for Default_Switches ("Ada") use
         ("-gnat2022", "-g", "-O1", "-gnatwa", "-gnatwe", "-gnatVa", "-gnatf",
          "-gnaty3", "-gnatyaAbBcdefhiIklnOprStux", "-gnatyM100");

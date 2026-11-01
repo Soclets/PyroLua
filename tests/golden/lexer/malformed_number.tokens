@@ -1,0 +1,5 @@
+1 keyword local
+1 name a
+1 =
+pyro: tests/corpus/lexer/malformed_number.lua:1: malformed number near '3..2'
+exit 1

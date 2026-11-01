@@ -88,7 +88,7 @@ kept small and conservative.
 
 | Unit | Reason | Since |
 | --- | --- | --- |
-| `Pyro.Floats` (body) | IEEE 754 arithmetic with infinities and NaN, correctly rounded decimal-to-float conversion, `%.14g` formatting. SPARK assumes floats are finite, so these must operate on raw bits outside SPARK. | M1 |
+| `Pyro.Floats` (body) and its C helper `src/common/pyro_floats.c` | IEEE 754 arithmetic with infinities and NaN, correctly rounded decimal-to-float conversion, `%.14g` formatting. SPARK assumes floats are finite, so these must operate on raw bits outside SPARK. Decimal conversion is libc's `strtod_l` with an explicit "C" locale, so a host calling `setlocale` cannot change how numerals are read. | M1 |
 | `cli/` (`pyro` executable) | File and console I/O, command-line handling. Not part of the library. | M1 |
 
 Any new entry needs a reason here and should be as small as possible.
@@ -163,7 +163,7 @@ Rules:
 | Area | Level | Status |
 | --- | --- | --- |
 | Growable arrays | Gold | proven |
-| Lexer | Silver + totality | not started |
+| Lexer | Silver + totality | proven |
 | Parser, AST | Silver + well-formedness | not started |
 | Resolver | Silver | not started |
 | Compiler / bytecode validity | Gold | not started |

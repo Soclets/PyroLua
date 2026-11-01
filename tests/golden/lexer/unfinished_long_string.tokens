@@ -1,0 +1,9 @@
+1 keyword local
+1 name a
+1 =
+1 integer 1
+2 keyword local
+2 name b
+2 =
+pyro: tests/corpus/lexer/unfinished_long_string.lua:5: unfinished long string (starting at line 2) near <eof>
+exit 1

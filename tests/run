@@ -33,6 +33,9 @@ PYRO = ROOT / "cli" / "bin" / "pyro"
 REFERENCE = Path(os.environ.get("PYRO_REF_LUA", "/opt/homebrew/opt/lua@5.4/bin"))
 LUAC = REFERENCE / "luac"
 
+# The pyro modes whose output has golden files.
+GOLDEN_MODES = ("tokens",)
+
 PROCESS_LIMIT = 10  # seconds for one pyro, lua or luac process
 TOTAL_LIMIT = {"quick": 300, "full": 1800}
 
@@ -191,7 +194,7 @@ class Runner:
         expected_files = set()
         for source in corpus_files():
             relative = source.relative_to(CORPUS)
-            for mode in ("tokens", "ast"):
+            for mode in GOLDEN_MODES:
                 golden = GOLDEN / relative.with_suffix("." + mode)
                 expected_files.add(golden)
                 code, out, err = self.run([PYRO, "--" + mode, source.relative_to(ROOT)],
@@ -453,6 +456,7 @@ def main():
         ("build", runner.stage_build),
         ("proof", runner.stage_proof),
         ("tags", runner.stage_tags),
+        ("golden", runner.stage_golden),
     ]
     sys.exit(runner.execute(stages))
 
