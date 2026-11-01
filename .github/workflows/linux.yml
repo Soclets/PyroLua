@@ -45,6 +45,11 @@ jobs:
       - name: Fetch the official Lua 5.4.9 tests
         run: tools/fetch-lua-tests
 
+      - name: Fetch Unicode's grapheme break test (and regenerate the tables, unchanged)
+        run: |
+          tools/generate-grapheme-tables
+          git diff --exit-code src/common/pyro-grapheme_tables.ads
+
       - name: Run tests/run without the proof stage
         run: tests/run --skip-proof
 
