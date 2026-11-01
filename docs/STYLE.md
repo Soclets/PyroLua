@@ -98,8 +98,16 @@ tools/where trusted         # every unproven spot
 - **Validity as named predicate functions** (`Is_Valid (Heap)`,
   `Is_Well_Formed (Tree)`) used in `Pre`/`Post`, not `Type_Invariant`.
   `Dynamic_Predicate` is fine for simple constraints on a single value.
-- **Predicates are expression functions in the spec,** so the prover sees their
-  bodies.
+- **Validity predicates are declared in the spec and completed in the package
+  body.** Clients reason through the package's contracts, never through the
+  definition: gnatprove unfolds an expression function completed in a private part
+  into every client's proofs (the parser alone took about 4,000 CPU-s with them
+  there; the whole library proves in 1,600 CPU-s with them in the bodies). Simple
+  accessors (`Length`, `Count`) stay expression functions in the private part.
+- **Export what clients need from a predicate,** preferably as a postcondition on the
+  accessor (for example an operand accessor whose `Post` says it is below
+  `Stack_Size` when `Is_Valid` holds), otherwise as a ghost lemma procedure declared
+  in the same package and proven in its body, where the definition is visible.
 - **`Contract_Cases`** where behaviour splits into clear cases (success, each kind of
   error).
 - **Termination is always proven:** `Always_Terminates` on subprograms,
@@ -109,7 +117,8 @@ tools/where trusted         # every unproven spot
   functional containers (sequences, maps, sets), not hand-written ones. `sparklib`
   is an Alire dependency.
 - **Lemmas live in `.Lemmas` child packages** as ghost procedures, never in
-  executable units.
+  executable units. The exception is a lemma about a predicate completed in a package
+  body: a child cannot see that body, so the lemma is declared in the package itself.
 - **`pragma Assert` only as a short proof hint.** A hint longer than a couple of
   lines becomes a named lemma.
 
@@ -136,7 +145,9 @@ tools/where trusted         # every unproven spot
   `Pyro.Embedding`.
 - **Split by proof time, not line count.** When a unit is slow to prove or hard to
   follow, split it into child packages. A body over about 1000 lines is due for a
-  look.
+  look. Split long subprograms too: each check in straight-line code carries every
+  earlier call's postcondition, so proof cost grows roughly quadratically with the
+  length of a sequence of calls.
 - **Generic instantiations are library-level units of their own**
   (`Pyro.Node_Arrays is new Pyro.Growable_Arrays (…)`), proven once and shared.
 

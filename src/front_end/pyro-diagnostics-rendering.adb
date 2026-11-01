@@ -252,6 +252,14 @@ package body Pyro.Diagnostics.Rendering with SPARK_Mode => On is
          when Left_Parenthesis | Left_Bracket => "3.4",
          when others => "3.3.4");
 
+   --  The error is at "!=", which Lua spells "~=".
+   function Is_Not_Equal_Typo (Item : Diagnostic; Source : Sources.Source) return Boolean
+   is (Item.What in Unexpected_Symbol | Token_Expected | Token_Expected_To_Close
+       and then Item.Found = Other_Byte
+       and then Item.Found_Byte = '!'
+       and then Natural (Item.Place.First) < Source.Length
+       and then Source.Text (Natural (Item.Place.First) + 1) = '=');
+
    --  Appends the "what:" (or "fix:") and "why:" lines.
    procedure Append_Explanation
      (Output : in out Character_Arrays.Growable_Array;
@@ -264,12 +272,6 @@ package body Pyro.Diagnostics.Rendering with SPARK_Mode => On is
      Post => Limit (Budget) = Limit (Budget)'Old
    is
       Lexical : constant String := " (Lua 5.4 manual §3.1)";
-      Is_Not_Equal_Typo : constant Boolean :=
-        Item.What = Unexpected_Symbol
-        and then Item.Found = Other_Byte
-        and then Item.Found_Byte = '!'
-        and then Natural (Item.Place.First) < Source.Length
-        and then Source.Text (Natural (Item.Place.First) + 1) = '=';
 
       procedure What (Text : String) with Post => Limit (Budget) = Limit (Budget)'Old is
       begin
@@ -289,7 +291,7 @@ package body Pyro.Diagnostics.Rendering with SPARK_Mode => On is
          Append_Source_Text (Output, Budget, Source, Item.Place);
       end Place_Text;
    begin
-      if Is_Not_Equal_Typo then
+      if Is_Not_Equal_Typo (Item, Source) then
          --  "!=" has exactly one fix in Lua.
          Append (Output, Budget, " fix:  `~=`");
          Why ("Lua's not-equal operator is `~=` (Lua 5.4 manual §3.4.4)");
@@ -531,13 +533,17 @@ package body Pyro.Diagnostics.Rendering with SPARK_Mode => On is
          Append_Explanation (Output, Budget, Item, Table, Source);
          return;
       end if;
-      Main := Locate (Source, Item.Place);
+      Main := Locate
+        (Source,
+         (if Is_Not_Equal_Typo (Item, Source)
+          then (First => Item.Place.First, Last => Item.Place.First + 1)
+          else Item.Place));
       Margin := Image (Natural (Main.Line))'Length;
       for Index in 1 .. Item.Links loop
          pragma Loop_Invariant (Margin <= 10);
-         if Fits (Source, Item.Link_Place (Index)) then
+         if Fits (Source, Link_Place (Item, Index)) then
             Margin := Natural'Max
-              (Margin, Image (Natural (Locate (Source, Item.Link_Place (Index)).Line))'Length);
+              (Margin, Image (Natural (Locate (Source, Link_Place (Item, Index)).Line))'Length);
          end if;
       end loop;
       Append_Place (Output, Budget, File, Main);
@@ -546,9 +552,9 @@ package body Pyro.Diagnostics.Rendering with SPARK_Mode => On is
       Append_Explanation (Output, Budget, Item, Table, Source);
       for Index in 1 .. Item.Links loop
          pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
-         if Fits (Source, Item.Link_Place (Index)) then
+         if Fits (Source, Link_Place (Item, Index)) then
             declare
-               Link : constant Place := Locate (Source, Item.Link_Place (Index));
+               Link : constant Place := Locate (Source, Link_Place (Item, Index));
             begin
                Append (Output, Budget, " because: ");
                Append_Place (Output, Budget, File, Link);

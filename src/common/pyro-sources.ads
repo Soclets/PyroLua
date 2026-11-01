@@ -10,6 +10,9 @@ package Pyro.Sources with SPARK_Mode => On, Pure, Always_Terminates is
    --  A position in a chunk: 1 .. Length for a byte, Length + 1 for the end of the chunk.
    type Source_Position is range 1 .. Maximum_Source_Length + 1;
 
+   --  The last byte of a run of bytes: 0 for an empty run at the start.
+   subtype Span_End is Source_Position'Base range 0 .. Source_Position'Last;
+
    --  A line number. Every line break is at least one byte, so a chunk has at most
    --  Maximum_Source_Length + 1 lines.
    type Line_Number is range 1 .. Maximum_Source_Length + 1;

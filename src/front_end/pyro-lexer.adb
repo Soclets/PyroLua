@@ -7,6 +7,10 @@ with Pyro.Numbers;
 
 package body Pyro.Lexer with SPARK_Mode => On is
 
+   function Is_Valid (Lexer : Lexer_State; Source : Sources.Source) return Boolean
+   is (Natural (Lexer.Position) <= Source.Length + 1
+       and then Natural (Lexer.Line) <= Natural (Lexer.Position));
+
    use type Interfaces.Unsigned_32;
 
    --  [puc lctype.h] Lua's own character classes, in the C locale.

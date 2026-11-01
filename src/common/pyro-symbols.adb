@@ -4,6 +4,18 @@
 
 package body Pyro.Symbols with SPARK_Mode => On is
 
+   --  The bytes of an entry lie inside the text.
+   function Is_Stored (Item : Symbol_Entry; Text_Length : Character_Arrays.Extended_Index)
+     return Boolean
+   is (Natural (Item.First) - 1 + Item.Length <= Natural (Text_Length));
+
+   function Is_Valid (Table : Symbol_Table) return Boolean
+   is ((for all Position in 1 .. Entry_Arrays.Length (Table.Entries) =>
+          Is_Stored (Entry_Arrays.Element (Table.Entries, Position),
+                     Character_Arrays.Length (Table.Text)))
+       and then (for all Slot in 1 .. Slot_Arrays.Length (Table.Slots) =>
+                   Slot_Arrays.Element (Table.Slots, Slot) <= Count (Table)));
+
    --  Slots of the first hash table.
    Initial_Slots : constant := 64;
 
@@ -294,6 +306,53 @@ package body Pyro.Symbols with SPARK_Mode => On is
          Slot := (if Slot = Size then 1 else Slot + 1);
       end loop;
    end Intern;
+
+   function Find_Text (Table : Symbol_Table; Text : String) return Symbol_Index is
+      Size : constant Slot_Arrays.Extended_Index := Slot_Arrays.Length (Table.Slots);
+      Hash : Interfaces.Unsigned_32 := 2_166_136_261;
+      Slot : Slot_Position;
+   begin
+      if Size = 0 then
+         return No_Symbol;
+      end if;
+      for Byte of Text loop
+         Hash := (Hash xor Character'Pos (Byte)) * 16_777_619;
+      end loop;
+      Slot := Home_Slot (Hash, Size);
+      for Step in 1 .. Size loop
+         pragma Loop_Invariant (Slot <= Size);
+         declare
+            Occupant : constant Symbol_Index := Slot_Arrays.Element (Table.Slots, Slot);
+         begin
+            if Occupant = No_Symbol then
+               return No_Symbol;
+            elsif Length (Table, Occupant) = Text'Length then
+               declare
+                  Same : Boolean := True;
+               begin
+                  for Offset in 0 .. Text'Length - 1 loop
+                     if Element (Table, Occupant, Offset + 1) /= Text (Text'First + Offset) then
+                        Same := False;
+                        exit;
+                     end if;
+                  end loop;
+                  if Same then
+                     return Occupant;
+                  end if;
+               end;
+            end if;
+         end;
+         Slot := (if Slot = Size then 1 else Slot + 1);
+      end loop;
+      return No_Symbol;
+   end Find_Text;
+
+   procedure Swap (Left, Right : in out Symbol_Table) is
+   begin
+      Character_Arrays.Swap (Left.Text, Right.Text);
+      Entry_Arrays.Swap (Left.Entries, Right.Entries);
+      Slot_Arrays.Swap (Left.Slots, Right.Slots);
+   end Swap;
 
    procedure Clear (Table : in out Symbol_Table; Budget : in out Memory_Budget) is
    begin

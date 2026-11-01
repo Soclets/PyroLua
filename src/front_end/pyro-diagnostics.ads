@@ -33,9 +33,6 @@ package Pyro.Diagnostics with SPARK_Mode => On, Always_Terminates is
    --  Problems that end the run: nothing after them can be reported with certainty.
    subtype Lexical_Problem is Problem range Malformed_Number .. Invalid_Escape_Sequence;
 
-   --  The last byte of a span: 0 for an empty span at the start.
-   subtype Span_End is Source_Position'Base range 0 .. Source_Position'Last;
-
    --  A run of source bytes, First .. Last; Last = First - 1 for a point (the end of the chunk).
    type Span is record
       First : Source_Position := 1;
@@ -66,10 +63,11 @@ package Pyro.Diagnostics with SPARK_Mode => On, Always_Terminates is
    is (Left.Ordinal < Right.Ordinal
        or else (Left.Ordinal = Right.Ordinal and then Left.During < Right.During));
 
-   --  The most "because" links one diagnostic has.
-   Maximum_Links : constant := 2;
-   type Link_Count is range 0 .. Maximum_Links;
-   type Link_Spans is array (Link_Count range 1 .. Maximum_Links) of Span;
+   --  The number of "because" links of a diagnostic (at most two).
+   type Link_Count is range 0 .. 2;
+
+   --  A position in a list of diagnostics.
+   type Diagnostic_Position is range 1 .. 2 ** 20;
 
    --  One problem, with everything both reports need.
    type Diagnostic is record
@@ -77,10 +75,11 @@ package Pyro.Diagnostics with SPARK_Mode => On, Always_Terminates is
 
       --  The rich report: where the problem is (absent for problems of the whole load), the
       --  places of its "because" links, and the pieces the message names.
-      Has_Place  : Boolean := False;
-      Place      : Span;
-      Links      : Link_Count := 0;
-      Link_Place : Link_Spans := [others => (First => 1, Last => 0)];
+      Has_Place   : Boolean := False;
+      Place       : Span := (First => 1, Last => 0);
+      Links       : Link_Count := 0;
+      First_Link  : Span := (First => 1, Last => 0);
+      Second_Link : Span := (First => 1, Last => 0);
       --  A variable, label or attribute name, and a second name (the local of Goto_Into_Scope).
       Name       : Symbol_Index := No_Symbol;
       Other_Name : Symbol_Index := No_Symbol;
@@ -104,8 +103,12 @@ package Pyro.Diagnostics with SPARK_Mode => On, Always_Terminates is
       Near_Byte    : Character := ASCII.NUL;
       Near_Text    : Symbol_Index := No_Symbol;
       Other_Line   : Line_Number := 1;
-      Detection    : Detection_Point;
+      Detection    : Detection_Point := (Ordinal => 0, During => Parsing);
    end record;
+
+   --  The place of "because" link Index of Item.
+   function Link_Place (Item : Diagnostic; Index : Link_Count) return Span
+   is (if Index = 2 then Item.Second_Link else Item.First_Link);
 
    --  The symbols a diagnostic names exist in Table.
    function Names_Exist (Item : Diagnostic; Table : Symbol_Table) return Boolean

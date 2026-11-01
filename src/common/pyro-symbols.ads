@@ -24,7 +24,11 @@ package Pyro.Symbols with SPARK_Mode => On, Always_Terminates is
    --  A set of byte strings. Interning the same bytes twice gives the same symbol, so symbols
    --  are equal exactly when their indices are. It owns heap memory: release it with Clear.
    type Symbol_Table is limited private
-   with Default_Initial_Condition => Is_Valid (Symbol_Table) and then Count (Symbol_Table) = 0;
+   with
+     Default_Initial_Condition =>
+       Is_Valid (Symbol_Table)
+       and then Count (Symbol_Table) = 0
+       and then Is_Released (Symbol_Table);
 
    --  The number of symbols in Table.
    function Count (Table : Symbol_Table) return Symbol_Index
@@ -77,6 +81,26 @@ package Pyro.Symbols with SPARK_Mode => On, Always_Terminates is
        and then Symbol <= Count (Table)
        and then Limit (Budget) = Limit (Budget)'Old;
 
+   --  The symbol whose bytes are Text, or No_Symbol if Table does not hold it.
+   function Find_Text (Table : Symbol_Table; Text : String) return Symbol_Index
+   with
+     Global => null,
+     Pre    => Is_Valid (Table) and then Text'Length <= 4096,
+     Post   => Find_Text'Result <= Count (Table);
+
+   --  Exchanges the symbols (and memory) of Left and Right.
+   procedure Swap (Left, Right : in out Symbol_Table)
+   with
+     Global => null,
+     Pre    => Is_Valid (Left) and then Is_Valid (Right),
+     Post   =>
+       Is_Valid (Left)
+       and then Is_Valid (Right)
+       and then Count (Left) = Count (Right)'Old
+       and then Count (Right) = Count (Left)'Old
+       and then Is_Released (Left) = Is_Released (Right)'Old
+       and then Is_Released (Right) = Is_Released (Left)'Old;
+
    --  Removes every symbol and releases the memory.
    procedure Clear (Table : in out Symbol_Table; Budget : in out Memory_Budget)
    with
@@ -123,18 +147,6 @@ private
 
    function Count (Table : Symbol_Table) return Symbol_Index
    is (Entry_Arrays.Length (Table.Entries));
-
-   --  The bytes of an entry lie inside the text.
-   function Is_Stored (Item : Symbol_Entry; Text_Length : Character_Arrays.Extended_Index)
-     return Boolean
-   is (Natural (Item.First) - 1 + Item.Length <= Natural (Text_Length));
-
-   function Is_Valid (Table : Symbol_Table) return Boolean
-   is ((for all Position in 1 .. Entry_Arrays.Length (Table.Entries) =>
-          Is_Stored (Entry_Arrays.Element (Table.Entries, Position),
-                     Character_Arrays.Length (Table.Text)))
-       and then (for all Slot in 1 .. Slot_Arrays.Length (Table.Slots) =>
-                   Slot_Arrays.Element (Table.Slots, Slot) <= Count (Table)));
 
    function Length (Table : Symbol_Table; Symbol : Symbol_Index) return Symbol_Length
    is (Entry_Arrays.Element (Table.Entries, Symbol).Length);

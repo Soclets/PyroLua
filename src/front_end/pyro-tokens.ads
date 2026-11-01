@@ -42,7 +42,7 @@ package Pyro.Tokens with SPARK_Mode => On, Always_Terminates is
       Kind : Token_Kind := End_Of_Stream;
       --  The bytes of the token in the source, First .. Last (Last = First - 1 at the end).
       First : Source_Position := 1;
-      Last  : Source_Position'Base := 0;
+      Last  : Span_End := 0;
       --  PUC Lua's line number once the token is read: the line of its last byte.
       Line : Line_Number := 1;
       --  The line of its first byte.

@@ -104,10 +104,6 @@ private
       Problem  : Diagnostic;
    end record;
 
-   function Is_Valid (Lexer : Lexer_State; Source : Sources.Source) return Boolean
-   is (Natural (Lexer.Position) <= Source.Length + 1
-       and then Natural (Lexer.Line) <= Natural (Lexer.Position));
-
    function Failed (Lexer : Lexer_State) return Boolean is (Lexer.Stopped);
 
    function Error (Lexer : Lexer_State) return Diagnostic is (Lexer.Problem);

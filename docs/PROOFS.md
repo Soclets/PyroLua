@@ -154,7 +154,13 @@ Rules:
 - A proof that will not close is never forced through; see
   [STYLE.md](STYLE.md#proofs-that-will-not-close).
 - Lemmas go in `Pyro.*.Lemmas` child packages as ghost procedures, so proof-only
-  code stays out of executable units.
+  code stays out of executable units, except lemmas about a predicate completed in a
+  package body, which are declared in that package (STYLE.md, Contracts).
+- Validity predicates are completed in package bodies, so clients prove with the
+  contracts only; gnatprove would otherwise unfold their definitions into every
+  client's proofs (parser alone about 4,000 CPU-s before, whole library 1,600 CPU-s
+  after). In M4 the VM relies on `Is_Valid (Prototype)` through the postconditions of
+  `Pyro.Bytecode`'s accessors, which carry the bounds it needs.
 - Runtime checks stay enabled in debug builds. A release build may suppress checks
   that are proven, never others.
 

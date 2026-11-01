@@ -114,6 +114,14 @@ package body Pyro.Growable_Arrays with SPARK_Mode => On is
       Container.Last := New_Length;
    end Truncate;
 
+   procedure Swap (Left, Right : in out Growable_Array) is
+      Held : Growable_Array;
+   begin
+      Held := Left;
+      Left := Right;
+      Right := Held;
+   end Swap;
+
    procedure Clear (Container : in out Growable_Array; Budget : in out Memory_Budget) is
       Old_Capacity : constant Extended_Index := Capacity (Container);
    begin

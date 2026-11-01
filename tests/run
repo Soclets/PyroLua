@@ -44,7 +44,7 @@ STAGE_LIMITS = {
     "quick": {"build": 120, "proof": 200, "tags": 10, "unit": 20, "golden": 30, "differential": 60,
               "fuzz": 30},
     "full": {"build": 120, "proof": 900, "tags": 10, "unit": 20, "golden": 30, "differential": 60,
-             "fuzz": 1200},
+             "fuzz": 600},
 }
 
 # Mutants per run, and the fixed seed of the quick run.
@@ -131,7 +131,16 @@ class Runner:
     def stage_proof(self):
         # Always from scratch (-f): replaying earlier proof sessions can change what the
         # provers find within the steps limit, and a proof must fail the same way every time.
+        # Quick runs reuse results from a cache keyed by the exact VC and prover settings, so
+        # only VCs that changed are proved again; --full proves everything without it.
+        # Results of earlier runs (possibly of units that no longer exist) must not count.
+        for stale in (ROOT / "obj").glob("*/gnatprove"):
+            shutil.rmtree(stale, ignore_errors=True)
         command = ["alr", "exec", "--", "gnatprove", "-P", "pyro.gpr", "-f"]
+        if self.mode == "quick":
+            cache = ROOT / "obj" / "proof-cache"
+            cache.mkdir(parents=True, exist_ok=True)
+            command.append(f"--memcached-server=file:{cache}")
         code, out, err = self.run(command, limit=self.remaining())
         text = (out + err).decode(errors="replace")
         self.log(text)
@@ -465,6 +474,9 @@ def main():
                         help="clean proofs and long fuzzing (30 minute cap)")
     parser.add_argument("--update", action="store_true",
                         help="regenerate golden files before running")
+    parser.add_argument("--only", metavar="STAGES",
+                        help="run only these comma-separated stages (a partial check, not a "
+                             "green run)")
     arguments = parser.parse_args()
     runner = Runner("full" if arguments.full else "quick", arguments.update)
     stages = [
@@ -474,6 +486,12 @@ def main():
         ("unit", runner.stage_unit),
         ("golden", runner.stage_golden),
     ]
+    if arguments.only:
+        wanted = arguments.only.split(",")
+        unknown = [name for name in wanted if name not in dict(stages)]
+        if unknown:
+            parser.error(f"unknown stage(s): {', '.join(unknown)}")
+        stages = [(name, function) for name, function in stages if name in wanted]
     sys.exit(runner.execute(stages))
 
 

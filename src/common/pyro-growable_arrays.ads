@@ -33,7 +33,9 @@ package Pyro.Growable_Arrays with SPARK_Mode => On, Always_Terminates is
    --  An array of elements that grows as elements are appended. It owns heap memory, so it
    --  must be released with Clear before it goes out of scope.
    type Growable_Array is limited private
-   with Default_Initial_Condition => Length (Growable_Array) = 0;
+   with
+     Default_Initial_Condition =>
+       Length (Growable_Array) = 0 and then Is_Released (Growable_Array);
 
    --  The number of elements stored.
    function Length (Container : Growable_Array) return Extended_Index
@@ -99,6 +101,18 @@ package Pyro.Growable_Arrays with SPARK_Mode => On, Always_Terminates is
      Post   =>
        Length (Container) = New_Length
        and then Model (Container) <= Model (Container)'Old;
+
+   --  Exchanges the contents (and memory) of Left and Right.
+   procedure Swap (Left, Right : in out Growable_Array)
+   with
+     Global => null,
+     Post   =>
+       Length (Left) = Length (Right)'Old
+       and then Length (Right) = Length (Left)'Old
+       and then Model (Left) = Model (Right)'Old
+       and then Model (Right) = Model (Left)'Old
+       and then Is_Released (Left) = Is_Released (Right)'Old
+       and then Is_Released (Right) = Is_Released (Left)'Old;
 
    --  Removes every element, frees the memory and releases it from Budget.
    procedure Clear (Container : in out Growable_Array; Budget : in out Memory_Budget)
