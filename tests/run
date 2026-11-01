@@ -137,8 +137,9 @@ class Runner:
         for stale in (ROOT / "obj").glob("*/gnatprove"):
             shutil.rmtree(stale, ignore_errors=True)
         command = ["alr", "exec", "--", "gnatprove", "-P", "pyro.gpr", "-f"]
-        if self.mode == "quick":
-            cache = ROOT / "obj" / "proof-cache"
+        key = self.toolchain_key() if self.mode == "quick" else None
+        if key is not None:
+            cache = ROOT / "obj" / "proof-cache" / key
             cache.mkdir(parents=True, exist_ok=True)
             command.append(f"--memcached-server=file:{cache}")
         code, out, err = self.run(command, limit=self.remaining())
@@ -162,6 +163,21 @@ class Runner:
                         and not is_generic_noise(unit):
                     self.fail(f"not analysed by gnatprove (SPARK_Mode => Off) and not listed as "
                               f"trusted in docs/PROOFS.md: {unit} at {match.group(2)}")
+
+    def toolchain_key(self):
+        """gnatprove-<v>-why3-<v>-cvc5-<v>-z3-<v>, the proof cache's directory: the cache never
+        outlives a toolchain change, so an upgrade cannot replay another version's results.
+        None when a version cannot be read (the run then proves without the cache)."""
+        code, out, err = self.run(["alr", "exec", "--", "gnatprove", "--version"], limit=60)
+        text = (out + err).decode(errors="replace")
+        def version(pattern):
+            match = re.search(pattern, text)
+            return match.group(1) if match else None
+        parts = ["gnatprove", version(r"(?m)^FSF (\S+)"),
+                 "why3", version(r"Why3 [^\n]*version (\S+)"),
+                 "cvc5", version(r"cvc5 version (\S+)"),
+                 "z3", version(r"Z3 version (\S+)")]
+        return None if None in parts or code != 0 else "-".join(parts)
 
     def stage_tags(self):
         proofs = (ROOT / "docs" / "PROOFS.md").read_text()
