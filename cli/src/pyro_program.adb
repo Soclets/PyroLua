@@ -439,6 +439,8 @@ procedure Pyro_Program is
                Pyro.Resolver.Resolve (Tree, Root, Symbols, Budget, Problems, Bindings);
                Count := Natural (Pyro.Diagnostic_Lists.Length (Problems));
                if Selected /= Tree_Mode then
+                  --  Only the tree printer reads the bindings: the compiler resolves names again.
+                  Pyro.Resolver.Clear (Bindings, Budget);
                   --  Also in a chunk with errors, for the limit errors PUC Lua finds first.
                   Pyro.Compiler.Compile
                     (Source.all, Tree, Root, Symbols, Budget, Problems, Compiled);

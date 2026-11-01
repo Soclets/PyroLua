@@ -38,8 +38,10 @@ handle stored anywhere refers to an allocated slot") rather than a pointer-owner
 problem.
 
 **One growable-array generic.** Arenas and stacks need to grow. Pyro implements one
-generic, `Pyro.Growable_Arrays`, on top of SPARK's pointer ownership (an owned access
-to an array, reallocated on growth), proves it once and reuses it everywhere. Its
+generic, `Pyro.Growable_Arrays`, on top of SPARK's pointer ownership, proves it once
+and reuses it everywhere. The elements live in owned chunks of about 1 MiB: growing
+adds a chunk, so elements are never copied and memory never doubles; only the first
+chunk starts small and doubles up to that size, so small arrays stay small. Its
 contract exposes the contents as a ghost sequence so clients can state invariants
 about them.
 
@@ -168,6 +170,10 @@ needed from M4 and also lives in the trusted float package.
 `Pyro.Syntax_Trees` is an arena of nodes indexed by `Node_Index`. Each node has a kind, a span,
 a line, up to three child slots, an optional child list (a slice of a separate list
 arena), and kind-specific payload (symbol, integer, float bits, operator, attribute).
+Clients see one `Node` record; the arena stores each node in 32 bytes: the fields every
+node has, and four slots whose meaning depends on the kind. A node whose fields do not
+fit its kind's slots (rare: a label followed by `;`, say) is stored whole in a side
+table instead.
 
 **Key invariant:** a node's children always have smaller ids than the node itself.
 Nodes are only created after their children, so this holds by construction, and it

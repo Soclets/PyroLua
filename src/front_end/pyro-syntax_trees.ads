@@ -269,6 +269,43 @@ private
    subtype Node_Position is Node_Index range 1 .. Node_Index'Last;
    subtype List_Position is List_Index range 1 .. List_Index'Last;
 
+   --  A 32-bit slot of a stored node.
+   type Slot_Value is range 0 .. 2 ** 32 - 1 with Size => 32;
+
+   --  The fields of a node that fit in a byte, packed in four.
+   type Header is record
+      Kind          : Node_Kind := Missing;
+      Operator      : Operator_Kind := No_Operator;
+      Attribute     : Attribute_Kind := Regular;
+      Is_Vararg     : Boolean := False;
+      Is_Method     : Boolean := False;
+      Is_Name_Key   : Boolean := False;
+      Is_Incomplete : Boolean := False;
+      Is_Last_Label : Boolean := False;
+      During        : Phase := Parsing;
+      --  The node is stored whole in the spill table, at the index in Slot_1.
+      Spilled       : Boolean := False;
+   end record
+   with Pack;
+
+   --  A node as the tree stores it, in 32 bytes: the fields every node has, and four slots
+   --  whose meaning depends on the kind (see the body). A node whose other fields do not fit
+   --  the slots of its kind is spilled.
+   type Stored_Node is record
+      Head   : Header := (others => <>);
+      First  : Source_Position := 1;
+      Last   : Span_End := 0;
+      Line   : Line_Number := 1;
+      Slot_1 : Slot_Value := 0;
+      Slot_2 : Slot_Value := 0;
+      Slot_3 : Slot_Value := 0;
+      Slot_4 : Slot_Value := 0;
+   end record;
+
+   package Stored_Arrays is new Pyro.Growable_Arrays
+     (Index => Node_Position, Element_Type => Stored_Node, Default_Element => (others => <>),
+      Element_Bytes => 32);
+
    package Node_Arrays is new Pyro.Growable_Arrays
      (Index => Node_Position, Element_Type => Node, Default_Element => (others => <>),
       Element_Bytes => 96);
@@ -278,24 +315,23 @@ private
       Element_Bytes => 4);
 
    type Syntax_Tree is limited record
-      Nodes   : Node_Arrays.Growable_Array;
+      Nodes   : Stored_Arrays.Growable_Array;
+      Spill   : Node_Arrays.Growable_Array;
       Lists   : Index_Arrays.Growable_Array;
       Waiting : Index_Arrays.Growable_Array;
    end record;
 
    function Node_Count (Tree : Syntax_Tree) return Node_Index
-   is (Node_Arrays.Length (Tree.Nodes));
+   is (Stored_Arrays.Length (Tree.Nodes));
 
    function Pending (Tree : Syntax_Tree) return List_Index
    is (Index_Arrays.Length (Tree.Waiting));
 
-   function Get (Tree : Syntax_Tree; Index : Node_Index) return Node
-   is (Node_Arrays.Element (Tree.Nodes, Index));
-
    use type Index_Arrays.Models.Sequence;
 
    function Is_Released (Tree : Syntax_Tree) return Boolean
-   is (Node_Arrays.Is_Released (Tree.Nodes)
+   is (Stored_Arrays.Is_Released (Tree.Nodes)
+       and then Node_Arrays.Is_Released (Tree.Spill)
        and then Index_Arrays.Is_Released (Tree.Lists)
        and then Index_Arrays.Is_Released (Tree.Waiting));
 

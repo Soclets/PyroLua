@@ -1,6 +1,6 @@
 --  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 --
---  Proven growable array: an owned heap array that doubles on demand, with a ghost sequence model.
+--  Proven growable array: owned heap chunks added on demand, with a ghost sequence model.
 
 with Pyro.Memory_Budgets; use Pyro.Memory_Budgets;
 with SPARK.Containers.Functional.Vectors;
@@ -130,22 +130,69 @@ package Pyro.Growable_Arrays with SPARK_Mode => On, Always_Terminates is
 
 private
 
-   type Element_Array is array (Index range <>) of Element_Type;
-   type Array_Access is access Element_Array;
+   --  The elements live in chunks of Chunk_Length elements (about 1 MiB): growing adds a chunk,
+   --  so elements are never copied and memory is never doubled. The first chunk is apart: it
+   --  starts small and doubles up to Chunk_Length, so small arrays stay small. The other chunks
+   --  are found through a table allocated once, at its full size, when the second is needed.
+   Chunk_Length : constant Index :=
+     Index (Byte_Count'Max (16, Byte_Count'Min (2 ** 20 / Element_Bytes,
+                                                Byte_Count (Index'Last))));
 
+   --  Chunks after the first, at most.
+   Maximum_Chunks : constant Natural := Natural (Index'Last / Chunk_Length);
+
+   --  The chunk (0 for the first) and the place in it (from 1) of Position.
+   function Chunk_Of (Position : Index) return Natural
+   is (Natural ((Position - 1) / Chunk_Length))
+   with Post => Chunk_Of'Result <= Maximum_Chunks;
+
+   function Offset_Of (Position : Index) return Index
+   is ((Position - 1) mod Chunk_Length + 1)
+   with Post => Offset_Of'Result <= Chunk_Length;
+
+   type Element_Array is array (Index range <>) of Element_Type;
+   type Chunk_Access is access Element_Array;
+   type Chunk_Table is array (Positive range <>) of Chunk_Access;
+   type Table_Access is access Chunk_Table;
+
+   --  Whether every position up to the length has its place: the invariant of the type.
+   function All_Allocated (Container : Growable_Array) return Boolean;
+
+   --  Every access checks that its chunk is there: a place without a chunk reads as
+   --  Default_Element, as a new chunk's places do. The invariant is that every element has
+   --  its place.
    type Growable_Array is record
-      Data : Array_Access := null;
-      Last : Extended_Index := 0;
+      First : Chunk_Access := null;
+      Table : Table_Access := null;
+      Last  : Extended_Index := 0;
    end record
-   with
-     Predicate =>
-       (if Data = null then Last = 0 else Data'First = 1 and then Last <= Data'Last);
+   with Type_Invariant => All_Allocated (Growable_Array);
+
+   --  Whether position Position has an allocated place (every position up to Last has one).
+   function Allocated (Container : Growable_Array; Position : Index) return Boolean
+   is (if Chunk_Of (Position) = 0
+       then Container.First /= null and then Offset_Of (Position) in Container.First'Range
+       else Container.Table /= null
+            and then Chunk_Of (Position) in Container.Table'Range
+            and then Container.Table (Chunk_Of (Position)) /= null
+            and then Offset_Of (Position) in Container.Table (Chunk_Of (Position))'Range);
 
    function Length (Container : Growable_Array) return Extended_Index is (Container.Last);
 
-   function Element (Container : Growable_Array; Position : Index) return Element_Type
-   is (Container.Data (Position));
+   function All_Allocated (Container : Growable_Array) return Boolean
+   is (for all Position in 1 .. Container.Last => Allocated (Container, Position));
 
-   function Is_Released (Container : Growable_Array) return Boolean is (Container.Data = null);
+   function Element (Container : Growable_Array; Position : Index) return Element_Type
+   is (if not Allocated (Container, Position) then Default_Element
+       elsif Chunk_Of (Position) = 0 then Container.First (Offset_Of (Position))
+       else Container.Table (Chunk_Of (Position)) (Offset_Of (Position)));
+
+   function Is_Released (Container : Growable_Array) return Boolean
+   is (Container.First = null and then Container.Table = null);
+
+   --  Clients reason through Model and the contracts: the chunks stay out of their proofs.
+   pragma Annotate (GNATprove, Hide_Info, "Expression_Function_Body", Allocated);
+   pragma Annotate (GNATprove, Hide_Info, "Expression_Function_Body", All_Allocated);
+   pragma Annotate (GNATprove, Hide_Info, "Expression_Function_Body", Element);
 
 end Pyro.Growable_Arrays;

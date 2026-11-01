@@ -91,8 +91,9 @@ DEEP_CONSTRUCTS = {
 }
 
 # The front end's peak memory, in MB per MB of source, on the official test files (macOS
-# arm64, measured 2026-11-01). tests/run --full fails 25% above it (ROADMAP, Later).
-MEMORY_PER_SOURCE_MB = 58.1
+# arm64, measured 2026-11-01, with chunked growable arrays and 32-byte stored tree nodes).
+# tests/run --full fails 25% above it.
+MEMORY_PER_SOURCE_MB = 16.9
 
 # Chunks that reach PUC Lua's compile-time limits, or come just short of them, generated
 # rather than kept in the corpus because of their size. luac -p and pyro --check must agree on
@@ -512,7 +513,7 @@ class Runner:
                 self.log(f"front-end memory: {ratio:.1f} MB per source MB")
                 if ratio > MEMORY_PER_SOURCE_MB * 1.25:
                     self.fail(f"the front end needs {ratio:.1f} MB of memory per MB of source, more "
-                              f"than 25% above the baseline of {MEMORY_PER_SOURCE_MB} (ROADMAP, Later)")
+                              f"than 25% above the baseline of {MEMORY_PER_SOURCE_MB}")
             measured.unlink()
         if self.mode == "full":
             # The largest chunk Pyro accepts, and one byte more.
@@ -843,8 +844,8 @@ def trusted_units():
 
 def is_generic_noise(unit):
     """Entities gnatprove reports as skipped inside every growable-array instance: the
-    deallocation instance and the SPARKlib model, which SPARKlib proves itself."""
-    return re.search(r"\.Free\w*\.Free$|\.Models(\.|$)", unit) is not None
+    deallocation instances and the SPARKlib model, which SPARKlib proves itself."""
+    return re.search(r"\.(Free\w*)\w*\.\1$|\.Models(\.|$)", unit) is not None
 
 
 def message_exemptions():

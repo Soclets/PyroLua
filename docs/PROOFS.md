@@ -28,13 +28,20 @@ Pyro's target:
 
 `Pyro.Growable_Arrays` is proven to behave like a sequence: append, set and truncate
 have postconditions in terms of a ghost model, and growth preserves existing
-contents. Everything else builds on this.
+contents. Everything else builds on this. Its type invariant says every element has
+its place in an allocated chunk; the definitions behind it (`Allocated`,
+`All_Allocated`, `Element`) are hidden from clients, which reason through the model
+alone and so do not carry the chunk arithmetic.
 
 ### Syntax tree well-formedness (M1)
 
 Every child id in a node is smaller than the node's own id and refers to an existing
 node; child list slices are in range. Proven as a postcondition of every AST
-construction operation, which gives acyclicity and termination of tree walks.
+construction operation, which gives acyclicity and termination of tree walks. The
+property is stated on the nodes as `Get` returns them, whatever their stored form: a
+node is kept in its compact form only when that form reads back as the same node
+(checked when it is added), and otherwise in the side table, so the proofs need no
+lemma about the encoding.
 
 ### Lexer and parser totality (M1)
 
