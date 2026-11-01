@@ -149,6 +149,14 @@ package Pyro.Compiler.Code with SPARK_Mode => On, Always_Terminates is
    --  many upvalue slots.
    Maximum_Upvalues : constant := 255;
 
+   --  [puc lmem.c:luaM_growaux_] The most entries of PUC Lua's growing arrays that a chunk can
+   --  fill: the local variable descriptions of a function (registerlocalvar, SHRT_MAX), the
+   --  pending gotos and the active labels (newlabelentry, SHRT_MAX), and the functions nested
+   --  in a function (addprototype, MAXARG_Bx).
+   Maximum_Debug_Locals : constant := 32_767;
+   Maximum_Labels       : constant := 32_767;
+   Maximum_Functions    : constant := Bytecode.Maximum_Bx;
+
    --  [puc lparser.c:MAXVARS] The most local variables active in a function.
    Maximum_Variables : constant := 200;
 

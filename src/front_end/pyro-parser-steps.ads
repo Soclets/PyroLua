@@ -427,7 +427,9 @@ private package Pyro.Parser.Steps with SPARK_Mode => On, Always_Terminates is
      Post =>
        Valid (P, Source)
        and then Is_Released (Symbols)
+       and then Is_Valid (Symbols)
        and then Is_Released (Tree)
+       and then Is_Well_Formed (Tree)
        and then Diagnostic_Lists.Is_Released (Problems)
        and then Limit (P.Budget) = Limit (Budget);
 

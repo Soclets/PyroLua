@@ -163,6 +163,13 @@ package body Pyro.Diagnostics with SPARK_Mode => On is
             end if;
          when Control_Structure_Too_Long =>
             Append (Output, Budget, "control structure too long");
+         --  [puc lmem.c:luaM_growaux_]
+         when Too_Many_Labels =>
+            Append (Output, Budget, "too many labels/gotos (limit is 32767)");
+         when Too_Many_Debug_Locals =>
+            Append (Output, Budget, "too many local variables (limit is 32767)");
+         when Too_Many_Functions =>
+            Append (Output, Budget, "too many functions (limit is 131071)");
          when Not_Enough_Memory => Append (Output, Budget, "not enough memory");
          when Binary_Chunk =>
             --  [differs] Precompiled chunks are not loaded.

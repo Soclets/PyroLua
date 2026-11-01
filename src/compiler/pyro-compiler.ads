@@ -15,10 +15,11 @@ package Pyro.Compiler with SPARK_Mode => On, Always_Terminates is
    --  main Function_Body), after the resolver, with Problems holding their errors. The
    --  prototypes are added to Result, which must be empty; the main function is the last one.
    --  When PUC Lua would stop at a compile-time limit (registers, local variables, upvalues,
-   --  jump lengths), or when the compiler's output fails Is_Valid (an internal error), Result
-   --  stays empty and the error is appended to Problems. A chunk with errors is compiled as
-   --  far as PUC Lua would have compiled it before stopping at them, for its limit errors
-   --  only (each with its detection point), and Result stays empty.
+   --  jump lengths, and the sizes of its growing arrays: pending gotos and labels, local
+   --  variable descriptions, nested functions), or when the compiler's output fails Is_Valid
+   --  (an internal error), Result stays empty and the error is appended to Problems. A chunk
+   --  with errors is compiled as far as PUC Lua would have compiled it before stopping at
+   --  them, for its limit errors only (each with its detection point), and Result stays empty.
    procedure Compile
      (Source   : Sources.Source;
       Tree     : Syntax_Tree;

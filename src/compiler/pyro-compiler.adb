@@ -1566,8 +1566,11 @@ package body Pyro.Compiler with SPARK_Mode => On is
          if Error.What /= Not_Enough_Memory then
             Describe_Token
               (Source, Symbols, Budget, Natural (Error.Detection.Ordinal), Error);
-         else
+         end if;
+         if Error.What in Too_Many_Labels .. Too_Many_Functions | Not_Enough_Memory then
+            --  [puc lmem.c:luaM_growaux_] A runtime error of the load, with no place.
             Error.Has_Lua_Line := False;
+            Error.Near := No_Near;
          end if;
       end if;
       if Diagnostics.Names_Exist (Error, Symbols) then

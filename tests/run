@@ -129,6 +129,19 @@ LIMIT_CASES = {
     "upvalues-then-scope": lambda: _upvalues(256) + "goto nowhere\n",
     "scope-then-upvalues": lambda: "local c <const> = 1\nc = 2\n" + _upvalues(256),
     "upvalues-cut-short": lambda: _upvalues(256).replace("end end end\n", "x = (\n"),
+    # The limits of PUC's growing arrays (lmem.c), raised with no place.
+    "gotos-32767": lambda: "do\n" + "goto l\n" * 32767 + "::l::\nend\n",
+    "gotos-32768": lambda: "do\n" + "goto l\n" * 32768 + "::l::\nend\n",
+    "breaks-32768": lambda: "while x do\n" + "if y then break end\n" * 32768 + "end\n",
+    "labels-32768": lambda: "do\n" + "".join(f"::l{i}:: x = 1\n" for i in range(32768))
+                            + "end\n",
+    "debug-locals-32767": lambda: "do local a end\n" * 32767,
+    "debug-locals-32768": lambda: "local function g()\n" + "do local a end\n" * 32768
+                                  + "end\n",
+    "functions-131071": lambda: "f = function() end\n" * 131071,
+    "functions-131072": lambda: "f = function() end\n" * 131072,
+    "functions-then-syntax": lambda: "f = function() end\n" * 131072 + "x = = 1\n",
+    "syntax-then-gotos": lambda: "x = = 1\ndo\n" + "goto l\n" * 32768 + "::l::\nend\n",
 }
 
 # Mutants per run, and the fixed seed of the quick run.

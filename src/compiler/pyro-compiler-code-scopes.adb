@@ -205,6 +205,10 @@ package body Pyro.Compiler.Code.Scopes with SPARK_Mode => On is
       if Last then
          Label.Active := Block_At (State, Block_Position (State, Depth (State))).Active;
       end if;
+      if Label_Arrays.Length (State.Labels) >= Maximum_Labels then
+         Raise_Error (State, Too_Many_Labels, 0);
+         return;
+      end if;
       Label_Arrays.Append (State.Labels, Label, State.Budget, Success);
       if not Success then
          Raise_Error (State, Not_Enough_Memory, 0);
@@ -280,6 +284,16 @@ package body Pyro.Compiler.Code.Scopes with SPARK_Mode => On is
    begin
       if Depth (State) >= 2 ** 16 then
          Fail (State);
+         return;
+      end if;
+      --  [puc lparser.c:addprototype] A nested function takes the next place among the
+      --  functions of the enclosing one (its earlier ones are closed and counted there).
+      if Depth (State) > 0
+        and then Natural (Child_Arrays.Length (State.Children)) >= Current (State).Child_Base
+        and then Natural (Child_Arrays.Length (State.Children)) - Current (State).Child_Base
+                 >= Maximum_Functions
+      then
+         Raise_Error (State, Too_Many_Functions, 0);
          return;
       end if;
       Level := Depth (State) + 1;
@@ -526,6 +540,12 @@ package body Pyro.Compiler.Code.Scopes with SPARK_Mode => On is
             Fail (State);
             return;
          end if;
+         if Natural (Debug_Arrays.Length (State.Debug_Locals)) - Item.Debug_Base
+           >= Maximum_Debug_Locals
+         then
+            Raise_Error (State, Too_Many_Debug_Locals, 0);
+            return;
+         end if;
          Variable := Variable_Arrays.Element (State.Variables, Work_Position (Position + 1));
          Variable.Register := Level;
          Level := Level + 1;
@@ -748,6 +768,10 @@ package body Pyro.Compiler.Code.Scopes with SPARK_Mode => On is
    is
       Success : Boolean;
    begin
+      if Label_Arrays.Length (State.Gotos) >= Maximum_Labels then
+         Raise_Error (State, Too_Many_Labels, 0);
+         return;
+      end if;
       Label_Arrays.Append
         (State.Gotos,
          (Name => Name, Line => Line, Active => Current (State).Active, Close => False,

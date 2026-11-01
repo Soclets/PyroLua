@@ -481,6 +481,18 @@ package body Pyro.Diagnostics.Rendering with SPARK_Mode => On is
          when Control_Structure_Too_Long =>
             What ("this control structure jumps over too much code");
             Why ("a Lua jump can skip at most 16777215 instructions");
+         when Too_Many_Labels =>
+            What ("more than 32767 gotos (breaks included) are waiting for their label, or "
+                  & "more than 32767 labels are visible");
+            Why ("PUC Lua keeps the gotos it has not resolved yet and the visible labels in "
+                 & "lists of at most 32767 entries (SHRT_MAX)");
+         when Too_Many_Debug_Locals =>
+            What ("this function declares more than 32767 local variables");
+            Why ("PUC Lua keeps the debug description of every local variable of a function in "
+                 & "a list of at most 32767 entries (SHRT_MAX)");
+         when Too_Many_Functions =>
+            What ("this function contains more than 131071 functions");
+            Why ("a closure instruction names a nested function in 17 bits (MAXARG_Bx)");
          when Internal_Error =>
             What ("the compiler built bytecode that fails its validity check");
             Why ("this is a bug in Pyro: please report it with this file");

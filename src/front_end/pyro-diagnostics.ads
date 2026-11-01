@@ -30,6 +30,8 @@ package Pyro.Diagnostics with SPARK_Mode => On, Always_Terminates is
       --  Compile-time limits (lparser.c, lcode.c).
       Too_Many_Registers, Too_Many_Local_Variables, Too_Many_Upvalues,
       Control_Structure_Too_Long,
+      --  Limits of PUC Lua's growing arrays (lmem.c), reported without a place.
+      Too_Many_Labels, Too_Many_Debug_Locals, Too_Many_Functions,
       --  Errors of the whole load.
       Not_Enough_Memory, Binary_Chunk, Internal_Error);
 
