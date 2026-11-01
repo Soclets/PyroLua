@@ -26,13 +26,8 @@ project Pyro_Cli is
    end Compiler;
 
    package Binder is
-      --  The parser recurses to a fixed depth; give the main task a stack well above what that
-      --  depth needs (docs/PROOFS.md, Assumptions).
-      for Default_Switches ("Ada") use ("-Es", "-d64m");
+      --  Tracebacks for internal errors. The stack is the Worker task's (pyro_program.adb).
+      for Default_Switches ("Ada") use ("-Es");
    end Binder;
-
-   package Linker is
-      for Default_Switches ("Ada") use ("-Wl,-stack_size,0x10000000");
-   end Linker;
 
 end Pyro_Cli;

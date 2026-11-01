@@ -436,6 +436,10 @@ form instead of a raw stack:
 - coroutines: create, resume, query status; host functions can yield;
 - handles to Lua values held by the host count as GC roots.
 
+The thread that calls Pyro needs `Pyro.Minimum_Stack_Size` bytes of stack (PROOFS.md,
+Assumptions); a host whose threads may have less runs Pyro in an Ada task with that
+`Storage_Size`, as the `pyro` program does.
+
 Pyro has no standard library, so these primitives are how a host exposes things like
 `setmetatable`, `pcall`, `error`, `pairs` or `coroutine.resume` to scripts, if it
 wants to.

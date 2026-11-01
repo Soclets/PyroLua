@@ -6,8 +6,9 @@
 pragma SPARK_Mode (Off);
 
 with Ada.Command_Line;
-with Ada.Directories;
-with Ada.Streams.Stream_IO;
+with Ada.Containers.Generic_Array_Sort;
+with Ada.Containers.Vectors;
+with Ada.Exceptions;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with GNAT.OS_Lib;
@@ -80,32 +81,35 @@ procedure Pyro_Program is
       return Result;
    end Hexadecimal;
 
-   --  Bytes shown as a Lua string literal: printable ASCII as is, others as \ddd.
-   function Quoted (Text : String) return String is
-      Result : String (1 .. 4 * Text'Length + 2);
-      Last   : Natural := 1;
+   --  Writes bytes as a Lua string literal: printable ASCII as is, others as \ddd. The text
+   --  can be as long as a chunk, so it is written in pieces rather than built on the stack.
+   procedure Put_Quoted (Text : String) is
+      Buffer : String (1 .. 4096);
+      Last   : Natural := 0;
+
+      procedure Add (Part : String) is
+      begin
+         if Last + Part'Length > Buffer'Last then
+            Put (Buffer (1 .. Last));
+            Last := 0;
+         end if;
+         Buffer (Last + 1 .. Last + Part'Length) := Part;
+         Last := Last + Part'Length;
+      end Add;
    begin
-      Result (1) := '"';
+      Add ("""");
       for Byte of Text loop
          if Byte = '"' or else Byte = '\' then
-            Result (Last + 1 .. Last + 2) := '\' & Byte;
-            Last := Last + 2;
+            Add ('\' & Byte);
          elsif Byte in ' ' .. '~' then
-            Last := Last + 1;
-            Result (Last) := Byte;
+            Add ([1 => Byte]);
          else
-            declare
-               Code : constant String := Image (Long_Long_Integer (Character'Pos (Byte)));
-            begin
-               Result (Last + 1 .. Last + 1 + Code'Length) := '\' & Code;
-               Last := Last + 1 + Code'Length;
-            end;
+            Add ('\' & Image (Long_Long_Integer (Character'Pos (Byte))));
          end if;
       end loop;
-      Last := Last + 1;
-      Result (Last) := '"';
-      return Result (1 .. Last);
-   end Quoted;
+      Add ("""");
+      Put (Buffer (1 .. Last));
+   end Put_Quoted;
 
    function Lower (Text : String) return String is
       Result : String := Text;
@@ -118,33 +122,105 @@ procedure Pyro_Program is
       return Result;
    end Lower;
 
-   --  Reads the file and builds the chunk as luaL_loadfilex would.
-   function Load (Path : String; Binary : out Boolean) return Source_Access is
-      use Ada.Streams;
-      File    : Stream_IO.File_Type;
-      Size    : constant Natural := Natural (Ada.Directories.Size (Path));
-      Content : String (1 .. Size);
-      Data    : Stream_Element_Array (1 .. Stream_Element_Offset (Size));
-      Last    : Stream_Element_Offset;
+   --  Why a file could not be loaded.
+   type Load_Result is (Loaded, Too_Large, Cannot_Open, Cannot_Read);
+
+   --  Reads the file at Path into a chunk on the heap, as luaL_loadfilex would, with no copy of
+   --  its bytes on the stack. Error is the system's message when the file cannot be opened or
+   --  read.
+   procedure Load
+     (Path   : String;
+      Source : out Source_Access;
+      Binary : out Boolean;
+      Result : out Load_Result;
+      Error  : out Natural)
+   is
+      use GNAT.OS_Lib;
+      File : File_Descriptor;
+      Size : Long_Integer;
+      Done : Natural := 0;
+      Name : constant String := "@" & Path;
    begin
-      Stream_IO.Open (File, Stream_IO.In_File, Path);
-      Stream_IO.Read (File, Data, Last);
-      Stream_IO.Close (File);
-      for Index in 1 .. Natural (Last) loop
-         Content (Index) := Character'Val (Data (Stream_Element_Offset (Index)));
+      Source := null;
+      Binary := False;
+      Error := 0;
+      File := Open_Read (Path, GNAT.OS_Lib.Binary);
+      if File = Invalid_FD then
+         Error := Errno;
+         Result := Cannot_Open;
+         return;
+      end if;
+      Size := File_Length (File);
+      if Size > Long_Integer (Pyro.Maximum_Source_Length) then
+         --  [differs] Chunks larger than Pyro.Maximum_Source_Length are refused.
+         Close (File);
+         Result := Too_Large;
+         return;
+      end if;
+      Source := new Pyro.Sources.Source (Name_Size => Name'Length, Length => Natural (Size));
+      Source.Name := Name;
+      --  Read can return fewer bytes than asked for; it returns 0 at the end of the file.
+      while Done < Source.Length loop
+         declare
+            Count : constant Integer :=
+              Read (File, Source.Text (Done + 1)'Address, Source.Length - Done);
+         begin
+            if Count < 0 then
+               Error := Errno;
+               Close (File);
+               Free (Source);
+               Result := Cannot_Read;
+               return;
+            end if;
+            exit when Count = 0;
+            Done := Done + Count;
+         end;
       end loop;
+      --  A file length that is no byte count (a directory) shows up when it is read.
+      if Done = Source.Length and then Source.Length = 0 then
+         declare
+            Probe : String (1 .. 1);
+         begin
+            if Read (File, Probe'Address, 1) < 0 then
+               Error := Errno;
+               Close (File);
+               Free (Source);
+               Result := Cannot_Read;
+               return;
+            end if;
+         end;
+      end if;
+      Close (File);
       declare
-         Start : constant Pyro.Sources.File_Start :=
-           Pyro.Sources.Read_File_Start (Content (1 .. Natural (Last)));
-         Text  : constant String :=
-           (if Start.Comment_Skipped then [1 => ASCII.LF] else "")
-           & (if Start.Has_First_Byte then [1 => Start.First_Byte] else "")
-           & Content (Start.Rest .. Natural (Last));
-         Name  : constant String := "@" & Path;
+         Start  : constant Pyro.Sources.File_Start :=
+           Pyro.Sources.Read_File_Start (Source.Text (1 .. Done));
+         Prefix : constant Natural :=
+           Boolean'Pos (Start.Comment_Skipped) + Boolean'Pos (Start.Has_First_Byte);
+         Length : constant Natural := Prefix + (Done - Start.Rest + 1);
+         Chunk  : Source_Access;
       begin
          Binary := Start.Binary;
-         return new Pyro.Sources.Source'
-           (Name_Size => Name'Length, Length => Text'Length, Name => Name, Text => Text);
+         if Done = Source.Length
+           and then not Start.Comment_Skipped
+           and then Start.Rest - Boolean'Pos (Start.Has_First_Byte) = 1
+         then
+            --  The chunk is the file as read.
+            Result := Loaded;
+            return;
+         end if;
+         --  The chunk differs from the file: move it into a chunk of its own length.
+         Chunk := new Pyro.Sources.Source (Name_Size => Name'Length, Length => Length);
+         Chunk.Name := Name;
+         if Start.Comment_Skipped then
+            Chunk.Text (1) := ASCII.LF;
+         end if;
+         if Start.Has_First_Byte then
+            Chunk.Text (Prefix) := Start.First_Byte;
+         end if;
+         Chunk.Text (Prefix + 1 .. Length) := Source.Text (Start.Rest .. Done);
+         Free (Source);
+         Source := Chunk;
+         Result := Loaded;
       end;
    end Load;
 
@@ -159,17 +235,22 @@ procedure Pyro_Program is
       Output  : Pyro.Character_Arrays.Growable_Array;
 
       procedure Flush_Output (Error : Boolean) is
-         Text : String (1 .. Natural (Pyro.Character_Arrays.Length (Output)));
+         Text  : String (1 .. 4096);
+         Last  : Natural := 0;
+         Total : constant Natural := Natural (Pyro.Character_Arrays.Length (Output));
       begin
-         for Index in Text'Range loop
-            Text (Index) := Pyro.Character_Arrays.Element
-              (Output, Pyro.Byte_Position (Index));
+         for Index in 1 .. Total loop
+            Last := Last + 1;
+            Text (Last) := Pyro.Character_Arrays.Element (Output, Pyro.Byte_Position (Index));
+            if Last = Text'Last or else Index = Total then
+               if Error then
+                  Put_Error (Text (1 .. Last));
+               else
+                  Put (Text (1 .. Last));
+               end if;
+               Last := 0;
+            end if;
          end loop;
-         if Error then
-            Put_Error (Text);
-         else
-            Put (Text);
-         end if;
          Pyro.Character_Arrays.Truncate (Output, 0);
       end Flush_Output;
 
@@ -186,19 +267,30 @@ procedure Pyro_Program is
          Flush_Output (Error => True);
          Set_Exit_Status (Failure);
       end Report;
+      Loading : Load_Result;
+      Error   : Natural;
    begin
-      if Natural (Ada.Directories.Size (Path)) > Pyro.Maximum_Source_Length then
-         --  [differs] Chunks larger than Pyro.Maximum_Source_Length are refused.
-         Source := new Pyro.Sources.Source'
-           (Name_Size => Path'Length + 1, Length => 0, Name => "@" & Path, Text => "");
-         Report ((What => Pyro.Diagnostics.Not_Enough_Memory, others => <>));
-         Free (Source);
-         return;
-      end if;
-      Source := Load (Path, Binary);
+      Load (Path, Source, Binary, Loading, Error);
+      case Loading is
+         when Loaded => null;
+         when Cannot_Open | Cannot_Read =>
+            --  [puc lauxlib.c:errfile]
+            Put_Error ("pyro: cannot " & (if Loading = Cannot_Open then "open" else "read") & " "
+                       & Path & ": " & GNAT.OS_Lib.Errno_Message (Err => Error) & ASCII.LF);
+            Set_Exit_Status (Failure);
+            return;
+         when Too_Large =>
+            Source := new Pyro.Sources.Source'
+              (Name_Size => Path'Length + 1, Length => 0, Name => "@" & Path, Text => "");
+            Report ((What => Pyro.Diagnostics.Not_Enough_Memory, others => <>));
+            Free (Source);
+            Pyro.Character_Arrays.Clear (Output, Budget);
+            return;
+      end case;
       if Binary then
          Report ((What => Pyro.Diagnostics.Binary_Chunk, others => <>));
          Free (Source);
+         Pyro.Character_Arrays.Clear (Output, Budget);
          return;
       end if;
       Pyro.Lexer.Start (Lexer, Source.all, Budget);
@@ -212,9 +304,9 @@ procedure Pyro_Program is
                   when Name =>
                      Put ("name " & Pyro.Symbols.Text (Symbols, Item.Symbol));
                   when String_Literal =>
-                     Put ("string "
-                          & Quoted (if Item.Symbol = Pyro.Symbols.No_Symbol then ""
-                                    else Pyro.Symbols.Text (Symbols, Item.Symbol)));
+                     Put ("string ");
+                     Put_Quoted (if Item.Symbol = Pyro.Symbols.No_Symbol then ""
+                                 else Pyro.Symbols.Text (Symbols, Item.Symbol));
                   when Integer_Numeral =>
                      Put ("integer " & Image (Long_Long_Integer (Item.Integer_Value)));
                   when Float_Numeral =>
@@ -243,17 +335,22 @@ procedure Pyro_Program is
                Count    : Natural;
                Bindings : Pyro.Resolver.Binding_Table;
 
-               procedure Print (Index : Node_Index; Depth : Natural) is
-                  Item : Node;
+               --  Prints one node's line. Trees can be far deeper than the parser's nesting limit
+               --  (a long chain of "a + a + ..."), so nothing here depends on the depth.
+               procedure Print_Node (Index : Node_Index; Depth : Natural) is
+                  Item   : constant Node := Get (Tree, Index);
+                  Spaces : constant String (1 .. 256) := [others => ' '];
+                  Indent : Natural := 2 * Depth;
                begin
-                  if Index = No_Node then
-                     return;
-                  end if;
-                  Item := Get (Tree, Index);
-                  Put ([1 .. 2 * Depth => ' '] & Image (Long_Long_Integer (Item.Line)) & " "
+                  while Indent > 0 loop
+                     Put (Spaces (1 .. Natural'Min (Indent, Spaces'Last)));
+                     Indent := Indent - Natural'Min (Indent, Spaces'Last);
+                  end loop;
+                  Put (Image (Long_Long_Integer (Item.Line)) & " "
                        & Lower (Node_Kind'Image (Item.Kind)));
                   if Item.Symbol /= Pyro.Symbols.No_Symbol then
-                     Put (" " & Quoted (Pyro.Symbols.Text (Symbols, Item.Symbol)));
+                     Put (" ");
+                     Put_Quoted (Pyro.Symbols.Text (Symbols, Item.Symbol));
                   end if;
                   case Item.Kind is
                      when Integer_Literal =>
@@ -298,11 +395,39 @@ procedure Pyro_Program is
                      Put (" incomplete");
                   end if;
                   Put ([1 => ASCII.LF]);
-                  for Slot in Child_Slot loop
-                     Print (Child (Tree, Index, Slot), Depth + 1);
-                  end loop;
-                  for Position in 1 .. Item.List_Length loop
-                     Print (List_Item (Tree, Index, Position), Depth + 1);
+               end Print_Node;
+
+               --  Prints the tree from Top in preorder, with a stack on the heap.
+               procedure Print (Top : Node_Index) is
+                  type Pending_Node is record
+                     Index : Node_Index;
+                     Depth : Natural;
+                  end record;
+                  package Pending_Vectors is new Ada.Containers.Vectors (Positive, Pending_Node);
+                  Pending : Pending_Vectors.Vector;
+                  Current : Pending_Node;
+                  Item    : Node;
+               begin
+                  if Top /= No_Node then
+                     Pending.Append (Pending_Node'(Top, 0));
+                  end if;
+                  while not Pending.Is_Empty loop
+                     Current := Pending.Last_Element;
+                     Pending.Delete_Last;
+                     Print_Node (Current.Index, Current.Depth);
+                     Item := Get (Tree, Current.Index);
+                     --  Pushed in reverse, so they come off in order.
+                     for Position in reverse 1 .. Item.List_Length loop
+                        Pending.Append
+                          (Pending_Node'
+                             (List_Item (Tree, Current.Index, Position), Current.Depth + 1));
+                     end loop;
+                     for Slot in reverse Child_Slot loop
+                        if Child (Tree, Current.Index, Slot) /= No_Node then
+                           Pending.Append
+                             (Pending_Node'(Child (Tree, Current.Index, Slot), Current.Depth + 1));
+                        end if;
+                     end loop;
                   end loop;
                end Print;
             begin
@@ -310,7 +435,7 @@ procedure Pyro_Program is
                Pyro.Resolver.Resolve (Tree, Root, Symbols, Budget, Problems, Bindings);
                Count := Natural (Pyro.Diagnostic_Lists.Length (Problems));
                if Selected = Tree_Mode then
-                  Print (Root, 0);
+                  Print (Root);
                end if;
                if Count > 0 and then Lua_Style then
                   --  The error PUC Lua would raise first.
@@ -334,38 +459,42 @@ procedure Pyro_Program is
                elsif Count > 0 then
                   --  Every error, in source order.
                   declare
-                     type Order_Array is array (1 .. Count) of Positive;
-                     Order : Order_Array;
-                     function Place_Of (Index : Positive) return Natural is
-                        Item : constant Pyro.Diagnostics.Diagnostic :=
-                          Pyro.Diagnostic_Lists.Element
-                            (Problems, Pyro.Diagnostics.Diagnostic_Position (Index));
-                     begin
-                        return (if Item.Has_Place then Natural (Item.Place.First) else 0);
-                     end Place_Of;
+                     --  Errors sort by place, then by the order they were found in.
+                     type Ordered is record
+                        Place : Natural;
+                        Index : Positive;
+                     end record;
+                     type Ordered_Array is array (Positive range <>) of Ordered;
+                     type Ordered_Access is access Ordered_Array;
+                     procedure Free is new Ada.Unchecked_Deallocation
+                       (Ordered_Array, Ordered_Access);
+                     function "<" (Left, Right : Ordered) return Boolean
+                     is (Left.Place < Right.Place
+                         or else (Left.Place = Right.Place and then Left.Index < Right.Index));
+                     procedure Sort is new Ada.Containers.Generic_Array_Sort
+                       (Positive, Ordered, Ordered_Array);
+                     Order : Ordered_Access := new Ordered_Array (1 .. Count);
                   begin
                      for Index in Order'Range loop
-                        Order (Index) := Index;
-                     end loop;
-                     for Index in 2 .. Count loop
                         declare
-                           Moving : constant Positive := Order (Index);
-                           Slot   : Natural := Index - 1;
+                           Item : constant Pyro.Diagnostics.Diagnostic :=
+                             Pyro.Diagnostic_Lists.Element
+                               (Problems, Pyro.Diagnostics.Diagnostic_Position (Index));
                         begin
-                           while Slot >= 1 and then Place_Of (Order (Slot)) > Place_Of (Moving) loop
-                              Order (Slot + 1) := Order (Slot);
-                              Slot := Slot - 1;
-                           end loop;
-                           Order (Slot + 1) := Moving;
+                           Order (Index) :=
+                             ((if Item.Has_Place then Natural (Item.Place.First) else 0), Index);
                         end;
                      end loop;
+                     Sort (Order.all);
                      for Index in Order'Range loop
                         if Index > 1 then
                            Put_Error ([1 => ASCII.LF]);
                         end if;
                         Report (Pyro.Diagnostic_Lists.Element
-                                  (Problems, Pyro.Diagnostics.Diagnostic_Position (Order (Index))));
+                                  (Problems,
+                                   Pyro.Diagnostics.Diagnostic_Position (Order (Index).Index)));
                      end loop;
+                     Free (Order);
                   end;
                end if;
                Clear (Tree, Budget);
@@ -384,20 +513,40 @@ procedure Pyro_Program is
       Put_Error ("usage: pyro (--tokens | --ast | --check [--lua-style]) file.lua" & ASCII.LF);
       Set_Exit_Status (2);
    end Usage;
+   procedure Main is
+   begin
+      if Argument_Count = 3 and then Argument (1) = "--check"
+        and then Argument (2) = "--lua-style"
+      then
+         Lua_Style := True;
+         Run (Check_Mode, Argument (3));
+      elsif Argument_Count /= 2 then
+         Usage;
+      elsif Argument (1) = "--tokens" then
+         Run (Tokens_Mode, Argument (2));
+      elsif Argument (1) = "--ast" then
+         Run (Tree_Mode, Argument (2));
+      elsif Argument (1) = "--check" then
+         Run (Check_Mode, Argument (2));
+      else
+         Usage;
+      end if;
+   end Main;
+
+   --  The work runs in a task with a stack of known size, whatever the system gives the main
+   --  thread: what Pyro needs (Pyro.Minimum_Stack_Size) plus this program's own frames.
+   task Worker with Storage_Size => Pyro.Minimum_Stack_Size + 2 ** 20;
+
+   task body Worker is
+   begin
+      Main;
+   exception
+      when Error : others =>
+         --  An exception would otherwise end the task silently.
+         Put_Error ("pyro: internal error: "
+                    & Ada.Exceptions.Exception_Information (Error) & ASCII.LF);
+         Set_Exit_Status (Failure);
+   end Worker;
 begin
-   if Argument_Count = 3 and then Argument (1) = "--check" and then Argument (2) = "--lua-style"
-   then
-      Lua_Style := True;
-      Run (Check_Mode, Argument (3));
-   elsif Argument_Count /= 2 then
-      Usage;
-   elsif Argument (1) = "--tokens" then
-      Run (Tokens_Mode, Argument (2));
-   elsif Argument (1) = "--ast" then
-      Run (Tree_Mode, Argument (2));
-   elsif Argument (1) = "--check" then
-      Run (Check_Mode, Argument (2));
-   else
-      Usage;
-   end if;
+   null;
 end Pyro_Program;

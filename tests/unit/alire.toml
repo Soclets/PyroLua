@@ -5,7 +5,7 @@ authors = ["Soclets"]
 maintainers = ["Soclets <tandz.we89@gmail.com>"]
 maintainers-logins = ["Soclets"]
 licenses = "Apache-2.0 WITH LLVM-exception"
-executables = ["grapheme_test"]
+executables = ["grapheme_test", "stack_test"]
 project-files = ["pyro_unit.gpr"]
 
 [[depends-on]]

@@ -111,9 +111,16 @@ These are outside what SPARK can prove and are accepted:
   The OS can still run out of memory first (for example when the limit is set too
   high or other processes use the memory); Pyro's limit makes this unlikely but
   cannot rule it out.
-- The Ada stack is large enough for Pyro's bounded recursion depth (parser and tree
-  walks). The bounds are fixed constants, so the required stack size is fixed too;
-  the `pyro` executable sets an adequate stack size.
+- The thread that calls Pyro has at least `Pyro.Minimum_Stack_Size` (4 MiB) of stack.
+  Only the parser recurses, to its fixed nesting limit (200 levels); tree walks keep
+  their own stacks on the heap. The number was measured by `tests/unit` `stack_test`,
+  which parses every deeply nesting construct at the limit and one level beyond in a task
+  with exactly that stack, built with GNAT's stack usage report (`gnatbind -u`): at most
+  about 220 KB (macOS arm64, GNAT 16.1, development build). `tests/run` fails when the
+  measured use passes a quarter of the constant, leaving a fourfold margin for other
+  compilers, optimisation levels and targets. The `pyro` executable runs its work in a
+  task with that stack plus 1 MiB for its own frames, so the main thread's stack (on
+  Linux, `ulimit -s`) does not matter.
 
 ## Tested, not proven
 

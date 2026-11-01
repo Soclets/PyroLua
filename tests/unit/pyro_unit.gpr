@@ -11,7 +11,7 @@ project Pyro_Unit is
    for Object_Dir use "obj/" & Pyro_Unit_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Exec_Dir use "bin";
-   for Main use ("grapheme_test.adb");
+   for Main use ("grapheme_test.adb", "stack_test.adb");
 
    package Compiler is
       for Local_Configuration_Pragmas use "../../pyro.adc";
@@ -19,5 +19,10 @@ project Pyro_Unit is
         ("-gnat2022", "-g", "-O1", "-gnatwa", "-gnatwe", "-gnatVa", "-gnatf",
          "-gnaty3", "-gnatyaAbBcdefhiIklnOprStux", "-gnatyM100");
    end Compiler;
+
+   package Binder is
+      --  Report each task's stack use, measured by filling its stack with a pattern.
+      for Switches ("stack_test.adb") use ("-u100");
+   end Binder;
 
 end Pyro_Unit;

@@ -41,10 +41,32 @@ TOTAL_LIMIT = {"quick": 300, "full": 1800}
 
 # Wall-clock cap of each stage, in seconds, within the total.
 STAGE_LIMITS = {
-    "quick": {"build": 120, "proof": 200, "tags": 10, "unit": 20, "golden": 30, "differential": 60,
-              "fuzz": 30},
-    "full": {"build": 120, "proof": 900, "tags": 10, "unit": 20, "golden": 30, "differential": 60,
-             "fuzz": 600},
+    "quick": {"build": 120, "proof": 200, "tags": 10, "unit": 20, "golden": 30, "cli": 30,
+              "differential": 60, "fuzz": 30},
+    "full": {"build": 120, "proof": 900, "tags": 10, "unit": 20, "golden": 30, "cli": 60,
+             "differential": 60, "fuzz": 600},
+}
+
+# Constructs that nest as deep as the parser allows, and the deepest nesting PUC Lua's parser
+# accepts for each (one level more is "C stack overflow"). The stack test parses both.
+DEEP_CONSTRUCTS = {
+    "parenthesis": (lambda n: "x = " + "(" * n + "1" + ")" * n, 196),
+    "table": (lambda n: "x = " + "{" * n + "}" * n, 197),
+    "function": (lambda n: "x = " + "function() return " * n + "1" + " end" * n, 98),
+    "unary": (lambda n: "x = " + "- " * n + "1", 196),
+    "concatenation": (lambda n: "x = " + "a .. " * n + "a", 196),
+    "power": (lambda n: "x = " + "a ^ " * n + "a", 196),
+    "call": (lambda n: "x = " + "f(" * n + ")" * n, 197),
+    "method": (lambda n: "x = " + "a:m(" * n + ")" * n, 197),
+    "index": (lambda n: "x = " + "a[" * n + "1" + "]" * n, 196),
+    "and-or": (lambda n: "x = " + "(a and " * n + "b" + ")" * n, 98),
+    "do": (lambda n: "do " * n + "end " * n, 198),
+    "if": (lambda n: "if a then " * n + "end " * n, 197),
+    "while": (lambda n: "while a do " * n + "end " * n, 197),
+    "repeat": (lambda n: "repeat " * n + "until a " * n, 197),
+    "for": (lambda n: "for i = 1, 2 do " * n + "end " * n, 197),
+    "local-function": (lambda n: "local function f() " * n + "end " * n, 198),
+    "assignment": (lambda n: "a" + ", a" * n + " = 1", 196),
 }
 
 # Mutants per run, and the fixed seed of the quick run.
@@ -227,6 +249,104 @@ class Runner:
         self.log((out + err).decode(errors="replace"))
         if code != 0:
             self.fail("grapheme conformance test failed:\n" + tail((out + err).decode(errors="replace")))
+        self.stack_test()
+
+    def stack_test(self):
+        """Parses each construct at the nesting limit, and one level deeper, in a task whose
+        stack is Pyro.Minimum_Stack_Size, and checks the stack it used left a margin."""
+        minimum = minimum_stack_size()
+        directory = OUTPUT / "stack"
+        shutil.rmtree(directory, ignore_errors=True)
+        directory.mkdir(parents=True)
+        files, expected = [], []
+        for name, (generate, depth) in DEEP_CONSTRUCTS.items():
+            for extra in (0, 1):
+                path = directory / f"{name}-{depth + extra}.lua"
+                path.write_text(generate(depth + extra) + "\n")
+                files.append(path)
+                expected.append(extra)
+        code, out, err = self.run([TESTS / "unit" / "bin" / "stack_test"] + files)
+        text = (out + err).decode(errors="replace")
+        self.log(text)
+        if code != 0:
+            self.fail("stack test failed:\n" + tail(text))
+            return
+        counts = [int(count) for count in re.findall(r"^@.*: (\d+) errors$", text, re.M)]
+        usages = [int(usage) for usage in re.findall(r"^ *\d+ \|.*\| *\d+ \| *(\d+)", text, re.M)]
+        if len(counts) != len(files) or len(usages) != len(files):
+            self.fail("stack test: unexpected output:\n" + tail(text))
+            return
+        for path, count, errors in zip(files, counts, expected):
+            if count != errors:
+                self.fail(f"stack test: {path.name}: {count} errors, expected {errors}")
+        # A quarter of the stack Pyro promises, so other compilers and targets keep a margin.
+        if max(usages) > minimum // 4:
+            self.fail(f"stack test: the front end used {max(usages)} bytes of stack, more than a "
+                      f"quarter of Pyro.Minimum_Stack_Size ({minimum}); raise it, with the new "
+                      "measurement in docs/PROOFS.md")
+        self.log(f"most stack used: {max(usages)} bytes")
+
+    def stage_cli(self):
+        """The pyro program on files it cannot read and on large files."""
+        directory = OUTPUT / "cli"
+        shutil.rmtree(directory, ignore_errors=True)
+        directory.mkdir(parents=True)
+        unreadable = directory / "unreadable.lua"
+        unreadable.write_text("x = 1\n")
+        unreadable.chmod(0)
+        cases = [(directory / "missing.lua", "cannot open", ": No such file or directory"),
+                 (directory, "cannot read", ": Is a directory")]
+        if os.geteuid() != 0:  # root reads it anyway
+            cases.append((unreadable, "cannot open", ": Permission denied"))
+        for path, what, why in cases:
+            for style in ([], ["--lua-style"]):
+                code, out, err = self.run([PYRO, "--check"] + style + [path])
+                expected = f"pyro: {what} {path}{why}\n".encode()
+                if code != 1 or out or err != expected:
+                    self.fail(f"pyro --check {' '.join(style)} {path}: exit {code}, "
+                              f"{(out + err)!r}, expected exit 1, {expected!r}")
+        unreadable.chmod(0o644)
+        # About 10 MB of real code: every corpus and official file, each in a block of its own.
+        sources = corpus_files() + (sorted(OFFICIAL.rglob("*.lua")) if OFFICIAL.exists() else [])
+        blocks = []
+        block_file = directory / "block.lua"
+        for source in sources:
+            text = source.read_bytes()
+            if text.startswith(b"#"):
+                text = b"--" + text
+            block = b"do local function f(...)\n" + text + b"\nend end\n"
+            block_file.write_bytes(block)
+            code, _, _ = self.run([LUAC, "-p", block_file])
+            if code == 0:
+                blocks.append(block)
+        large = directory / "large.lua"
+        with open(large, "wb") as file:
+            written = 0
+            while blocks and written < 10 * 2 ** 20:
+                for block in blocks:
+                    file.write(block)
+                    written += len(block)
+        self.log(f"large file: {written} bytes, {len(blocks)} blocks")
+        self.expect_check(large, 0, b"")
+        if self.mode == "full":
+            # The largest chunk Pyro accepts, and one byte more.
+            limit = 2 ** 28
+            for size, code, output in ((limit, 0, b""), (limit + 1, 1, b"pyro: not enough memory\n")):
+                path = directory / f"size-{size}.lua"
+                head, end = b"x = 1 --[[", b"]]\nreturn x\n"
+                with open(path, "wb") as file:
+                    file.write(head)
+                    file.write(b"a" * (size - len(head) - len(end)))
+                    file.write(end)
+                self.expect_check(path, code, output, ["--lua-style"])
+                path.unlink()
+        large.unlink()
+
+    def expect_check(self, path, expected_code, expected_output, style=()):
+        code, out, err = self.run([PYRO, "--check", *style, path], limit=60)
+        if code is not None and (code != expected_code or out + err != expected_output):
+            self.fail(f"pyro --check {path.relative_to(ROOT)}: exit {code}, "
+                      f"{tail((out + err).decode(errors='replace'))!r}")
 
     def stage_golden(self):
         if self.update:
@@ -402,6 +522,13 @@ def corpus_files():
     return sorted(CORPUS.rglob("*.lua")) if CORPUS.exists() else []
 
 
+def minimum_stack_size():
+    """Pyro.Minimum_Stack_Size, in bytes, from src/common/pyro.ads."""
+    text = (ROOT / "src" / "common" / "pyro.ads").read_text()
+    match = re.search(r"Minimum_Stack_Size : constant := (\d+) \* 2 \*\* (\d+);", text)
+    return int(match.group(1)) * 2 ** int(match.group(2))
+
+
 def unit_name(path):
     """Ada unit name of a GNAT-named source file: pyro-floats.adb is Pyro.Floats."""
     return ".".join("_".join(word.capitalize() for word in part.split("_"))
@@ -501,6 +628,7 @@ def main():
         ("tags", runner.stage_tags),
         ("unit", runner.stage_unit),
         ("golden", runner.stage_golden),
+        ("cli", runner.stage_cli),
         ("differential", runner.stage_differential),
         ("fuzz", runner.stage_fuzz),
     ]

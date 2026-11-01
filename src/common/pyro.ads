@@ -11,4 +11,8 @@ package Pyro with SPARK_Mode => On, Pure is
    --  enough for every byte array the front end builds from a source of maximum length.
    type Byte_Position is range 1 .. 2 ** 30;
 
+   --  The stack, in bytes, that the thread calling Pyro needs: what the front end uses at its
+   --  nesting limits, measured, plus a margin (docs/PROOFS.md, Assumptions).
+   Minimum_Stack_Size : constant := 4 * 2 ** 20;
+
 end Pyro;
