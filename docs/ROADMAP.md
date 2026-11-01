@@ -62,20 +62,22 @@ Project setup, lexer, parser and resolver, all proven.
 
 ## M2: Compiler and bytecode
 
-- `Pyro.Bytecode` instruction set, prototypes, ghost `Is_Valid` predicate.
+- `Pyro.Bytecode`: Lua 5.4's instruction set (`lopcodes.h`) as typed records, prototypes,
+  the ghost `Is_Valid` predicate, and an executable validator proven equal to it.
 - `Pyro.Compiler`: AST to bytecode for the whole language, including closures,
   upvalues, varargs, `goto`, `<const>` constant folding, `<close>`, numeric and
-  generic `for`.
+  generic `for`; a faithful port of `lcode.c` and of `lparser.c`'s code generation.
 - Compile-time limits (locals, upvalues, registers) with PUC Lua's errors.
-- `pyro --bytecode`.
+- `pyro --bytecode`, and `pyro --bytecode --lua-style` in `luac -l -l`'s format.
 
-**Done when:** the compiler is proven to produce valid prototypes (`Is_Valid`); the corpus
-compiles; files that hit compile-time limits are rejected in agreement with
-`luac -p`; golden bytecode listings exist for the own corpus; and, as a check before
-the VM can run anything, every function of the own corpus and the official test
-files has the same upvalue list (names, and whether each comes from the enclosing
-function's locals or from its upvalues, in order), parameter count and vararg flag
-as `luac -l -l` 5.4.9 shows (design session).
+**Done when:** every prototype the compiler returns is proven `Is_Valid` (it is checked by
+the proven validator; that the validator never rejects the compiler's output is tested,
+not proven); the corpus compiles; files that hit compile-time limits are rejected in
+agreement with `luac -p`; golden bytecode listings exist for the own corpus; and
+`pyro --bytecode --lua-style` matches `luac -l -l` 5.4.9 exactly on the own corpus and the
+official test files: opcodes, operands, constants, slots, upvalues, locals and line
+info. What cannot match (such as the addresses luac prints, which are masked) is listed
+in `tests/known-differences.md` with the reason (design session).
 
 ## M3: Values, heap, tables, GC
 

@@ -294,20 +294,32 @@ the checks PUC makes when a block closes for blocks that never closed.
 
 ## Compiler and bytecode (M2)
 
-Pyro has its own register-based instruction set, modelled on Lua 5.4's (`lopcodes.h`)
-but not binary-compatible with it. A **prototype** holds the instructions,
-constants, nested prototypes, upvalue descriptors, parameter count, vararg flag,
-maximum stack size and line info.
+Pyro uses Lua 5.4's register-based instruction set (`lopcodes.h`), with each
+instruction a typed record (opcode, A, B, C, k and one wide operand for Bx, sBx, Ax or
+sJ) rather than a packed 32-bit word. The compiler is a faithful port of `lcode.c` and of
+the code generation in `lparser.c`, driven by a walk of the tree in the order PUC's parser
+reads the source, so it produces the same instructions, registers, constants and line
+info as `luac`. `pyro --bytecode --lua-style` prints them in `luac -l -l`'s format, which
+makes the compiler testable against luac before the VM exists.
 
-`Pyro.Bytecode` defines a ghost predicate `Is_Valid (Prototype)`: every register operand is
-below the prototype's stack size, every jump target is inside the code, every
-constant/prototype/upvalue index is in range, and the code cannot fall off the end.
-The compiler's postcondition is `Is_Valid` for every prototype it produces, and the
-VM's precondition requires it. The VM can then skip these checks at runtime.
+A **prototype** holds the instructions, constants, nested prototypes, upvalue
+descriptors, parameter count, vararg flag, maximum stack size, line info and local
+variable debug info. The prototypes of a chunk live in one arena; a nested function's
+prototype is finished before its parent's, so it has a smaller index.
+
+`Pyro.Bytecode` defines the predicate `Is_Valid`: every register operand is below the
+prototype's stack size, every jump target is inside the code, every
+constant/prototype/upvalue index is in range (with the constant kinds the opcode
+needs), instructions that the VM pairs with the next one (tests and their jump,
+arithmetic and its metamethod fallback, extra arguments) come in those pairs, and the
+code cannot fall off the end. It is executable: the compiler runs it on what it
+built as its last step and reports an internal error if it fails, so every prototype
+the compiler returns is proven valid without proving the code generator itself. That
+the internal error never happens is tested (corpus, official tests, fuzzing). The VM
+requires `Is_Valid` and relies on it through the postconditions of `Pyro.Bytecode`'s
+accessors to skip checks at runtime.
 
 Limits follow PUC Lua: at most 200 locals per function, 255 upvalues, 255 registers.
-
-`pyro --bytecode file.lua` prints a listing.
 
 ## Values, heap and tables (M3)
 

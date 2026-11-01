@@ -44,11 +44,14 @@ termination (`Subprogram_Variant` on recursive subprograms, loop variants on loo
 
 ### Bytecode validity (M2)
 
-Ghost predicate `Pyro.Bytecode.Is_Valid (Prototype)`: register operands below the
-prototype's stack size, jump targets inside the code, constant, nested prototype
-and upvalue indices in range, and no execution path falls off the end of the code.
-The compiler's postcondition is `Is_Valid` for every prototype it produces. The VM
-requires `Is_Valid` and relies on it to omit runtime checks.
+Predicate `Pyro.Bytecode.Is_Valid`: register operands below the prototype's stack size,
+jump targets inside the code, constant, nested prototype and upvalue indices in range,
+instruction pairs the VM relies on in place, and no execution path falls off the end of
+the code. It is executable SPARK, so it serves as its own validator: the compiler checks
+its result with it and returns an internal error otherwise. Every prototype the compiler
+returns is therefore proven `Is_Valid`; that the internal error never fires is tested,
+not proven (see "Tested, not proven"). The VM requires `Is_Valid` and relies on it to
+omit runtime checks.
 
 ### Heap validity (M3)
 
@@ -128,7 +131,12 @@ Covered by tests (see [ROADMAP.md](ROADMAP.md) for the test suites), not proofs:
 
 - **Conformance to Lua 5.4:** syntax accepted/rejected, error lines and messages,
   and runtime behaviour, by differential testing against PUC Lua 5.4.
-- **Decimal float conversion and number formatting** (in the trusted float unit).
+- **Decimal float conversion, constant folding arithmetic and number formatting** (in
+  the trusted float unit, which calls the C library as PUC Lua does).
+- **The compiler never fails its own validity check:** the compiler's output is proven
+  `Is_Valid` through the executable predicate, but that the check never rejects it (an
+  internal error) is shown by compiling the corpus, the official tests and fuzzed
+  sources, not proven.
 - **Performance.**
 
 ## Running the proofs
