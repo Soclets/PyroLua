@@ -19,10 +19,13 @@ whatever script it is given.
 
 ## Status
 
-M1 (front end) in progress: the lexer, parser and resolver are written and proven, and
-`pyro --tokens`, `pyro --ast` and `pyro --check` work. `pyro --check --lua-style`
-agrees with `luac -p` 5.4.9 on the official test suite and Pyro's corpus. See
-[docs/ROADMAP.md](docs/ROADMAP.md).
+M1 (front end) is done: the lexer, parser and resolver are proven (Silver everywhere,
+Gold for growable arrays and syntax-tree well-formedness, termination of lexer and
+parser). `pyro --tokens`, `pyro --ast` and `pyro --check` work, with Radium-style
+messages. `pyro --check --lua-style` prints exactly what `luac -p` 5.4.9 prints on the
+official test suite and Pyro's corpus, and agrees with it on accepting or rejecting
+every mutated file of the fuzzing runs. Next milestone: **M2,
+compiler and bytecode**. See [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Documentation
 
@@ -78,7 +81,7 @@ string metatable that provides it. Number-to-string coercion in concatenation
 
 ## Building, proving, testing
 
-Planned layout and commands (they become real during M1):
+Layout and commands:
 
 ```bash
 alr build                                   # build the library
@@ -93,12 +96,21 @@ Command-line program (M1 subset):
 ```bash
 pyro --tokens file.lua    # dump the token stream
 pyro --ast file.lua       # dump the syntax tree
-pyro --check file.lua     # syntax check only, like `luac -p`
+pyro --check file.lua     # syntax and scope check, every certain error in Pyro's layout
+pyro --check --lua-style file.lua   # the one error `luac -p` would print, in its words
+```
+
+Before the first `tests/run`, fetch the official Lua test suite and Unicode's grapheme
+break test:
+
+```bash
+tools/fetch-lua-tests
+tools/generate-grapheme-tables
 ```
 
 Later milestones add `pyro --bytecode file.lua` and `pyro file.lua` (run).
 
-## Repository layout (planned)
+## Repository layout
 
 ```
 pyro.gpr, alire.toml   Library crate (all SPARK code lives here)
