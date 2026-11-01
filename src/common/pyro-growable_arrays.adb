@@ -6,8 +6,6 @@ with Ada.Unchecked_Deallocation;
 
 package body Pyro.Growable_Arrays with SPARK_Mode => On is
 
-   pragma Unevaluated_Use_Of_Old (Allow);
-
    procedure Free is new Ada.Unchecked_Deallocation (Element_Array, Array_Access);
 
    --  Capacity of a first allocation.

@@ -1,0 +1,7 @@
+--  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+--
+--  Configuration pragmas for every unit of the library.
+
+--  Postconditions name 'Old values inside conditions. Contracts are proven, not executed, so
+--  evaluating those prefixes unconditionally on entry costs nothing.
+pragma Unevaluated_Use_Of_Old (Allow);

@@ -133,7 +133,10 @@ alr exec -- gnatprove -P pyro.gpr
 Proof settings live in the `Prove` package of `pyro.gpr` so everyone uses the same
 ones:
 
-- `--level=2`;
+- `--level=2` with `--prover=cvc5,z3`. Alt-ergo was dropped: it ran for more than 13
+  minutes on single lexer VCs despite its `--steps-bound`, while cvc5 and z3 proved
+  everything in 38 s. Re-adding a prover needs the same evidence: it stays within its
+  steps bound on the whole code base and proves something the others don't;
 - `--steps=30000` and `--timeout=0` (no wall-clock timeout), so a proof that is too
   hard fails the same way every time, whatever the machine load. The steps value was
   chosen during M1 setup and is raised only with the owner's OK;

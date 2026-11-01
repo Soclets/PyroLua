@@ -124,9 +124,9 @@ class Runner:
         return True
 
     def stage_proof(self):
-        command = ["alr", "exec", "--", "gnatprove", "-P", "pyro.gpr"]
-        if self.mode == "full":
-            command.append("-f")
+        # Always from scratch (-f): replaying earlier proof sessions can change what the
+        # provers find within the steps limit, and a proof must fail the same way every time.
+        command = ["alr", "exec", "--", "gnatprove", "-P", "pyro.gpr", "-f"]
         code, out, err = self.run(command, limit=self.remaining())
         text = (out + err).decode(errors="replace")
         self.log(text)

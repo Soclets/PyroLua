@@ -22,6 +22,7 @@ project Pyro is
       "-gnatyM100"); --  lines of at most 100 characters
 
    package Compiler is
+      for Local_Configuration_Pragmas use "pyro.adc";
       --  Runtime checks stay on (no -gnatp). Contracts are proven, not executed, so assertions
       --  and ghost code are off (no -gnata).
       for Default_Switches ("Ada") use
@@ -35,6 +36,7 @@ project Pyro is
       --  timeout. Raising the steps value needs the owner's OK (see docs/PROOFS.md).
       for Proof_Switches ("Ada") use
         ("--level=2",
+         "--prover=cvc5,z3",
          "--timeout=0",
          "--steps=30000",
          "--checks-as-errors=on",

@@ -21,10 +21,6 @@ generic
 
 package Pyro.Growable_Arrays with SPARK_Mode => On, Always_Terminates is
 
-   --  Postconditions name the old model inside conditions; computing it unconditionally on
-   --  entry is harmless, since contracts are proven rather than executed.
-   pragma Unevaluated_Use_Of_Old (Allow);
-
    pragma Compile_Time_Error (Index'First /= 1, "growable array indices must start at 1");
    pragma Compile_Time_Error (Element_Bytes = 0, "elements must occupy memory");
    pragma Compile_Time_Error
