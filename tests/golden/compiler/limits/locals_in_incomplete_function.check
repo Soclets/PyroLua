@@ -1,0 +1,12 @@
+refused: tests/corpus/compiler/limits/locals_in_incomplete_function.lua:4:1, line 4 column 1
+ 4 | x = (
+   | ^
+ what: this function has more than 200 local variables active at once
+ why:  a Lua function can have at most 200 active local variables (MAXVARS)
+
+refused: tests/corpus/compiler/limits/locals_in_incomplete_function.lua:5:1, line 5 column 1
+ 5 | end
+   | ^^^
+ what: `end` can't start an expression
+ why:  an expression starts with a value, a name, `(`, `{`, `function`, `...` or a unary operator (Lua 5.4 manual §3.4)
+exit 1

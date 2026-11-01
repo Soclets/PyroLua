@@ -105,7 +105,8 @@ package body Pyro.Compiler.Code with SPARK_Mode => On is
       end loop;
       if not Success then
          Raise_Error (State, Not_Enough_Memory, 0);
-      elsif Pyro.Lexer.Failed (Lexer) then
+      elsif Pyro.Lexer.Failed (Lexer) and then not State.Partial then
+         --  A lexical error only in a chunk with errors, where the tokens before it are used.
          Fail (State);
       end if;
       Pyro.Lexer.Clear (Lexer, State.Budget);
@@ -120,6 +121,11 @@ package body Pyro.Compiler.Code with SPARK_Mode => On is
    procedure Consume (State : in out Compiler_State; Ordinal : Natural) is
       Read : constant Natural := Natural'Min (Ordinal, Bounded_Count'Last - 1);
    begin
+      --  PUC Lua stops at the cut: nothing read from there on is compiled.
+      if State.Partial and then State.Cut /= 0 and then Ordinal >= State.Cut then
+         Fail (State);
+         return;
+      end if;
       if Read /= 0 and then Read = State.Lookahead_Name then
          State.Last_Token := Read + 1;
          State.Lookahead_Name := 0;
@@ -233,6 +239,14 @@ package body Pyro.Compiler.Code with SPARK_Mode => On is
       State.Failed := True;
    end Fail;
 
+   procedure Set_Partial (State : in out Compiler_State; Cut : Natural) is
+   begin
+      State.Partial := True;
+      State.Cut := Cut;
+   end Set_Partial;
+
+   function Is_Partial (State : Compiler_State) return Boolean is (State.Partial);
+
    function Token_Line (State : Compiler_State; Ordinal : Natural) return Line_Number is
      (if Ordinal = 0 then 1
       elsif Ordinal <= Natural (Token_Arrays.Length (State.Tokens))
@@ -283,7 +297,8 @@ package body Pyro.Compiler.Code with SPARK_Mode => On is
          In_Main_Function => Function_Line = 0,
          Detection    =>
            (Ordinal => Token_Ordinal (Current_Token),
-            During  => Parsing),
+            --  Raised while the token is read, before the parser looks at it.
+            During  => Resolving),
          others       => <>);
    end Raise_Error;
 

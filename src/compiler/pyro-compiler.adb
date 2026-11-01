@@ -49,6 +49,19 @@ package body Pyro.Compiler with SPARK_Mode => On is
    function Before (Ordinal : Natural) return Natural
    is (if Ordinal > 0 then Ordinal - 1 else 0);
 
+   --  Reads token Ordinal, which closes a construct as a token of Kind ([puc] check_match). In
+   --  a chunk with errors the construct may be cut short before its closer: then PUC Lua
+   --  stopped at the closer's place.
+   procedure Consume_Closer (State : in out Compiler_State; Kind : Token_Kind; Ordinal : Natural)
+   is
+   begin
+      if Is_Partial (State) and then Token_Kind_At (State, Ordinal) /= Kind then
+         Fail (State);
+      else
+         Consume (State, Ordinal);
+      end if;
+   end Consume_Closer;
+
    --  [puc lparser.c:codestring] A string expression.
    function String_Expression (Symbols : Symbol_Table; Symbol : Symbol_Index) return Expression
    is ((Kind          => String_Value,
@@ -197,6 +210,15 @@ package body Pyro.Compiler with SPARK_Mode => On is
          Previous := Element;
          exit when Failed (State);
       end loop;
+      --  Cut short after a comma: PUC Lua read it and put the value before it in a register,
+      --  then stopped at the next expression.
+      if Is_Partial (State) and then not Failed (State) and then Previous /= No_Node
+        and then Token_Kind_At (State, After (Last_Token (State, Tree, Previous))) = Comma
+      then
+         Consume (State, After (Last_Token (State, Tree, Previous)));
+         To_Next_Register (State, Item);
+         Fail (State);
+      end if;
    end Expression_List_Of;
 
    --  [puc lparser.c:constructor].
@@ -293,7 +315,26 @@ package body Pyro.Compiler with SPARK_Mode => On is
          end if;
          Previous := Field;
       end loop;
-      Consume (State, Last_Token (State, Tree, Node));
+      --  Cut short after a separator: PUC Lua read it and closed the list item before it,
+      --  then stopped at the next field.
+      if Is_Partial (State) and then not Failed (State) and then Previous /= No_Node
+        and then Token_Kind_At (State, After (Last_Token (State, Tree, Previous)))
+                   in Comma | Semicolon
+        and then Token_Kind_At (State, After (After (Last_Token (State, Tree, Previous))))
+                   /= Right_Brace
+      then
+         Consume (State, After (Last_Token (State, Tree, Previous)));
+         if Pending.Kind /= Void then
+            declare
+               Unused_Copy : Expression := Pending;
+            begin
+               To_Next_Register (State, Unused_Copy);
+            end;
+         end if;
+         Fail (State);
+         return;
+      end if;
+      Consume_Closer (State, Right_Brace, Last_Token (State, Tree, Node));
       --  [puc lparser.c:lastlistfield]
       if To_Store /= 0 then
          if Has_Multiple_Results (Pending) then
@@ -343,7 +384,7 @@ package body Pyro.Compiler with SPARK_Mode => On is
                   Set_Returns (State, Arguments, Multiple_Results);
                end if;
             end if;
-            Consume (State, Last_Token (State, Tree, Node));
+            Consume_Closer (State, Right_Parenthesis, Last_Token (State, Tree, Node));
          when Left_Brace =>
             if Get (Tree, Node).List_Length /= 1 then
                Fail (State);
@@ -436,7 +477,7 @@ package body Pyro.Compiler with SPARK_Mode => On is
             end if;
             Consume (State, First_Token (State, Tree, Primary));
             Expression_Of (State, Result, Tree, Symbols, Inner, Item);
-            Consume (State, Last_Token (State, Tree, Primary));
+            Consume_Closer (State, Right_Parenthesis, Last_Token (State, Tree, Primary));
             Discharge_Variables (State, Item);
          when others =>
             Fail (State);
@@ -468,7 +509,7 @@ package body Pyro.Compiler with SPARK_Mode => On is
                      Consume (State, After (Last_Token (State, Tree, Inner)));
                      Expression_Of (State, Result, Tree, Symbols, Key_Node, Key);
                      To_Value (State, Key);
-                     Consume (State, Last_Token (State, Tree, Link));
+                     Consume_Closer (State, Right_Bracket, Last_Token (State, Tree, Link));
                   end if;
                   Indexed (State, Item, Key);
                end;
@@ -686,7 +727,7 @@ package body Pyro.Compiler with SPARK_Mode => On is
       Reserve_Registers (State, Facts.Active);
       Consume (State, Close_Paren);
       Statement_List (State, Result, Tree, Symbols, Body_Block, 1);
-      Consume (State, Last_Token (State, Tree, Node));
+      Consume_Closer (State, Keyword_End, Last_Token (State, Tree, Node));
       Close_Function (State, Result, Natural (Token_Line (State, Last_Token (State, Tree, Node))));
       if Failed (State) then
          return;
@@ -741,6 +782,11 @@ package body Pyro.Compiler with SPARK_Mode => On is
          exit when Failed (State);
          Statement_Of (State, Result, Tree, Symbols, List_Item (Tree, Node, Position));
       end loop;
+      --  A block that a syntax error cut short ends where PUC Lua stopped.
+      if Get (Tree, Node).Is_Incomplete then
+         Fail (State);
+         return;
+      end if;
       Consume (State, Last_Token (State, Tree, Node));
    end Statement_List;
 
@@ -1179,7 +1225,7 @@ package body Pyro.Compiler with SPARK_Mode => On is
          For_Body (State, Result, Tree, Symbols, Body_Block, Base, Line, Count, True,
                    After (Last_Token (State, Tree, Expressions)));
       end if;
-      Consume (State, Last_Token (State, Tree, Node));
+      Consume_Closer (State, Keyword_End, Last_Token (State, Tree, Node));
       Leave_Block (State);
    end For_Of;
 
@@ -1344,7 +1390,7 @@ package body Pyro.Compiler with SPARK_Mode => On is
             Block_Of (State, Result, Tree, Symbols, Second);
             Jump (State, Jump_At);
             Patch_List (State, Jump_At, Start);
-            Consume (State, Last_Token (State, Tree, Node));
+            Consume_Closer (State, Keyword_End, Last_Token (State, Tree, Node));
             Leave_Block (State);
             Patch_To_Here (State, Exit_At);
          when Repeat_Statement =>
@@ -1362,7 +1408,7 @@ package body Pyro.Compiler with SPARK_Mode => On is
                Consume (State, Before (First_Token (State, Tree, First)));
                Block_Of (State, Result, Tree, Symbols, First);
             end if;
-            Consume (State, Last_Token (State, Tree, Node));
+            Consume_Closer (State, Keyword_End, Last_Token (State, Tree, Node));
             Patch_To_Here (State, Escape);
          when Numeric_For | Generic_For =>
             For_Of (State, Result, Tree, Symbols, Node);
@@ -1530,6 +1576,32 @@ package body Pyro.Compiler with SPARK_Mode => On is
       Set_Budget (State, Budget);
    end Report_Error;
 
+   --  The token where the parser stopped (the first lexical or syntax error, or running out of
+   --  memory), or 0 when it read the whole chunk.
+   function Cut_Of (Problems : Diagnostic_Lists.Growable_Array) return Natural is
+      Cut  : Natural := 0;
+      Item : Diagnostic;
+   begin
+      for Position in 1 .. Diagnostic_Lists.Length (Problems) loop
+         Item := Diagnostic_Lists.Element (Problems, Position);
+         if Item.What in Malformed_Number .. Nesting_Too_Deep | Not_Enough_Memory then
+            --  PUC Lua reads a token when it moves past the one before, so a lexical error
+            --  stops it while it reads that one. (A lexical error's detection ordinal is the
+            --  one after the bad token's.)
+            declare
+               Stop : constant Natural :=
+                 Natural'Max (Natural (Item.Detection.Ordinal)
+                              - (if Item.What in Lexical_Problem then 2 else 0), 1);
+            begin
+               if Cut = 0 or else Stop < Cut then
+                  Cut := Stop;
+               end if;
+            end;
+         end if;
+      end loop;
+      return Cut;
+   end Cut_Of;
+
    procedure Compile
      (Source   : Sources.Source;
       Tree     : Syntax_Tree;
@@ -1550,15 +1622,21 @@ package body Pyro.Compiler with SPARK_Mode => On is
       Intern_Names (Symbols, Working, Environment, Break, Self, For_State);
       Set_Budget (State, Working);
       Set_Names (State, Environment, Break, Self, For_State);
+      if Diagnostic_Lists.Length (Problems) > 0 then
+         Set_Partial (State, Cut_Of (Problems));
+      end if;
       Read_Tokens (State, Source, Symbols);
       if not Failed (State) then
          Compile_Main (State, Result, Tree, Symbols, Root);
       end if;
       Working := Budget_Of (State);
-      if Failed (State) then
+      if Failed (State) or else Is_Partial (State) then
+         --  A chunk with errors gets no prototypes: only its limit errors are reported.
          Clear (Result, Working);
          Set_Budget (State, Working);
-         Report_Error (State, Source, Symbols, Problems);
+         if Has_Error (State) or else (Failed (State) and then not Is_Partial (State)) then
+            Report_Error (State, Source, Symbols, Problems);
+         end if;
       else
          --  Every prototype returned is checked: an internal error otherwise.
          Validate (Result, Working, Valid);

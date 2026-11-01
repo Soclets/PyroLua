@@ -1,0 +1,6 @@
+refused: tests/corpus/compiler/limits/lexical_then_locals.lua:2:5, line 2 column 5
+ 2 | x = 'unfinished
+   |     ^^^^^^^^^^^
+ what: this string has no closing `'`
+ why:  a short string ends on the line where it starts (Lua 5.4 manual §3.1)
+exit 1

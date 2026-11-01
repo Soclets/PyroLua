@@ -1,0 +1,617 @@
+2 keyword local
+2 name x
+2 =
+2 name f
+2 (
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 ,
+2 integer 1
+2 )
+3 keyword local
+3 name c
+3 <
+3 name const
+3 >
+3 =
+3 integer 1
+4 name c
+4 =
+4 integer 2
+5 <eof>
+exit 0

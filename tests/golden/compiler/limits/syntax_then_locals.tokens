@@ -1,0 +1,408 @@
+2 name x
+2 =
+2 =
+2 integer 1
+3 keyword local
+3 name a0
+3 ,
+3 name a1
+3 ,
+3 name a2
+3 ,
+3 name a3
+3 ,
+3 name a4
+3 ,
+3 name a5
+3 ,
+3 name a6
+3 ,
+3 name a7
+3 ,
+3 name a8
+3 ,
+3 name a9
+3 ,
+3 name a10
+3 ,
+3 name a11
+3 ,
+3 name a12
+3 ,
+3 name a13
+3 ,
+3 name a14
+3 ,
+3 name a15
+3 ,
+3 name a16
+3 ,
+3 name a17
+3 ,
+3 name a18
+3 ,
+3 name a19
+3 ,
+3 name a20
+3 ,
+3 name a21
+3 ,
+3 name a22
+3 ,
+3 name a23
+3 ,
+3 name a24
+3 ,
+3 name a25
+3 ,
+3 name a26
+3 ,
+3 name a27
+3 ,
+3 name a28
+3 ,
+3 name a29
+3 ,
+3 name a30
+3 ,
+3 name a31
+3 ,
+3 name a32
+3 ,
+3 name a33
+3 ,
+3 name a34
+3 ,
+3 name a35
+3 ,
+3 name a36
+3 ,
+3 name a37
+3 ,
+3 name a38
+3 ,
+3 name a39
+3 ,
+3 name a40
+3 ,
+3 name a41
+3 ,
+3 name a42
+3 ,
+3 name a43
+3 ,
+3 name a44
+3 ,
+3 name a45
+3 ,
+3 name a46
+3 ,
+3 name a47
+3 ,
+3 name a48
+3 ,
+3 name a49
+3 ,
+3 name a50
+3 ,
+3 name a51
+3 ,
+3 name a52
+3 ,
+3 name a53
+3 ,
+3 name a54
+3 ,
+3 name a55
+3 ,
+3 name a56
+3 ,
+3 name a57
+3 ,
+3 name a58
+3 ,
+3 name a59
+3 ,
+3 name a60
+3 ,
+3 name a61
+3 ,
+3 name a62
+3 ,
+3 name a63
+3 ,
+3 name a64
+3 ,
+3 name a65
+3 ,
+3 name a66
+3 ,
+3 name a67
+3 ,
+3 name a68
+3 ,
+3 name a69
+3 ,
+3 name a70
+3 ,
+3 name a71
+3 ,
+3 name a72
+3 ,
+3 name a73
+3 ,
+3 name a74
+3 ,
+3 name a75
+3 ,
+3 name a76
+3 ,
+3 name a77
+3 ,
+3 name a78
+3 ,
+3 name a79
+3 ,
+3 name a80
+3 ,
+3 name a81
+3 ,
+3 name a82
+3 ,
+3 name a83
+3 ,
+3 name a84
+3 ,
+3 name a85
+3 ,
+3 name a86
+3 ,
+3 name a87
+3 ,
+3 name a88
+3 ,
+3 name a89
+3 ,
+3 name a90
+3 ,
+3 name a91
+3 ,
+3 name a92
+3 ,
+3 name a93
+3 ,
+3 name a94
+3 ,
+3 name a95
+3 ,
+3 name a96
+3 ,
+3 name a97
+3 ,
+3 name a98
+3 ,
+3 name a99
+3 ,
+3 name a100
+3 ,
+3 name a101
+3 ,
+3 name a102
+3 ,
+3 name a103
+3 ,
+3 name a104
+3 ,
+3 name a105
+3 ,
+3 name a106
+3 ,
+3 name a107
+3 ,
+3 name a108
+3 ,
+3 name a109
+3 ,
+3 name a110
+3 ,
+3 name a111
+3 ,
+3 name a112
+3 ,
+3 name a113
+3 ,
+3 name a114
+3 ,
+3 name a115
+3 ,
+3 name a116
+3 ,
+3 name a117
+3 ,
+3 name a118
+3 ,
+3 name a119
+3 ,
+3 name a120
+3 ,
+3 name a121
+3 ,
+3 name a122
+3 ,
+3 name a123
+3 ,
+3 name a124
+3 ,
+3 name a125
+3 ,
+3 name a126
+3 ,
+3 name a127
+3 ,
+3 name a128
+3 ,
+3 name a129
+3 ,
+3 name a130
+3 ,
+3 name a131
+3 ,
+3 name a132
+3 ,
+3 name a133
+3 ,
+3 name a134
+3 ,
+3 name a135
+3 ,
+3 name a136
+3 ,
+3 name a137
+3 ,
+3 name a138
+3 ,
+3 name a139
+3 ,
+3 name a140
+3 ,
+3 name a141
+3 ,
+3 name a142
+3 ,
+3 name a143
+3 ,
+3 name a144
+3 ,
+3 name a145
+3 ,
+3 name a146
+3 ,
+3 name a147
+3 ,
+3 name a148
+3 ,
+3 name a149
+3 ,
+3 name a150
+3 ,
+3 name a151
+3 ,
+3 name a152
+3 ,
+3 name a153
+3 ,
+3 name a154
+3 ,
+3 name a155
+3 ,
+3 name a156
+3 ,
+3 name a157
+3 ,
+3 name a158
+3 ,
+3 name a159
+3 ,
+3 name a160
+3 ,
+3 name a161
+3 ,
+3 name a162
+3 ,
+3 name a163
+3 ,
+3 name a164
+3 ,
+3 name a165
+3 ,
+3 name a166
+3 ,
+3 name a167
+3 ,
+3 name a168
+3 ,
+3 name a169
+3 ,
+3 name a170
+3 ,
+3 name a171
+3 ,
+3 name a172
+3 ,
+3 name a173
+3 ,
+3 name a174
+3 ,
+3 name a175
+3 ,
+3 name a176
+3 ,
+3 name a177
+3 ,
+3 name a178
+3 ,
+3 name a179
+3 ,
+3 name a180
+3 ,
+3 name a181
+3 ,
+3 name a182
+3 ,
+3 name a183
+3 ,
+3 name a184
+3 ,
+3 name a185
+3 ,
+3 name a186
+3 ,
+3 name a187
+3 ,
+3 name a188
+3 ,
+3 name a189
+3 ,
+3 name a190
+3 ,
+3 name a191
+3 ,
+3 name a192
+3 ,
+3 name a193
+3 ,
+3 name a194
+3 ,
+3 name a195
+3 ,
+3 name a196
+3 ,
+3 name a197
+3 ,
+3 name a198
+3 ,
+3 name a199
+3 ,
+3 name a200
+4 <eof>
+exit 0

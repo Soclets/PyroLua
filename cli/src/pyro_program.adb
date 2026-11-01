@@ -438,9 +438,8 @@ procedure Pyro_Program is
                Pyro.Parser.Parse (Source.all, Symbols, Budget, Tree, Problems, Root);
                Pyro.Resolver.Resolve (Tree, Root, Symbols, Budget, Problems, Bindings);
                Count := Natural (Pyro.Diagnostic_Lists.Length (Problems));
-               if Count = 0 and then Selected /= Tree_Mode then
-                  --  [differs] Compile-time limits are checked only in chunks without other
-                  --  errors.
+               if Selected /= Tree_Mode then
+                  --  Also in a chunk with errors, for the limit errors PUC Lua finds first.
                   Pyro.Compiler.Compile
                     (Source.all, Tree, Root, Symbols, Budget, Problems, Compiled);
                   Count := Natural (Pyro.Diagnostic_Lists.Length (Problems));

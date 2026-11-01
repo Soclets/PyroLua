@@ -158,7 +158,9 @@ package body Pyro.Compiler.Code.Scopes with SPARK_Mode => On is
          Item := Label_Arrays.Element (State.Gotos, Next_Position (Index));
          if Item.Name = Label.Name then
             Needs_Close := Needs_Close or else Item.Close;
-            if Item.Active < Label.Active then
+            --  A goto into a variable's scope: the resolver reports it; in a chunk with errors
+            --  compiling goes on past it, so that later limit errors are found.
+            if Item.Active < Label.Active and then not State.Partial then
                Fail (State);
                return;
             end if;
@@ -264,8 +266,10 @@ package body Pyro.Compiler.Code.Scopes with SPARK_Mode => On is
       end if;
       if Has_Outer then
          Move_Gotos_Out (State, Block);
-      elsif Block.First_Goto < Natural (Label_Arrays.Length (State.Gotos)) then
-         --  The resolver reports undefined gotos; none reach the compiler.
+      elsif Block.First_Goto < Natural (Label_Arrays.Length (State.Gotos))
+        and then not State.Partial
+      then
+         --  The resolver reports undefined gotos; in a chunk without errors there are none.
          Fail (State);
       end if;
    end Leave_Block;

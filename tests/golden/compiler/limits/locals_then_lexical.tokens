@@ -1,0 +1,410 @@
+2 keyword local
+2 name a0
+2 ,
+2 name a1
+2 ,
+2 name a2
+2 ,
+2 name a3
+2 ,
+2 name a4
+2 ,
+2 name a5
+2 ,
+2 name a6
+2 ,
+2 name a7
+2 ,
+2 name a8
+2 ,
+2 name a9
+2 ,
+2 name a10
+2 ,
+2 name a11
+2 ,
+2 name a12
+2 ,
+2 name a13
+2 ,
+2 name a14
+2 ,
+2 name a15
+2 ,
+2 name a16
+2 ,
+2 name a17
+2 ,
+2 name a18
+2 ,
+2 name a19
+2 ,
+2 name a20
+2 ,
+2 name a21
+2 ,
+2 name a22
+2 ,
+2 name a23
+2 ,
+2 name a24
+2 ,
+2 name a25
+2 ,
+2 name a26
+2 ,
+2 name a27
+2 ,
+2 name a28
+2 ,
+2 name a29
+2 ,
+2 name a30
+2 ,
+2 name a31
+2 ,
+2 name a32
+2 ,
+2 name a33
+2 ,
+2 name a34
+2 ,
+2 name a35
+2 ,
+2 name a36
+2 ,
+2 name a37
+2 ,
+2 name a38
+2 ,
+2 name a39
+2 ,
+2 name a40
+2 ,
+2 name a41
+2 ,
+2 name a42
+2 ,
+2 name a43
+2 ,
+2 name a44
+2 ,
+2 name a45
+2 ,
+2 name a46
+2 ,
+2 name a47
+2 ,
+2 name a48
+2 ,
+2 name a49
+2 ,
+2 name a50
+2 ,
+2 name a51
+2 ,
+2 name a52
+2 ,
+2 name a53
+2 ,
+2 name a54
+2 ,
+2 name a55
+2 ,
+2 name a56
+2 ,
+2 name a57
+2 ,
+2 name a58
+2 ,
+2 name a59
+2 ,
+2 name a60
+2 ,
+2 name a61
+2 ,
+2 name a62
+2 ,
+2 name a63
+2 ,
+2 name a64
+2 ,
+2 name a65
+2 ,
+2 name a66
+2 ,
+2 name a67
+2 ,
+2 name a68
+2 ,
+2 name a69
+2 ,
+2 name a70
+2 ,
+2 name a71
+2 ,
+2 name a72
+2 ,
+2 name a73
+2 ,
+2 name a74
+2 ,
+2 name a75
+2 ,
+2 name a76
+2 ,
+2 name a77
+2 ,
+2 name a78
+2 ,
+2 name a79
+2 ,
+2 name a80
+2 ,
+2 name a81
+2 ,
+2 name a82
+2 ,
+2 name a83
+2 ,
+2 name a84
+2 ,
+2 name a85
+2 ,
+2 name a86
+2 ,
+2 name a87
+2 ,
+2 name a88
+2 ,
+2 name a89
+2 ,
+2 name a90
+2 ,
+2 name a91
+2 ,
+2 name a92
+2 ,
+2 name a93
+2 ,
+2 name a94
+2 ,
+2 name a95
+2 ,
+2 name a96
+2 ,
+2 name a97
+2 ,
+2 name a98
+2 ,
+2 name a99
+2 ,
+2 name a100
+2 ,
+2 name a101
+2 ,
+2 name a102
+2 ,
+2 name a103
+2 ,
+2 name a104
+2 ,
+2 name a105
+2 ,
+2 name a106
+2 ,
+2 name a107
+2 ,
+2 name a108
+2 ,
+2 name a109
+2 ,
+2 name a110
+2 ,
+2 name a111
+2 ,
+2 name a112
+2 ,
+2 name a113
+2 ,
+2 name a114
+2 ,
+2 name a115
+2 ,
+2 name a116
+2 ,
+2 name a117
+2 ,
+2 name a118
+2 ,
+2 name a119
+2 ,
+2 name a120
+2 ,
+2 name a121
+2 ,
+2 name a122
+2 ,
+2 name a123
+2 ,
+2 name a124
+2 ,
+2 name a125
+2 ,
+2 name a126
+2 ,
+2 name a127
+2 ,
+2 name a128
+2 ,
+2 name a129
+2 ,
+2 name a130
+2 ,
+2 name a131
+2 ,
+2 name a132
+2 ,
+2 name a133
+2 ,
+2 name a134
+2 ,
+2 name a135
+2 ,
+2 name a136
+2 ,
+2 name a137
+2 ,
+2 name a138
+2 ,
+2 name a139
+2 ,
+2 name a140
+2 ,
+2 name a141
+2 ,
+2 name a142
+2 ,
+2 name a143
+2 ,
+2 name a144
+2 ,
+2 name a145
+2 ,
+2 name a146
+2 ,
+2 name a147
+2 ,
+2 name a148
+2 ,
+2 name a149
+2 ,
+2 name a150
+2 ,
+2 name a151
+2 ,
+2 name a152
+2 ,
+2 name a153
+2 ,
+2 name a154
+2 ,
+2 name a155
+2 ,
+2 name a156
+2 ,
+2 name a157
+2 ,
+2 name a158
+2 ,
+2 name a159
+2 ,
+2 name a160
+2 ,
+2 name a161
+2 ,
+2 name a162
+2 ,
+2 name a163
+2 ,
+2 name a164
+2 ,
+2 name a165
+2 ,
+2 name a166
+2 ,
+2 name a167
+2 ,
+2 name a168
+2 ,
+2 name a169
+2 ,
+2 name a170
+2 ,
+2 name a171
+2 ,
+2 name a172
+2 ,
+2 name a173
+2 ,
+2 name a174
+2 ,
+2 name a175
+2 ,
+2 name a176
+2 ,
+2 name a177
+2 ,
+2 name a178
+2 ,
+2 name a179
+2 ,
+2 name a180
+2 ,
+2 name a181
+2 ,
+2 name a182
+2 ,
+2 name a183
+2 ,
+2 name a184
+2 ,
+2 name a185
+2 ,
+2 name a186
+2 ,
+2 name a187
+2 ,
+2 name a188
+2 ,
+2 name a189
+2 ,
+2 name a190
+2 ,
+2 name a191
+2 ,
+2 name a192
+2 ,
+2 name a193
+2 ,
+2 name a194
+2 ,
+2 name a195
+2 ,
+2 name a196
+2 ,
+2 name a197
+2 ,
+2 name a198
+2 ,
+2 name a199
+2 ,
+2 name a200
+3 name x
+3 =
+refused: tests/corpus/compiler/limits/locals_then_lexical.lua:3:5, line 3 column 5
+ 3 | x = 'unfinished
+   |     ^^^^^^^^^^^
+ what: this string has no closing `'`
+ why:  a short string ends on the line where it starts (Lua 5.4 manual §3.1)
+exit 1

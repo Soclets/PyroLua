@@ -1,0 +1,6 @@
+refused: tests/corpus/compiler/limits/syntax_then_registers.lua:2:5, line 2 column 5
+ 2 | x = = 1
+   |     ^
+ what: `=` can't start an expression
+ why:  an expression starts with a value, a name, `(`, `{`, `function`, `...` or a unary operator (Lua 5.4 manual §3.4)
+exit 1

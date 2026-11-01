@@ -1,0 +1,12 @@
+1 function_body vararg incomplete
+  1 block incomplete
+    2 assignment
+      2 expression_list
+        2 assignment_target "x"
+          2 name_expression "x" global
+refused: tests/corpus/compiler/limits/lexical_then_locals.lua:2:5, line 2 column 5
+ 2 | x = 'unfinished
+   |     ^^^^^^^^^^^
+ what: this string has no closing `'`
+ why:  a short string ends on the line where it starts (Lua 5.4 manual §3.1)
+exit 1

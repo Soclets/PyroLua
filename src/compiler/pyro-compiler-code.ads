@@ -272,9 +272,20 @@ package Pyro.Compiler.Code with SPARK_Mode => On, Always_Terminates is
        Is_Released (State)
        and then Limit (Budget_Of (State)) = Limit (Budget_Of (State))'Old;
 
-   --  Stops the compilation: the compiler's own logic went wrong.
+   --  Stops the compilation: the compiler's own logic went wrong, or, in a chunk with other
+   --  errors, the tree is not what a correct chunk gives (no error is reported then).
    procedure Fail (State : in out Compiler_State)
    with Global => null, Post => Failed (State);
+
+   --  Compiles a chunk with other errors: nothing from token Cut on is compiled (0 when the
+   --  whole tree was parsed), scope errors are passed over, and only compile-time limit
+   --  errors reached before Cut are reported, since PUC Lua raises them while it parses.
+   procedure Set_Partial (State : in out Compiler_State; Cut : Natural)
+   with Global => null;
+
+   --  The chunk has other errors (Set_Partial).
+   function Is_Partial (State : Compiler_State) return Boolean
+   with Global => null;
 
    --  [puc llex.c:luaX_syntaxerror] Stops the compilation with a compile-time limit error,
    --  raised as PUC Lua raises it: at the current token, near it.
@@ -588,6 +599,9 @@ private
       --  A name token PUC Lua looked past before reading it (a field of a table constructor):
       --  reading it leaves lastline at the next token's line.
       Lookahead_Name : Natural := 0;
+      --  Set_Partial: the chunk has other errors, and the first token not compiled.
+      Partial        : Boolean := False;
+      Cut            : Natural := 0;
       --  The token read last ([puc] lastline is its line); 0 before the first.
       Last_Token     : Bounded_Count := 0;
       Failed         : Boolean := False;

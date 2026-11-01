@@ -122,6 +122,12 @@ LIMIT_CASES = {
     "for-too-long": lambda: "for i = 1, 2 do\n" + "t = i\n" * 140000 + "end\n",
     "for-long": lambda: "for i = 1, 2 do\n" + "t = i\n" * 131000 + "end\n",
     "goto-long": lambda: "goto e\n" + "t = 1\n" * 140000 + "::e::\n",
+    # A limit error and another error, in both orders: luac reports the first.
+    "upvalues-then-syntax": lambda: _upvalues(256) + "x = = 1\n",
+    "syntax-then-upvalues": lambda: "x = = 1\n" + _upvalues(256),
+    "upvalues-then-scope": lambda: _upvalues(256) + "goto nowhere\n",
+    "scope-then-upvalues": lambda: "local c <const> = 1\nc = 2\n" + _upvalues(256),
+    "upvalues-cut-short": lambda: _upvalues(256).replace("end end end\n", "x = (\n"),
 }
 
 # Mutants per run, and the fixed seed of the quick run.
@@ -691,7 +697,9 @@ class Runner:
                     done += 1
                     if reference is None or pyro is None:
                         continue
-                    if reference[0] != pyro[0] or listing is not None:
+                    if (reference[0] != pyro[0] or listing is not None
+                            or (is_limit_error(reference) or is_limit_error(pyro))
+                            and reference != pyro):
                         disagreements += 1
                         failures.mkdir(parents=True, exist_ok=True)
                         kept = failures / f"seed{seed}-mutant{index}.lua"
@@ -860,6 +868,18 @@ def parse_check(code, err, program, relative):
     if match:
         return (False, int(match.group(1)), match.group(2))
     return (False, None, text)
+
+
+LIMIT_MESSAGES = ("too many local variables", "too many upvalues",
+                  "function or expression needs too many registers",
+                  "control structure too long")
+
+
+def is_limit_error(result):
+    """The (accepted, line, message) of luac -p or pyro --check reports a compile-time
+    limit."""
+    return (not result[0] and result[2] is not None
+            and any(text in result[2] for text in LIMIT_MESSAGES))
 
 
 def mask_addresses(text):
