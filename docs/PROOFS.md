@@ -114,7 +114,7 @@ of proofs (they then rely on contracts alone), so it is not trust and needs no e
 
 Current list of assumptions and justified checks:
 
-The four ownership annotations below exist so that a type's private part (its growable
+The ownership annotations below exist so that a type's private part (its growable
 arrays and their pointers) can be hidden from its clients' proofs. The trust they add
 concerns leak checking only: GNATprove takes the type's `Is_Released` to mean "holds no
 heap memory". Each `Is_Released` is the conjunction of `Is_Released` of every array in the
@@ -128,6 +128,9 @@ object, each proven to mean exactly that, and nothing about runtime safety depen
 - `Pyro.Symbols.Symbol_Table`, likewise: three growable arrays (same).
 - `Pyro.Bytecode.Chunk`, likewise: seven growable arrays, hidden from the compiler's
   proofs (same).
+- `Pyro.Heap.Heap`, likewise: a chunked store of slots owning their objects, hidden from
+  every client's proofs (M3). Its `Is_Released` is that the chunk table is gone, which
+  `Clear` reaches only after freeing every slot's objects and every chunk.
 
 ## Assumptions
 

@@ -353,7 +353,7 @@ class Runner:
                     continue
                 unit = match.group(1)
                 if not any(unit == name or unit.startswith(name + ".") for name in trusted) \
-                        and not is_generic_noise(unit):
+                        and not is_generic_noise(unit, match.group(2)):
                     self.fail(f"not analysed by gnatprove (SPARK_Mode => Off) and not listed as "
                               f"trusted in docs/PROOFS.md: {unit} at {match.group(2)}")
 
@@ -422,6 +422,10 @@ class Runner:
         self.log((out + err).decode(errors="replace"))
         if code != 0:
             self.fail("grapheme conformance test failed:\n" + tail((out + err).decode(errors="replace")))
+        code, out, err = self.run([unit / "bin" / "runtime_test"], limit=60)
+        self.log((out + err).decode(errors="replace"))
+        if code != 0:
+            self.fail("runtime unit tests failed:\n" + tail((out + err).decode(errors="replace")))
         self.stack_test()
         self.process_check()
 
@@ -859,10 +863,18 @@ def trusted_units():
     return re.findall(r"^\|\s*`(Pyro[\w.]*)`", section, re.M)
 
 
-def is_generic_noise(unit):
-    """Entities gnatprove reports as skipped inside every growable-array instance: the
-    deallocation instances and the SPARKlib model, which SPARKlib proves itself."""
-    return re.search(r"\.(Free\w*)\w*\.\1$|\.Models(\.|$)", unit) is not None
+# Library-level instances of SPARKlib's functional containers (ghost models), which
+# SPARKlib proves itself.
+FUNCTIONAL_INSTANCES = {"Pyro.Kind_Sequences"}
+
+
+def is_generic_noise(unit, location):
+    """Entities gnatprove reports as skipped that come from generics proven elsewhere: the
+    deallocation instances and the SPARKlib model inside every growable-array instance, and
+    the SPARKlib functional containers instantiated as units of their own."""
+    return (re.search(r"\.(Free\w*)\w*\.\1$|\.Models(\.|$)", unit) is not None
+            or any(unit == name or unit.startswith(name + ".") for name in FUNCTIONAL_INSTANCES)
+            or location.startswith("spark-containers-functional-"))
 
 
 def message_exemptions():

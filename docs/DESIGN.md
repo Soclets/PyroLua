@@ -89,6 +89,7 @@ locale.
 | `Pyro.Compiler` | M2 | AST to bytecode |
 | `Pyro.Values` | M3 | Lua value representation |
 | `Pyro.Heap` | M3 | Object arena, allocation, handles |
+| `Pyro.Kind_Sequences` | M3 | [proof] The kind of every slot, as a ghost sequence |
 | `Pyro.Strings` | M3 | String objects, hashing, interning |
 | `Pyro.Tables` | M3 | Lua tables |
 | `Pyro.Garbage_Collector` | M3 | Mark and sweep collector |
@@ -351,6 +352,17 @@ or holds one object of a known kind. The central invariant, `Is_Valid (Heap)`, s
 `Object_Handle` stored in any live object or root (VM stacks, registry, open upvalues,
 the host's handles) refers to an allocated slot of the expected kind. Every heap
 operation preserves `Is_Valid (Heap)` (Gold).
+
+A slot is a small record: its kind, the next free slot when it is free, and owned
+pointers to what its object owns (a string's bytes, a table's parts). Slots live in
+chunks of 4096, found through a table of chunks allocated once, so a chunk is never
+copied and the objects its slots own never move; a handle's chunk and place come from a
+function whose only proven property is that they give the handle back, so proofs never
+see the division. The free list is threaded through the free slots, and a slot taken
+from it is checked to be free, so it needs no invariant of its own. Everything the heap
+allocates is charged to the same `Memory_Budget` as the front end, and running out is an
+ordinary result (`No_Object`). Clients see the heap through its operations: its private
+part is hidden from their proofs (PROOFS.md, Assumptions).
 
 ### Strings
 
