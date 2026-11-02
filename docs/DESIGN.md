@@ -90,7 +90,7 @@ locale.
 | `Pyro.Values` | M3 | Lua value representation |
 | `Pyro.Heap` | M3 | Object arena, allocation, handles |
 | `Pyro.Kind_Sequences` | M3 | [proof] The kind of every slot, as a ghost sequence |
-| `Pyro.Strings` | M3 | String objects, hashing, interning |
+| `Pyro.Strings` | M3 | String bytes, the seed, SipHash-1-3 (strings are interned by `Pyro.Heap`) |
 | `Pyro.Tables` | M3 | Lua tables |
 | `Pyro.Garbage_Collector` | M3 | Mark and sweep collector |
 | `Pyro.Virtual_Machine` | M4 | Interpreter loop, call frames, metamethods |
@@ -366,10 +366,18 @@ part is hidden from their proofs (PROOFS.md, Assumptions).
 
 ### Strings
 
-Strings are immutable heap objects with a cached hash, computed with the state's random
-seed (see Sandbox limits). Short strings (40 bytes or
-less, as in PUC Lua) are interned so equality is a handle comparison. Long strings
-are compared by content.
+Strings are immutable heap objects with a cached hash: SipHash-1-3 of all their bytes,
+keyed by the state's random seed (`Pyro.Strings`, see Sandbox limits). Every string is
+interned, long ones too, so two strings are equal exactly when their handles are, and
+tables and the VM compare strings without reading them. PUC Lua stopped interning long
+strings because its hash sampled their bytes, which made collisions cheap; a keyed hash
+over every byte removes that reason, and creating a string already costs time
+proportional to its length to copy it.
+
+The intern set is an open-addressing set of string handles in the heap, probed linearly
+and rebuilt when its used and deleted entries pass three quarters of it. It does not keep
+strings alive: the collector removes the strings it frees from it, and
+`Is_Valid (Heap)` includes that every entry in use refers to a string.
 
 ### Tables
 

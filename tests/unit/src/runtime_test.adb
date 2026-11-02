@@ -5,7 +5,9 @@
 
 with Ada.Command_Line;
 with Ada.Text_IO;          use Ada.Text_IO;
+with Interfaces;           use Interfaces;
 with Pyro.Heap;            use Pyro.Heap;
+with Pyro.Strings;
 with Pyro.Memory_Budgets;  use Pyro.Memory_Budgets;
 with Pyro.Values;          use Pyro.Values;
 
@@ -75,9 +77,80 @@ procedure Runtime_Test is
       Clear (H, Budget);
    end Test_Heap_Many;
 
+   --  SipHash against the reference vectors: key 00 .. 0F, message 00 .. N - 1 (SipHash-2-4
+   --  as published; SipHash-1-3 from the same reference code, checked against them).
+   procedure Test_Hash is
+      Key : constant Pyro.Strings.Seed :=
+        (K0 => 16#0706_0504_0302_0100#, K1 => 16#0F0E_0D0C_0B0A_0908#);
+      type Vector is record
+         Length       : Natural;
+         Sip_24       : Unsigned_64;
+         Sip_13       : Unsigned_64;
+      end record;
+      Vectors : constant array (Positive range <>) of Vector :=
+        [(0, 16#726f_db47_dd0e_0e31#, 16#abac_0158_050f_c4dc#),
+         (1, 16#74f8_39c5_93dc_67fd#, 16#c9f4_9bf3_7d57_ca93#),
+         (2, 16#0d6c_8009_d9a9_4f5a#, 16#82cb_9b02_4dc7_d44d#),
+         (7, 16#ab02_00f5_8b01_d137#, 16#d392_7d98_9bb1_1140#),
+         (8, 16#93f5_f579_9a93_2462#, 16#3690_9511_8d29_9a8e#),
+         (15, 16#a129_ca61_49be_45e5#, 16#d320_d86d_2a51_9956#),
+         (63, 16#958a_324c_eb06_4572#, 16#9d19_9062_b7bb_b3a8#)];
+   begin
+      for V of Vectors loop
+         declare
+            Data : Byte_Array (1 .. Pyro.Byte_Position'Base (V.Length));
+         begin
+            for Index in Data'Range loop
+               Data (Index) := Character'Val (Integer (Index) - 1);
+            end loop;
+            Check (Pyro.Strings.Sip_Hash (Key, Data, 2, 4) = V.Sip_24,
+                   "hash: SipHash-2-4 of" & Natural'Image (V.Length) & " bytes");
+            Check (Pyro.Strings.Hash (Key, Data) = V.Sip_13,
+                   "hash: SipHash-1-3 of" & Natural'Image (V.Length) & " bytes");
+         end;
+      end loop;
+      Check (Pyro.Strings.Hash_Words (Key, 1, 2) = 16#6c63_0018_434b_d4cc#,
+             "hash: words 1 and 2");
+      Check (Pyro.Strings.Hash (Key, Bytes ("hello")) = 16#b6be_2b8c_d613_85b7#,
+             "hash: hello");
+   end Test_Hash;
+
+   --  Equal bytes give the same string, under every rebuild of the intern set.
+   procedure Test_Interning is
+      H        : Heap;
+      Budget   : Memory_Budget := Create (Default_Limit);
+      Key      : constant Pyro.Strings.Seed := (K0 => 16#1234#, K1 => 16#5678#);
+      A, B, C  : Object_Handle;
+      First    : array (1 .. 5_000) of Object_Handle;
+      Again    : Object_Handle;
+      Same     : Boolean := True;
+   begin
+      Set_Seed (H, Key);
+      New_String (H, Budget, Bytes ("abc"), A);
+      New_String (H, Budget, Bytes ("abc"), B);
+      New_String (H, Budget, Bytes ("abd"), C);
+      Check (A /= No_Object and then A = B, "interning: equal bytes, same string");
+      Check (C /= A, "interning: other bytes, other string");
+      Check (String_Hash (H, A) = Pyro.Strings.Hash (Key, Bytes ("abc")),
+             "interning: hash under the seed");
+      for Index in First'Range loop
+         New_String (H, Budget, Bytes ("s" & Integer'Image (Index)), First (Index));
+      end loop;
+      for Index in First'Range loop
+         New_String (H, Budget, Bytes ("s" & Integer'Image (Index)), Again);
+         Same := Same and then Again = First (Index) and then Again /= No_Object;
+      end loop;
+      Check (Same, "interning: 5000 strings found again after rebuilds");
+      Check (Slot_Count (H) = 5_002, "interning: one slot per distinct string");
+      Clear (H, Budget);
+      Check (Used (Budget) = 0, "interning: Clear releases the intern set");
+   end Test_Interning;
+
 begin
    Test_Heap_Strings;
    Test_Heap_Many;
+   Test_Hash;
+   Test_Interning;
    if Failures > 0 then
       Put_Line (Natural'Image (Failures) & " failure(s)");
       Ada.Command_Line.Set_Exit_Status (1);

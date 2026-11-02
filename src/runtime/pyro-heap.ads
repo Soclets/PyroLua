@@ -2,17 +2,21 @@
 --
 --  The heap: numbered slots holding Lua's objects, reached by handles.
 
+with Interfaces;          use Interfaces;
 with Pyro.Kind_Sequences;
 with Pyro.Memory_Budgets; use Pyro.Memory_Budgets;
+with Pyro.Strings;
 with Pyro.Values;         use Pyro.Values;
 
 package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
 
+   use type Pyro.Strings.Seed;
+
    --  The longest string, in bytes.
-   Maximum_String_Length : constant := 2 ** 30 - 1;
+   Maximum_String_Length : constant := Pyro.Strings.Maximum_String_Length;
 
    --  The bytes of a string.
-   type Byte_Array is array (Byte_Position range <>) of Character;
+   subtype Byte_Array is Pyro.Strings.Byte_Array;
 
    --  Bytes charged to the memory budget for each object, besides its contents.
    Object_Overhead : constant Byte_Count := 32;
@@ -60,8 +64,21 @@ package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
    function Is_Released (H : Heap) return Boolean
    with Global => null, Annotate => (GNATprove, Ownership, "Is_Reclaimed");
 
-   --  A new string holding the bytes of Text, or No_Object (and the heap keeps its objects)
-   --  when Budget cannot pay for it or every handle is in use.
+   --  Sets the key of the heap's hashes. The pyrolua program and hosts give a random one.
+   procedure Set_Seed (H : in out Heap; Key : Pyro.Strings.Seed)
+   with
+     Global => null,
+     Pre    => Is_Valid (H) and then Slot_Count (H) = 0,
+     Post   => Is_Valid (H) and then Slot_Count (H) = 0 and then Seed (H) = Key;
+
+   --  The key of the heap's hashes.
+   function Seed (H : Heap) return Pyro.Strings.Seed
+   with Global => null;
+
+   --  The string holding the bytes of Text: the one that exists already (strings are
+   --  interned, so two strings are equal exactly when their handles are), or a new one.
+   --  No_Object (and the heap keeps its objects) when Budget cannot pay for it or every
+   --  handle is in use.
    procedure New_String
      (H      : in out Heap;
       Budget : in out Memory_Budget;
@@ -74,9 +91,17 @@ package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
        Is_Valid (H)
        and then Limit (Budget) = Limit (Budget)'Old
        and then Keeps_Objects (Kinds (H)'Old, Kinds (H))
+       and then Seed (H) = Seed (H)'Old
        and then (if Result /= No_Object
                  then Kind_Of (H, Result) = String_Object
-                      and then String_Length (H, Result) = Text'Length);
+                      and then String_Length (H, Result) = Text'Length
+                      and then (for all Position in 1 .. Text'Length =>
+                                  String_Byte (H, Result, Byte_Position (Position))
+                                  = Text (Text'First - 1 + Byte_Position (Position))));
+
+   --  The hash of string S (Pyro.Strings.Hash of its bytes under the heap's seed).
+   function String_Hash (H : Heap; S : Object_Handle) return Unsigned_64
+   with Global => null, Pre => Kind_Of (H, S) = String_Object;
 
    --  The length of string S.
    function String_Length (H : Heap; S : Object_Handle) return Natural
@@ -105,10 +130,12 @@ private
 
    type Byte_Array_Access is access Byte_Array;
 
-   --  A slot: what it holds, and what it owns. A free slot links to the next free one.
+   --  A slot: what it holds, and what it owns. A free slot links to the next free one; a
+   --  string slot keeps its hash.
    type Slot is record
       Kind      : Object_Kind := Free_Object;
       Next_Free : Object_Handle := No_Object;
+      Hash      : Unsigned_64 := 0;
       Bytes     : Byte_Array_Access := null;
    end record;
 
@@ -145,7 +172,32 @@ private
    function Place_Of (Handle : Valid_Handle) return Place
    with Post => Handle_At (Place_Of'Result.Chunk, Place_Of'Result.Offset) = Handle;
 
+   --  The interned strings: an open-addressing set of string handles, probed linearly from
+   --  their hash. It does not keep strings alive: the collector removes the strings it
+   --  frees. A deleted entry keeps the probe sequences through it going.
+   type Entry_State is (Empty_Entry, Used_Entry, Deleted_Entry);
+
+   type Intern_Entry is record
+      State  : Entry_State := Empty_Entry;
+      Handle : Object_Handle := No_Object;
+      Hash   : Unsigned_64 := 0;
+   end record;
+
+   Maximum_Intern_Capacity : constant := 2 ** 27;
+   Minimum_Intern_Capacity : constant := 64;
+   subtype Intern_Index is Natural range 0 .. Maximum_Intern_Capacity - 1;
+   type Intern_Table is array (Intern_Index range <>) of Intern_Entry;
+   type Intern_Table_Access is access Intern_Table;
+
+   --  Bytes charged for each entry of the intern set.
+   Entry_Bytes : constant Byte_Count := 24;
+
    type Heap is limited record
+      Seed       : Pyro.Strings.Seed;
+      Intern     : Intern_Table_Access := null;
+      --  Used and deleted entries of the intern set: when to rebuild it. Only a trigger:
+      --  nothing depends on its accuracy.
+      Filled     : Natural := 0;
       Chunks     : Chunk_Table_Access := null;
       Slot_Count : Object_Handle := No_Object;
       --  The last freed slot, the start of the free list (checked when taken, so the list
@@ -155,6 +207,9 @@ private
 
    function Slot_Count (H : Heap) return Object_Handle
    is (H.Slot_Count);
+
+   function Seed (H : Heap) return Pyro.Strings.Seed
+   is (H.Seed);
 
    --  Chunk Chunk is allocated.
    function Has_Chunk (H : Heap; Chunk : Chunk_Number) return Boolean
@@ -190,9 +245,20 @@ private
                               = null))
    with Ghost;
 
+   --  [proof] The intern set has the shape probing needs, and its used entries are strings.
+   function Intern_Valid (H : Heap) return Boolean
+   is (H.Intern = null
+       or else (H.Intern'First = 0
+                and then H.Intern'Length >= 1
+                and then (for all Index in H.Intern'Range =>
+                            (if H.Intern (Index).State = Used_Entry
+                             then Kind_Of (H, H.Intern (Index).Handle) = String_Object))))
+   with Ghost;
+
    function Is_Valid (H : Heap) return Boolean
    is ((Slot_Count (H) = 0 or else H.Chunks /= null)
-       and then (for all Handle in Valid_Handle => Handle_Valid (H, Handle)));
+       and then (for all Handle in Valid_Handle => Handle_Valid (H, Handle))
+       and then Intern_Valid (H));
 
    function String_Length (H : Heap; S : Object_Handle) return Natural
    is (if Kind_Of (H, S) = String_Object
@@ -207,7 +273,10 @@ private
        then H.Chunks (Place_Of (S).Chunk) (Place_Of (S).Offset).Bytes (Position)
        else ASCII.NUL);
 
+   function String_Hash (H : Heap; S : Object_Handle) return Unsigned_64
+   is (H.Chunks (Place_Of (S).Chunk) (Place_Of (S).Offset).Hash);
+
    function Is_Released (H : Heap) return Boolean
-   is (H.Chunks = null);
+   is (H.Chunks = null and then H.Intern = null);
 
 end Pyro.Heap;

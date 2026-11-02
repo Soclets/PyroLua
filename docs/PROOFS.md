@@ -64,7 +64,11 @@ omit runtime checks.
 
 Invariant `Is_Valid (Heap)`: every `Object_Handle` stored in any live object or in any root
 refers to an allocated slot of the expected object kind. Every heap operation
-(allocate, store into an object, free) is proven to preserve it.
+(allocate, store into an object, free) is proven to preserve it. It also covers what the
+heap owns: every slot owns what its kind says (a free slot nothing, a string its bytes),
+slots past the last one own nothing, and every entry in use in the intern set is a
+string, so the set never refers to a freed slot. `Pyro.Strings` (SipHash-1-3) is Silver
+and checked against the reference vectors in `tests/unit`.
 
 ### Garbage collector (M3)
 
