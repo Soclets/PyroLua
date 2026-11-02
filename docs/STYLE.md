@@ -217,10 +217,16 @@ silent stall.
 | --- | --- |
 | One `pyrolua`, `lua` or `luac` process in a test | 10 seconds |
 | `tests/run` (every commit) | 5 minutes |
-| `tests/run --full` (end of milestone) | 30 minutes |
+| `tests/run --full` (end of milestone) | 45 minutes |
+| Its uncached proof stage | 30 minutes, and at most 25% above its baseline |
 
 - Each stage (build, proof, tags, golden, differential, fuzz) also has its own
   wall-clock cap within the total.
+- The uncached proof also has a baseline, its wall-clock and CPU time at the end of the
+  last milestone (`PROOF_BASELINE` in `tests/run`). `tests/run --full` fails when either
+  is more than 25% above it, as it does for the front end's memory. The baseline changes
+  only in a commit of its own that says why (for example "M4 adds the VM"), never as a
+  side effect of a run.
 - Hitting any limit kills the process tree, fails the run and reports which stage and
   which file was running. Going over budget is a failure like a broken test: fix it by
   splitting slow units, adding lemmas or trimming redundant tests.

@@ -247,11 +247,25 @@ Rules:
 
 ### Proof time
 
-The uncached proof (`tests/run --full`'s proof stage) took 587 s of its 900 s cap with
-tables (584 s after the front-end memory work, and 632 s in another forced run on that
-commit, so allow a few percent between runs; M2 ended at 484 s). The runtime units prove
-in parallel with the compiler's, which set the wall time. Keep it at about two thirds of the cap or
-below: past that, restructure before adding proofs.
+The uncached proof (`tests/run --full`'s proof stage) has a cap of 1,800 s and a
+baseline: 848 s of wall-clock time and 6,615 s of CPU time at the end of M3, on the
+development profile (macOS arm64, 4 performance and 6 efficiency cores). `tests/run --full`
+fails when either is more than 25% above the baseline, which changes only in a commit of
+its own that says why, normally at the end of a milestone.
+
+The cap was 900 s until the end of M3, when the owner raised it (and `tests/run --full`'s
+total from 30 to 45 minutes): 900 s was set before the project had a runtime, the steps
+limit on every check already rules out hangs, and the runtime's proofs cannot fit under
+it without new trust. Restructuring took the uncached proof from 852 s to 848 s, because
+most of what is left is not the provers' work: the time gnatprove spends on each
+subprogram before and around them (about 0.25 s per entity even with no check, and 3,437
+entities, many in SPARKlib's instances inside each growable array). On these cores the
+wall-clock time follows the total CPU time at about 7 cores' worth.
+
+History: M2 ended at 484 s; the front-end memory work at 584 s; values, heap, strings and
+tables at 800 s; the collector at 852 s. A measurement of 587 s made while tables were
+in progress had stopped early on a warning and proved 12,196 of 17,280 checks: compare
+check counts, not only times.
 
 When it grows, find where by unit rather than guessing:
 
@@ -262,12 +276,18 @@ When it grows, find where by unit rather than guessing:
   (JSON, under `proof`) and compare per unit with the same figures at an earlier commit
   (a worktree). Compare check counts too: more time for the same checks means a heavier
   context; more checks means more code or more instances.
+- The provers are only about a quarter of the CPU time. The rest is in each `.spark`'s
+  `timings` (per entity, keyed like `entities`): gnatwhy3's start-up, transformations and
+  scheduling for each subprogram. Sum them per unit and per entity as well; one entity
+  with many checks and a large context (`Resize_Parts` took 375 CPU-s of the tables' 703
+  before it was split) is the place to split or hide.
 - The heavy context usually comes from a private part clients can see, such as owning
   arrays with their pointer models. After the chunked arrays, the parser went from 333 s to
   751 s with the same 491 checks. With the private parts of `Syntax_Tree`, `Symbol_Table`
   and `Chunk` hidden it took 182 s.
-- Every instance of `Pyro.Growable_Arrays` proves the generic body again (267 checks,
-  about 9 s of prover time each; about 37 instances).
+- Every instance of `Pyro.Growable_Arrays` proves the generic body again: 38 instances,
+  about 40 CPU-s each, of which about 8 s are the provers' and about 10 s go to the
+  SPARKlib sequence instance (its model) inside each.
 
 ## Status
 

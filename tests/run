@@ -5,7 +5,7 @@
 # reference Lua 5.4.9 and mutation fuzzing (see docs/STYLE.md, "Testing").
 #
 #   tests/run            everything, 5 minute cap (every commit)
-#   tests/run --full     clean proofs and long fuzzing, 30 minute cap (end of milestone)
+#   tests/run --full     clean proofs and long fuzzing, 45 minute cap (end of milestone)
 #   tests/run --update   regenerate golden files, then run everything
 #
 # Only failures and a timing table are printed. The full log is tests/output/run.log.
@@ -18,6 +18,7 @@ import concurrent.futures
 import os
 import random
 import re
+import resource
 import shutil
 import signal
 import subprocess
@@ -43,13 +44,13 @@ LUAC = REFERENCE / "luac"
 GOLDEN_MODES = ("tokens", "ast", "check", "bytecode")
 
 PROCESS_LIMIT = 10  # seconds for one pyrolua, lua or luac process
-TOTAL_LIMIT = {"quick": 300, "full": 1800}
+TOTAL_LIMIT = {"quick": 300, "full": 2700}
 
 # Wall-clock cap of each stage, in seconds, within the total.
 STAGE_LIMITS = {
     "quick": {"build": 120, "proof": 200, "tags": 10, "unit": 20, "golden": 30, "cli": 30,
               "differential": 60, "listing": 60, "fuzz": 30},
-    "full": {"build": 120, "proof": 900, "tags": 10, "unit": 20, "golden": 30, "cli": 60,
+    "full": {"build": 120, "proof": 1800, "tags": 10, "unit": 20, "golden": 30, "cli": 60,
              "differential": 60, "listing": 120, "fuzz": 600},
 }
 # The stages of the process check (tests/run --process-check).
@@ -96,6 +97,13 @@ DEEP_CONSTRUCTS = {
 # arm64, measured 2026-11-01, with chunked growable arrays and 32-byte stored tree nodes).
 # tests/run --full fails 25% above it.
 MEMORY_PER_SOURCE_MB = 16.9
+
+# The uncached proof stage of tests/run --full, on the development profile (macOS arm64, 4
+# performance and 6 efficiency cores, measured 2026-11-02 at the end of M3): wall-clock and
+# CPU seconds (user and system, gnatprove and everything it runs). tests/run --full fails when
+# either is more than 25% above it. The baseline changes only in a commit of its own that
+# says why (normally at the end of a milestone), never as a side effect of a run.
+PROOF_BASELINE = {"wall-clock": 848, "CPU": 6615}
 
 # Chunks that reach PUC Lua's compile-time limits, or come just short of them, generated
 # rather than kept in the corpus because of their size. luac -p and pyrolua --check must agree on
@@ -345,12 +353,24 @@ class Runner:
             cache = ROOT / "obj" / "proof-cache" / key
             cache.mkdir(parents=True, exist_ok=True)
             command.append(f"--memcached-server=file:{cache}")
+        started = time.monotonic()
+        before = resource.getrusage(resource.RUSAGE_CHILDREN)
         code, out, err = self.run(command, limit=self.remaining())
+        after = resource.getrusage(resource.RUSAGE_CHILDREN)
+        spent = {"wall-clock": time.monotonic() - started,
+                 "CPU": (after.ru_utime - before.ru_utime) + (after.ru_stime - before.ru_stime)}
         text = (out + err).decode(errors="replace")
         self.log(text)
         if code != 0:
             self.fail("gnatprove reported unproved checks or errors:\n" + tail(text, 60))
             return
+        if self.mode == "full":
+            self.log(f"uncached proof: {spent['wall-clock']:.0f} s wall-clock, "
+                     f"{spent['CPU']:.0f} s CPU")
+            for measure, seconds in spent.items():
+                if seconds > PROOF_BASELINE[measure] * 1.25:
+                    self.fail(f"the uncached proof took {seconds:.0f} s of {measure} time, more "
+                              f"than 25% above the baseline of {PROOF_BASELINE[measure]} s")
         summaries = sorted((ROOT / "obj").glob("*/gnatprove/gnatprove.out"),
                            key=lambda path: path.stat().st_mtime)
         summary = summaries[-1] if summaries else None
