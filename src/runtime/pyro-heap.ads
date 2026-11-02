@@ -3,14 +3,24 @@
 --  The heap: numbered slots holding Lua's objects, reached by handles.
 
 with Interfaces;          use Interfaces;
+with Pyro.Color_Sequences;
+with Pyro.Graph_Sequences;
 with Pyro.Kind_Sequences;
 with Pyro.Memory_Budgets; use Pyro.Memory_Budgets;
 with Pyro.Strings;
+with Pyro.Tables;
+with Pyro.Value_Maps;
+with Pyro.Value_Sequences;
 with Pyro.Values;         use Pyro.Values;
 
 package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
 
    use type Pyro.Strings.Seed;
+   use type Color_Sequences.Sequence;
+   use type Graph_Sequences.Sequence;
+   use type Kind_Sequences.Sequence;
+   use type Value_Maps.Map;
+   use type Value_Sequences.Sequence;
 
    --  The longest string, in bytes.
    Maximum_String_Length : constant := Pyro.Strings.Maximum_String_Length;
@@ -34,7 +44,11 @@ package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
 
    --  What slot Handle holds: Free_Object for No_Object and for handles past Slot_Count.
    function Kind_Of (H : Heap; Handle : Object_Handle) return Object_Kind
-   with Global => null, Post => (if Handle > Slot_Count (H) then Kind_Of'Result = Free_Object);
+   with
+     Global => null,
+     Post   =>
+       (if Handle = No_Object or else Handle > Slot_Count (H)
+        then Kind_Of'Result = Free_Object);
 
    --  [proof] The kind of every slot.
    function Kinds (H : Heap) return Kind_Sequences.Sequence
@@ -55,10 +69,59 @@ package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
                     then Kind_Sequences.Get (After, Handle) = Kind_Sequences.Get (Before, Handle))))
    with Ghost;
 
+   --  [proof] Item refers to no object, or to one that K shows holding an object.
+   function Live_In (K : Kind_Sequences.Sequence; Item : Value) return Boolean
+   is (Item.Kind /= Object_Value
+       or else (Item.Object in 1 .. Kind_Sequences.Last (K)
+                and then Kind_Sequences.Get (K, Item.Object) /= Free_Object))
+   with Ghost;
+
+   --  [proof] Item refers to no object, or to one the heap holds.
+   function Is_Live (H : Heap; Item : Value) return Boolean
+   is (Item.Kind /= Object_Value or else Kind_Of (H, Item.Object) /= Free_Object)
+   with Ghost;
+
+   --  [proof] The values object Handle holds, as Children gives them: a table's entries
+   --  (Pyro.Tables.Entries), nothing for other objects.
+   function Children (H : Heap; Handle : Valid_Handle) return Value_Sequences.Sequence
+   with
+     Ghost,
+     Global => null,
+     Post   =>
+       (if Kind_Of (H, Handle) /= Table_Object
+        then Value_Sequences.Last (Children'Result) = 0);
+
+   --  [proof] The children of every slot, by handle: the graph the collector walks.
+   function Graph (H : Heap) return Graph_Sequences.Sequence
+   with
+     Ghost,
+     Global => null,
+     Post   =>
+       Graph_Sequences.Last (Graph'Result) = Slot_Count (H)
+       and then (for all Handle in 1 .. Slot_Count (H) =>
+                   Graph_Sequences.Get (Graph'Result, Handle) = Children (H, Handle));
+
+   --  [proof] Every value in G refers to an object K shows: what Is_Valid says of the
+   --  objects tables refer to.
+   function Graph_Live (K : Kind_Sequences.Sequence; G : Graph_Sequences.Sequence)
+     return Boolean
+   is (for all Handle in 1 .. Graph_Sequences.Last (G) =>
+         (for all Position in 1 .. Value_Sequences.Last (Graph_Sequences.Get (G, Handle)) =>
+            Live_In (K, Value_Sequences.Get (Graph_Sequences.Get (G, Handle), Position))))
+   with Ghost;
+
    --  [proof] Every slot is either free and empty or holds one object of its kind, and every
    --  handle stored in an object refers to an object.
    function Is_Valid (H : Heap) return Boolean
    with Ghost, Global => null;
+
+   --  [proof] In a valid heap, every value an object holds refers to an object.
+   procedure Lemma_Graph_Live (H : Heap)
+   with
+     Ghost,
+     Global => null,
+     Pre    => Is_Valid (H),
+     Post   => Graph_Live (Kinds (H), Graph (H));
 
    --  True when the heap holds no memory.
    function Is_Released (H : Heap) return Boolean
@@ -113,6 +176,199 @@ package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
      Global => null,
      Pre    => Kind_Of (H, S) = String_Object and then Natural (Position) <= String_Length (H, S);
 
+   --  A new empty table. No_Object (and the heap keeps its objects) when Budget cannot pay
+   --  for it or every handle is in use.
+   procedure New_Table
+     (H      : in out Heap;
+      Budget : in out Memory_Budget;
+      Result : out Object_Handle)
+   with
+     Global => null,
+     Pre    => Is_Valid (H),
+     Post   =>
+       Is_Valid (H)
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then Keeps_Objects (Kinds (H)'Old, Kinds (H))
+       and then Seed (H) = Seed (H)'Old
+       and then (if Result /= No_Object
+                 then Kind_Of (H, Result) = Table_Object
+                      and then Value_Maps.Is_Empty (Table_Model (H, Result)));
+
+   --  [proof] The contents of table T (Pyro.Tables.Model).
+   function Table_Model (H : Heap; T : Valid_Handle) return Value_Maps.Map
+   with Ghost, Global => null, Pre => Kind_Of (H, T) = Table_Object;
+
+   --  The value of Key in table T (Pyro.Tables.Get).
+   function Table_Get (H : Heap; T : Valid_Handle; Key : Value) return Value
+   with
+     Global => null,
+     Pre    => Is_Valid (H) and then Kind_Of (H, T) = Table_Object and then Is_Canonical (Key),
+     Post   =>
+       Is_Canonical (Table_Get'Result)
+       and then Is_Live (H, Table_Get'Result)
+       and then Table_Get'Result
+                = (if Key_Of (Key) /= Nil
+                      and then Value_Maps.Has_Key (Table_Model (H, T), Key_Of (Key))
+                   then Value_Maps.Get (Table_Model (H, T), Key_Of (Key))
+                   else Nil);
+
+   --  Binds Key to Item in table T (Pyro.Tables.Set). Key and Item must refer to objects
+   --  the heap holds.
+   procedure Table_Set
+     (H      : in out Heap;
+      Budget : in out Memory_Budget;
+      T      : Valid_Handle;
+      Key    : Value;
+      Item   : Value;
+      Status : out Pyro.Tables.Set_Status)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (H)
+       and then Kind_Of (H, T) = Table_Object
+       and then Is_Canonical (Key) and then Is_Live (H, Key)
+       and then Is_Canonical (Item) and then Is_Live (H, Item),
+     Post   =>
+       Is_Valid (H)
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then Kinds (H) = Kinds (H)'Old
+       and then Seed (H) = Seed (H)'Old
+       and then (case Status is
+                   when Pyro.Tables.Done          =>
+                     Key_Of (Key) /= Nil
+                     and then Pyro.Tables.Stored
+                                (Table_Model (H, T), Table_Model (H, T)'Old, Key_Of (Key), Item),
+                   when Pyro.Tables.Invalid_Key   =>
+                     Key_Of (Key) = Nil and then Table_Model (H, T) = Table_Model (H, T)'Old,
+                   when Pyro.Tables.Out_Of_Memory =>
+                     Table_Model (H, T) = Table_Model (H, T)'Old);
+
+   --  The collector's colour of object Handle: White for every free slot, and for every
+   --  object outside a collection.
+   function Color_Of (H : Heap; Handle : Object_Handle) return Object_Color
+   with Global => null;
+
+   --  [proof] The colour of every slot.
+   function Colors (H : Heap) return Color_Sequences.Sequence
+   with
+     Ghost,
+     Global => null,
+     Post   =>
+       Color_Sequences.Last (Colors'Result) = Slot_Count (H)
+       and then (for all Handle in 1 .. Slot_Count (H) =>
+                   Color_Sequences.Get (Colors'Result, Handle) = Color_Of (H, Handle));
+
+   --  [proof] Every child of an object C does not show white is an object C does not show
+   --  white: what sweeping needs so that no object it keeps refers to one it frees.
+   function Closed (C : Color_Sequences.Sequence; G : Graph_Sequences.Sequence) return Boolean
+   is (for all Handle in 1 .. Graph_Sequences.Last (G) =>
+         (if Handle <= Color_Sequences.Last (C) and then Color_Sequences.Get (C, Handle) /= White
+          then (for all Position in 1 .. Value_Sequences.Last (Graph_Sequences.Get (G, Handle)) =>
+                  Value_Sequences.Get (Graph_Sequences.Get (G, Handle), Position).Kind
+                  /= Object_Value
+                  or else
+                    (Value_Sequences.Get (Graph_Sequences.Get (G, Handle), Position).Object
+                     in 1 .. Color_Sequences.Last (C)
+                     and then Color_Sequences.Get
+                                (C, Value_Sequences.Get
+                                      (Graph_Sequences.Get (G, Handle), Position).Object)
+                              /= White))))
+   with Ghost;
+
+   --  The number of values object Handle holds (Children), and the Position-th one.
+   function Child_Count (H : Heap; Handle : Valid_Handle) return Natural
+   with
+     Global => null,
+     Post   => Child_Count'Result = Value_Sequences.Last (Children (H, Handle));
+
+   function Child_At (H : Heap; Handle : Valid_Handle; Position : Positive) return Value
+   with
+     Global => null,
+     Pre    => Is_Valid (H) and then Position <= Child_Count (H, Handle),
+     Post   =>
+       Child_At'Result = Value_Sequences.Get (Children (H, Handle), Position)
+       and then Is_Live (H, Child_At'Result);
+
+   --  Makes white object Handle gray, and puts it on the gray list; a gray or black object
+   --  stays as it is.
+   procedure Shade (H : in out Heap; Handle : Valid_Handle)
+   with
+     Global => null,
+     Pre    => Is_Valid (H) and then Kind_Of (H, Handle) /= Free_Object,
+     Post   =>
+       Is_Valid (H)
+       and then Kinds (H) = Kinds (H)'Old
+       and then Graph (H) = Graph (H)'Old
+       and then Color_Of (H, Handle)
+                = (if Color_Sequences.Get (Colors (H)'Old, Handle) = White then Gray
+                   else Color_Sequences.Get (Colors (H)'Old, Handle))
+       and then (for all Other in 1 .. Slot_Count (H) =>
+                   (if Other /= Handle
+                    then Color_Of (H, Other) = Color_Sequences.Get (Colors (H)'Old, Other)));
+
+   --  The next object of the gray list, taken off it: a gray object, or No_Object when the
+   --  list is empty (or names an object that is not gray, which ends it).
+   procedure Take_Gray (H : in out Heap; Handle : out Object_Handle)
+   with
+     Global => null,
+     Pre    => Is_Valid (H),
+     Post   =>
+       Is_Valid (H)
+       and then Kinds (H) = Kinds (H)'Old
+       and then Graph (H) = Graph (H)'Old
+       and then Colors (H) = Colors (H)'Old
+       and then (if Handle /= No_Object
+                 then Handle <= Slot_Count (H)
+                      and then Kind_Of (H, Handle) /= Free_Object
+                      and then Color_Of (H, Handle) = Gray);
+
+   --  Makes object Handle black.
+   procedure Blacken (H : in out Heap; Handle : Valid_Handle)
+   with
+     Global => null,
+     Pre    => Is_Valid (H) and then Kind_Of (H, Handle) /= Free_Object,
+     Post   =>
+       Is_Valid (H)
+       and then Kinds (H) = Kinds (H)'Old
+       and then Graph (H) = Graph (H)'Old
+       and then Color_Of (H, Handle) = Black
+       and then (for all Other in 1 .. Slot_Count (H) =>
+                   (if Other /= Handle
+                    then Color_Of (H, Other) = Color_Sequences.Get (Colors (H)'Old, Other)));
+
+   --  Makes every object white and empties the gray list.
+   procedure Whiten (H : in out Heap)
+   with
+     Global => null,
+     Pre    => Is_Valid (H),
+     Post   =>
+       Is_Valid (H)
+       and then Kinds (H) = Kinds (H)'Old
+       and then Graph (H) = Graph (H)'Old
+       and then (for all Handle in 1 .. Slot_Count (H) => Color_Of (H, Handle) = White);
+
+   --  [puc lgc.c:sweeplist] Frees every white object, takes freed strings out of the intern
+   --  set, releases their memory from Budget, and makes every object white. The objects that
+   --  are not white must refer only to objects that are not white (Closed), so that no object
+   --  kept refers to one freed.
+   procedure Sweep (H : in out Heap; Budget : in out Memory_Budget)
+   with
+     Global => null,
+     Pre    => Is_Valid (H) and then Closed (Colors (H), Graph (H)),
+     Post   =>
+       Is_Valid (H)
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then Seed (H) = Seed (H)'Old
+       and then Slot_Count (H) = Slot_Count (H)'Old
+       and then (for all Handle in 1 .. Slot_Count (H) =>
+                   Kind_Of (H, Handle)
+                   = (if Color_Sequences.Get (Colors (H)'Old, Handle) = White then Free_Object
+                      else Kind_Sequences.Get (Kinds (H)'Old, Handle)))
+       and then (for all Handle in 1 .. Slot_Count (H) =>
+                   (if Color_Sequences.Get (Colors (H)'Old, Handle) /= White
+                    then Children (H, Handle) = Graph_Sequences.Get (Graph (H)'Old, Handle)))
+       and then (for all Handle in 1 .. Slot_Count (H) => Color_Of (H, Handle) = White);
+
    --  Frees every object and releases the heap's memory from Budget.
    procedure Clear (H : in out Heap; Budget : in out Memory_Budget)
    with
@@ -129,14 +385,17 @@ private
    pragma Annotate (GNATprove, Hide_Info, "Private_Part");
 
    type Byte_Array_Access is access Byte_Array;
+   type Table_Access is access Pyro.Tables.Table;
 
-   --  A slot: what it holds, and what it owns. A free slot links to the next free one; a
-   --  string slot keeps its hash.
+   --  A slot: what it holds, and what it owns. A free slot links to the next free one, and a
+   --  gray object to the next gray one; a string slot keeps its hash.
    type Slot is record
-      Kind      : Object_Kind := Free_Object;
-      Next_Free : Object_Handle := No_Object;
-      Hash      : Unsigned_64 := 0;
-      Bytes     : Byte_Array_Access := null;
+      Kind  : Object_Kind := Free_Object;
+      Color : Object_Color := White;
+      Link  : Object_Handle := No_Object;
+      Hash  : Unsigned_64 := 0;
+      Bytes : Byte_Array_Access := null;
+      Table : Table_Access := null;
    end record;
 
    --  Slots live in chunks of Chunk_Length, found through a table of Chunk_Count entries
@@ -203,6 +462,9 @@ private
       --  The last freed slot, the start of the free list (checked when taken, so the list
       --  needs no invariant).
       Free_Head  : Object_Handle := No_Object;
+      --  The last object made gray, the start of the gray list (checked when taken, so the
+      --  list needs no invariant).
+      Gray_Head  : Object_Handle := No_Object;
    end record;
 
    function Slot_Count (H : Heap) return Object_Handle
@@ -220,30 +482,65 @@ private
        then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Kind
        else Free_Object);
 
-   --  [proof] A slot holds what its kind says: a free slot owns nothing, a string slot owns
-   --  bytes 1 .. Length, at most Maximum_String_Length.
+   function Color_Of (H : Heap; Handle : Object_Handle) return Object_Color
+   is (if Handle in 1 .. Slot_Count (H) and then Has_Chunk (H, Place_Of (Handle).Chunk)
+       then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Color
+       else White);
+
+   --  [proof] A slot holds what its kind says: a free slot owns nothing and is white, a
+   --  string slot owns bytes 1 .. Length, at most Maximum_String_Length, and a table slot a
+   --  valid table.
    function Slot_Valid (Item : Slot) return Boolean
    is (case Item.Kind is
-         when Free_Object   => Item.Bytes = null,
+         when Free_Object   =>
+           Item.Bytes = null and then Item.Table = null and then Item.Color = White,
          when String_Object =>
            Item.Bytes /= null
            and then Item.Bytes'First = 1
-           and then Item.Bytes'Last <= Maximum_String_Length,
-         when Table_Object  => False)
+           and then Item.Bytes'Last <= Maximum_String_Length
+           and then Item.Table = null,
+         when Table_Object  =>
+           Item.Bytes = null
+           and then Item.Table /= null
+           and then Pyro.Tables.Is_Valid (Item.Table.all))
    with Ghost;
 
-   --  [proof] Slot Handle has its chunk and is valid when Handle is at most Slot_Count;
-   --  otherwise it is free and owns nothing.
-   function Handle_Valid (H : Heap; Handle : Valid_Handle) return Boolean
-   is (if Handle <= Slot_Count (H)
-       then Has_Chunk (H, Place_Of (Handle).Chunk)
-            and then Slot_Valid (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset))
-       else not Has_Chunk (H, Place_Of (Handle).Chunk)
-            or else (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Kind
-                     = Free_Object
-                     and then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Bytes
-                              = null))
+   --  [proof] Slot Handle, of a heap with chunk table Chunks and Count slots, has its chunk
+   --  and is valid when Handle is at most Count; otherwise it is free, white and owns nothing.
+   --  Stated over the chunk table and the count rather than the heap, so that changing any
+   --  other part of the heap keeps it as it is.
+   function Place_Valid
+     (Chunks : Chunk_Table_Access; Count : Object_Handle; Handle : Valid_Handle) return Boolean
+   is (if Handle <= Count
+       then Chunks /= null
+            and then Chunks (Place_Of (Handle).Chunk) /= null
+            and then Slot_Valid (Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset))
+       else Chunks = null
+            or else Chunks (Place_Of (Handle).Chunk) = null
+            or else (Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Kind = Free_Object
+                     and then Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Bytes
+                              = null
+                     and then Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Table
+                              = null
+                     and then Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Color
+                              = White))
    with Ghost;
+
+   function Handle_Valid (H : Heap; Handle : Valid_Handle) return Boolean
+   is (Place_Valid (H.Chunks, H.Slot_Count, Handle))
+   with Ghost;
+
+   function Children (H : Heap; Handle : Valid_Handle) return Value_Sequences.Sequence
+   is (if Kind_Of (H, Handle) = Table_Object
+          and then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Table /= null
+       then Pyro.Tables.Entries
+              (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Table.all)
+       else Value_Sequences.Empty_Sequence);
+
+   function Table_Model (H : Heap; T : Valid_Handle) return Value_Maps.Map
+   is (if H.Chunks (Place_Of (T).Chunk) (Place_Of (T).Offset).Table /= null
+       then Pyro.Tables.Model (H.Chunks (Place_Of (T).Chunk) (Place_Of (T).Offset).Table.all)
+       else Value_Maps.Empty_Map);
 
    --  [proof] The intern set has the shape probing needs, and its used entries are strings.
    function Intern_Valid (H : Heap) return Boolean
@@ -255,10 +552,19 @@ private
                              then Kind_Of (H, H.Intern (Index).Handle) = String_Object))))
    with Ghost;
 
+   --  [proof] Every value an object holds refers to an object. Hidden, so that only the
+   --  operations that change objects see the ghost graph; they restore it through lemmas.
+   function Refs_Live (H : Heap) return Boolean
+   is (Graph_Live (Kinds (H), Graph (H)))
+   with Ghost, Post => (if Slot_Count (H) = 0 then Refs_Live'Result);
+   pragma Annotate (GNATprove, Hide_Info, "Expression_Function_Body", Refs_Live);
+
    function Is_Valid (H : Heap) return Boolean
    is ((Slot_Count (H) = 0 or else H.Chunks /= null)
-       and then (for all Handle in Valid_Handle => Handle_Valid (H, Handle))
-       and then Intern_Valid (H));
+       and then (for all Handle in Valid_Handle =>
+                   Place_Valid (H.Chunks, H.Slot_Count, Handle))
+       and then Intern_Valid (H)
+       and then Refs_Live (H));
 
    function String_Length (H : Heap; S : Object_Handle) return Natural
    is (if Kind_Of (H, S) = String_Object

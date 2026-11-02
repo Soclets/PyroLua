@@ -18,6 +18,10 @@ package Pyro.Values with SPARK_Mode => On, Always_Terminates is
    --  What a heap slot holds. A free slot holds nothing.
    type Object_Kind is (Free_Object, String_Object, Table_Object);
 
+   --  The collector's mark of a heap object: white when not reached (yet), gray when reached
+   --  with its children still to visit, black when they have been.
+   type Object_Color is (White, Gray, Black);
+
    type Value_Kind is (Nil_Value, Boolean_Value, Integer_Value, Float_Value, Object_Value);
 
    --  A Lua value. Its fields are canonical for its kind (Is_Canonical): a boolean is 0 or 1
@@ -103,7 +107,8 @@ package Pyro.Values with SPARK_Mode => On, Always_Terminates is
      Post   =>
        (if Valid then Is_Key (Key) and then Is_Canonical (Key) else Key = Nil)
        and then (if Item.Kind in Boolean_Value | Integer_Value | Object_Value
-                 then Valid and then Key = Item);
+                 then Valid and then Key = Item)
+       and then (if Item.Kind /= Object_Value then Key.Kind /= Object_Value);
 
    --  Item as a table key (Normalize_Key), or Nil when it cannot be one.
    function Key_Of (Item : Value) return Value
@@ -114,6 +119,7 @@ package Pyro.Values with SPARK_Mode => On, Always_Terminates is
        (Key_Of'Result = Nil
         or else (Is_Key (Key_Of'Result) and then Is_Canonical (Key_Of'Result)))
        and then (if Item.Kind in Boolean_Value | Integer_Value | Object_Value
-                 then Key_Of'Result = Item);
+                 then Key_Of'Result = Item)
+       and then (if Item.Kind /= Object_Value then Key_Of'Result.Kind /= Object_Value);
 
 end Pyro.Values;

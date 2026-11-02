@@ -201,7 +201,24 @@ package Pyro.Tables with SPARK_Mode => On, Always_Terminates is
      Post   =>
        Value_Sequences.Last (Entries'Result) = Entry_Count (T)
        and then (for all Position in 1 .. Entry_Count (T) =>
-                   Value_Sequences.Get (Entries'Result, Position) = Entry_At (T, Position));
+                   Value_Sequences.Get (Entries'Result, Position) = Entry_At (T, Position))
+       and then (if Is_Released (T) then Value_Sequences.Last (Entries'Result) = 0);
+
+   --  [proof] The value of every key is among the table's entries, and so is the key when it
+   --  is an object: what the heap needs to know that what a table gives refers to live
+   --  objects.
+   procedure Lemma_Model_In_Entries (T : Table; Key : Value)
+   with
+     Ghost,
+     Global => null,
+     Pre    => Is_Valid (T) and then Value_Maps.Has_Key (Model (T), Key),
+     Post   =>
+       (Key.Kind /= Object_Value
+        or else Value_Sequences.Contains
+                  (Entries (T), 1, Value_Sequences.Last (Entries (T)), Key))
+       and then Value_Sequences.Contains
+                  (Entries (T), 1, Value_Sequences.Last (Entries (T)),
+                   Value_Maps.Get (Model (T), Key));
 
    --  [proof] Every object After holds is Key, Item, or an object Before holds: what the heap
    --  needs to know that a table refers only to live objects.

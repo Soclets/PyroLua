@@ -7,8 +7,9 @@ with Ada.Command_Line;
 with Ada.Containers.Ordered_Maps;
 with Ada.Text_IO;          use Ada.Text_IO;
 with Interfaces;           use Interfaces;
-with Pyro.Heap;            use Pyro.Heap;
 with Pyro.Floats;
+with Pyro.Garbage_Collector;
+with Pyro.Heap;            use Pyro.Heap;
 with Pyro.Strings;
 with Pyro.Tables;          use Pyro.Tables;
 with Pyro.Memory_Budgets;  use Pyro.Memory_Budgets;
@@ -316,6 +317,253 @@ procedure Runtime_Test is
       Clear (T, Budget);
    end Test_Tables_Probes;
 
+   --  The objects reachable from Roots, found by a breadth-first walk over Child_At: what the
+   --  collector must keep, computed without it.
+   type Handle_Flags is array (Valid_Handle range <>) of Boolean;
+
+   function Reachable (H : Heap; Roots : Pyro.Garbage_Collector.Root_Array) return Handle_Flags is
+      Result : Handle_Flags (1 .. Slot_Count (H)) := [others => False];
+      Queue  : array (1 .. Natural (Slot_Count (H))) of Valid_Handle;
+      Head   : Natural := 0;
+      Tail   : Natural := 0;
+
+      procedure Reach (Item : Value) is
+      begin
+         if Item.Kind = Object_Value and then not Result (Item.Object) then
+            Result (Item.Object) := True;
+            Tail := Tail + 1;
+            Queue (Tail) := Item.Object;
+         end if;
+      end Reach;
+   begin
+      for Root of Roots loop
+         Reach (Root);
+      end loop;
+      while Head < Tail loop
+         Head := Head + 1;
+         for Position in 1 .. Child_Count (H, Queue (Head)) loop
+            Reach (Child_At (H, Queue (Head), Position));
+         end loop;
+      end loop;
+      return Result;
+   end Reachable;
+
+   --  Random graphs of strings and tables, random roots: the collector frees exactly what
+   --  cannot be reached, the tables it keeps still hold what they held, and freeing returns
+   --  the memory, so the same round of allocations ends at the same budget.
+   procedure Test_Collector_Random is
+      Budget   : Memory_Budget := Create (Default_Limit);
+      After    : array (1 .. 2) of Byte_Count := [others => 0];
+      Kept     : Natural := 0;
+      Freed    : Natural := 0;
+   begin
+      for Round in 1 .. 40 loop
+         declare
+            H        : Heap;
+            Objects  : array (1 .. 300) of Object_Handle := [others => No_Object];
+            Status   : Set_Status;
+            Complete : Boolean;
+            Count    : constant Positive := 20 + Random (280);
+            Roots    : Pyro.Garbage_Collector.Root_Array (1 .. Random (6));
+            Before   : Handle_Flags (1 .. 300);
+            Keys     : array (1 .. 300) of Value := [others => Nil];
+            Items    : array (1 .. 300) of Value := [others => Nil];
+            Holder   : array (1 .. 300) of Object_Handle := [others => No_Object];
+            Stored   : Natural := 0;
+         begin
+            for Index in 1 .. Count loop
+               if Random (3) = 0 then
+                  New_String (H, Budget, Bytes ("s" & Natural'Image (Random (100))),
+                              Objects (Index));
+               else
+                  New_Table (H, Budget, Objects (Index));
+               end if;
+            end loop;
+            --  Random edges, sometimes removed again (a removed key stays referred to by its
+            --  dead node until the table is rehashed, which the walk over Child_At sees).
+            for Edge in 1 .. Count * 2 loop
+               declare
+                  From : constant Object_Handle := Objects (Random (Count) + 1);
+                  To   : constant Object_Handle := Objects (Random (Count) + 1);
+                  Key  : constant Value :=
+                    (if Random (2) = 0 then Integer_Value_Of (Integer_64 (Random (20) + 1))
+                     else Object_Value_Of (Objects (Random (Count) + 1)));
+               begin
+                  if Kind_Of (H, From) = Table_Object then
+                     Table_Set (H, Budget, From, Key,
+                                (if Random (8) = 0 then Nil else Object_Value_Of (To)), Status);
+                     Check (Status = Done, "collector: edge stored");
+                  end if;
+               end;
+            end loop;
+            --  What each table holds now, to read back after collecting.
+            for Index in 1 .. Count loop
+               if Kind_Of (H, Objects (Index)) = Table_Object and then Stored < Keys'Last then
+                  Stored := Stored + 1;
+                  Holder (Stored) := Objects (Index);
+                  Keys (Stored) := Integer_Value_Of (Integer_64 (Random (20) + 1));
+                  Items (Stored) := Table_Get (H, Objects (Index), Keys (Stored));
+               end if;
+            end loop;
+            for R in Roots'Range loop
+               Roots (R) := Object_Value_Of (Objects (Random (Count) + 1));
+            end loop;
+            declare
+               Expected : constant Handle_Flags := Reachable (H, Roots);
+            begin
+               for Handle in Before'Range loop
+                  Before (Handle) := Handle <= Slot_Count (H)
+                                     and then Kind_Of (H, Handle) /= Free_Object;
+               end loop;
+               Pyro.Garbage_Collector.Collect (H, Budget, Roots, Complete);
+               Check (Complete, "collector: marking completes");
+               for Handle in Expected'Range loop
+                  Check (Expected (Handle) = (Kind_Of (H, Handle) /= Free_Object),
+                         "collector: kept exactly the reachable objects");
+                  if Before (Handle) then
+                     if Expected (Handle) then
+                        Kept := Kept + 1;
+                     else
+                        Freed := Freed + 1;
+                     end if;
+                  end if;
+               end loop;
+               for Index in 1 .. Stored loop
+                  if Expected (Holder (Index)) then
+                     Check (Table_Get (H, Holder (Index), Keys (Index)) = Items (Index),
+                            "collector: kept tables hold what they held");
+                  end if;
+               end loop;
+            end;
+            --  Collecting again with every survivor as a root frees nothing.
+            declare
+               Survivors : Pyro.Garbage_Collector.Root_Array (1 .. Natural (Slot_Count (H)));
+               Used_Now  : constant Byte_Count := Used (Budget);
+            begin
+               for Handle in 1 .. Slot_Count (H) loop
+                  Survivors (Positive (Handle)) :=
+                    (if Kind_Of (H, Handle) = Free_Object then Nil else Object_Value_Of (Handle));
+               end loop;
+               Pyro.Garbage_Collector.Collect (H, Budget, Survivors, Complete);
+               for Handle in 1 .. Slot_Count (H) loop
+                  Check ((Kind_Of (H, Handle) = Free_Object)
+                         = (Survivors (Positive (Handle)) = Nil),
+                         "collector: roots keep everything");
+               end loop;
+               Check (Used (Budget) = Used_Now, "collector: nothing to free, nothing released");
+            end;
+            Clear (H, Budget);
+            Check (Used (Budget) = 0, "collector: Clear releases everything");
+         end;
+      end loop;
+      Check (Kept > 0 and then Freed > 0, "collector: rounds kept and freed objects");
+
+      --  The same allocations twice, then everything freed: the budget ends where it did.
+      for Pass in After'Range loop
+         declare
+            H        : Heap;
+            Item     : Object_Handle;
+            Previous : Object_Handle := No_Object;
+            Status   : Set_Status;
+            Complete : Boolean;
+            None     : Pyro.Garbage_Collector.Root_Array (1 .. 0);
+         begin
+            for Round in 1 .. 2 loop
+               for Index in 1 .. 500 loop
+                  New_Table (H, Budget, Item);
+                  if Previous /= No_Object then
+                     Table_Set (H, Budget, Item, Integer_Value_Of (1), Object_Value_Of (Previous),
+                                Status);
+                  end if;
+                  Previous := Item;
+                  New_String (H, Budget, Bytes ("text" & Natural'Image (Index)), Item);
+               end loop;
+               Previous := No_Object;
+               Pyro.Garbage_Collector.Collect (H, Budget, None, Complete);
+            end loop;
+            After (Pass) := Used (Budget);
+            for Handle in 1 .. Slot_Count (H) loop
+               Check (Kind_Of (H, Handle) = Free_Object, "collector: no roots frees everything");
+            end loop;
+            Clear (H, Budget);
+         end;
+      end loop;
+      Check (After (1) = After (2) and then Used (Budget) = 0,
+             "collector: freed memory returns to the budget");
+   end Test_Collector_Random;
+
+   --  Strings freed by the collector leave the intern set: making the same bytes again gives
+   --  a string, interned again.
+   procedure Test_Collector_Interning is
+      H        : Heap;
+      Budget   : Memory_Budget := Create (Default_Limit);
+      A, B, C  : Object_Handle;
+      Complete : Boolean;
+      None     : Pyro.Garbage_Collector.Root_Array (1 .. 0);
+   begin
+      New_String (H, Budget, Bytes ("weak"), A);
+      New_String (H, Budget, Bytes ("kept"), B);
+      Pyro.Garbage_Collector.Collect (H, Budget, [1 => Object_Value_Of (B)], Complete);
+      Check (Kind_Of (H, A) = Free_Object and then Kind_Of (H, B) = String_Object,
+             "collector: unreachable string freed, root kept");
+      New_String (H, Budget, Bytes ("kept"), C);
+      Check (C = B, "collector: kept string still interned");
+      New_String (H, Budget, Bytes ("weak"), A);
+      New_String (H, Budget, Bytes ("weak"), C);
+      Check (A /= No_Object and then C = A and then String_Length (H, A) = 4,
+             "collector: freed string made and interned again");
+      Pyro.Garbage_Collector.Collect (H, Budget, None, Complete);
+      Clear (H, Budget);
+      Check (Used (Budget) = 0, "collector: interning Clear releases everything");
+   end Test_Collector_Interning;
+
+   --  Large graphs within the limit: a chain of tables deeper than any stack, and one table
+   --  with many children. Marking uses the gray list, so depth costs no recursion.
+   procedure Test_Collector_Stress is
+      H        : Heap;
+      Budget   : Memory_Budget := Create (Default_Limit);
+      First    : Object_Handle;
+      Item     : Object_Handle;
+      Previous : Object_Handle;
+      Wide     : Object_Handle;
+      Status   : Set_Status;
+      Complete : Boolean;
+      Live     : Natural := 0;
+   begin
+      New_Table (H, Budget, First);
+      Previous := First;
+      for Index in 1 .. 100_000 loop
+         New_Table (H, Budget, Item);
+         Table_Set (H, Budget, Previous, Integer_Value_Of (1), Object_Value_Of (Item), Status);
+         Previous := Item;
+      end loop;
+      New_Table (H, Budget, Wide);
+      for Index in 1 .. 50_000 loop
+         New_Table (H, Budget, Item);
+         Table_Set (H, Budget, Wide, Integer_Value_Of (Integer_64 (Index)), Object_Value_Of (Item),
+                    Status);
+      end loop;
+      Check (Status = Done, "collector: stress graph built");
+      Pyro.Garbage_Collector.Collect (H, Budget, [Object_Value_Of (First), Object_Value_Of (Wide)],
+                              Complete);
+      for Handle in 1 .. Slot_Count (H) loop
+         if Kind_Of (H, Handle) /= Free_Object then
+            Live := Live + 1;
+         end if;
+      end loop;
+      Check (Complete and then Live = 150_002, "collector: deep and wide graphs kept");
+      Pyro.Garbage_Collector.Collect (H, Budget, [1 => Object_Value_Of (Wide)], Complete);
+      Live := 0;
+      for Handle in 1 .. Slot_Count (H) loop
+         if Kind_Of (H, Handle) /= Free_Object then
+            Live := Live + 1;
+         end if;
+      end loop;
+      Check (Complete and then Live = 50_001, "collector: dropped chain freed");
+      Clear (H, Budget);
+      Check (Used (Budget) = 0, "collector: stress Clear releases everything");
+   end Test_Collector_Stress;
+
 begin
    Test_Tables_Model;
    Test_Tables_Length;
@@ -324,6 +572,9 @@ begin
    Test_Heap_Many;
    Test_Hash;
    Test_Interning;
+   Test_Collector_Random;
+   Test_Collector_Interning;
+   Test_Collector_Stress;
    if Failures > 0 then
       Put_Line (Natural'Image (Failures) & " failure(s)");
       Ada.Command_Line.Set_Exit_Status (1);

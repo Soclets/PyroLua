@@ -94,6 +94,7 @@ locale.
 | `Pyro.Tables` | M3 | Lua tables |
 | `Pyro.Value_Maps`, `Pyro.Value_Sequences` | M3 | [proof] A table's contents and the values it holds, as ghost containers |
 | `Pyro.Garbage_Collector` | M3 | Mark and sweep collector |
+| `Pyro.Color_Sequences`, `Pyro.Graph_Sequences`, `Pyro.Handle_Sequences` | M3 | [proof] The collector's marks, what each object holds, and paths through the heap, as ghost sequences |
 | `Pyro.Virtual_Machine` | M4 | Interpreter loop, call frames, metamethods |
 | `Pyro.Embedding` | M6 | Embedding API for Ada/SPARK hosts |
 | `pyrolua.h` and its layer | M6 | The C API for C and C++ hosts (primary), over the same core |
@@ -415,19 +416,27 @@ differential tests must not depend on the order of `pairs`.
 
 ### Garbage collector
 
-Stop-the-world mark and sweep first. Incremental or generational collection is a
+`Pyro.Collector` is a stop-the-world mark and sweep over the roots the caller gives (in M4,
+the VM's stacks, registry and open upvalues). Incremental or generational collection is a
 later optimisation and not required for correctness.
 
-- **Mark** uses an explicit gray stack (no recursion), bounded by the number of
-  objects.
-- **Sweep** frees unmarked objects and returns their slots to the free list.
-- Weak tables (`__mode`) and finalisers (`__gc`) are part of Lua 5.4 semantics and
-  come after the basic collector is proven.
+- **Mark** colours objects white, gray or black, as `lgc.c` does. The roots turn gray;
+  then each gray object taken off the gray list has its children shaded and turns black.
+  The gray list is threaded through the slots' link field, which free slots use for the
+  free list, so marking allocates nothing and works when memory has run out. A slot taken
+  off the gray list is checked to be gray, so the list needs no invariant; once it is
+  empty, a pass over the slots checks that none is gray. If one is, or the list runs past
+  one entry per object (neither can happen), marking is incomplete and nothing is freed.
+- **Sweep** frees every white object, takes freed strings out of the intern set, returns
+  their memory to the budget, and makes every object white again.
+- Weak tables (`__mode`) and finalisers (`__gc`) come in M5. Until then, a table's dead
+  keys are strong (see Tables).
 
-Gold properties: after marking, every object reachable from the roots is marked;
-sweep frees only unmarked objects; `Is_Valid (Heap)` holds after collection. Together:
-the collector never frees a reachable object. Reachability is defined as a ghost
-function over the heap.
+Gold properties: when marking is complete, the roots are not white and every child of an
+object that is not white is not white either (the tricolour invariant, with no gray left);
+sweep frees exactly the white objects; `Is_Valid (Heap)` holds after collection. Together:
+every object on a path from the roots survives with its kind and contents (a lemma by
+induction on the path, a ghost sequence of handles).
 
 ## Virtual machine (M4)
 

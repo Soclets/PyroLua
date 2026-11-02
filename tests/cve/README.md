@@ -32,7 +32,7 @@ Runtime CVEs, added as the milestone that can run them lands. Descriptions follo
 | [CVE-2020-24342](https://nvd.nist.gov/vuln/detail/CVE-2020-24342) | up to 5.4.0 | C stack overflow while building an error message (`luaO_pushvfstring`) | M4 |
 | [CVE-2022-33099](https://nvd.nist.gov/vuln/detail/CVE-2022-33099) | up to 5.4.4 | heap overflow on a recursive error (`luaG_runerror`) | M4 |
 | [CVE-2021-44647](https://nvd.nist.gov/vuln/detail/CVE-2021-44647) | 5.4.3 and later | type confusion naming a function in an error (`funcnamefromcode`) | M4 |
-| [CVE-2020-24371](https://nvd.nist.gov/vuln/detail/CVE-2020-24371) | 5.4.0 | barriers during the sweep phase (`lgc.c`) | M3 to M5 |
+| [CVE-2020-24371](https://nvd.nist.gov/vuln/detail/CVE-2020-24371) | 5.4.0 | barriers during the sweep phase (`lgc.c`) | M4 (the M3 collector is stop-the-world: no sweep runs between script steps, so there is no barrier to get wrong; the proof of concept runs once the VM does) |
 | [CVE-2020-15889](https://nvd.nist.gov/vuln/detail/CVE-2020-15889) | 5.4.0 | generational collection (`youngcollection`, `lgc.c`) | M5 |
 | [CVE-2021-44964](https://nvd.nist.gov/vuln/detail/CVE-2021-44964) | 5.4.0 to 5.4.3 | use after free with finalizers (`lgc.c`) | M5 |
 | [CVE-2021-45985](https://nvd.nist.gov/vuln/detail/CVE-2021-45985) | 5.4.3 | finalizer called during a tail call | M5 |

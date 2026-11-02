@@ -65,20 +65,31 @@ omit runtime checks.
 Invariant `Is_Valid (Heap)`: every `Object_Handle` stored in any live object or in any root
 refers to an allocated slot of the expected object kind. Every heap operation
 (allocate, store into an object, free) is proven to preserve it. It also covers what the
-heap owns: every slot owns what its kind says (a free slot nothing, a string its bytes),
-slots past the last one own nothing, and every entry in use in the intern set is a
-string, so the set never refers to a freed slot. `Pyro.Strings` (SipHash-1-3) is Silver
+heap owns: every slot owns what its kind says (a free slot nothing, a string its bytes, a
+table a valid table), slots past the last one own nothing, every entry in use in the
+intern set is a string, so the set never refers to a freed slot, and every value a table
+holds (its entries, dead keys included) refers to an object the heap holds. That last part
+is stated over the ghost `Kinds` and `Graph` and hidden behind `Refs_Live`, so that only the
+operations that change objects reason about it. `Pyro.Strings` (SipHash-1-3) is Silver
 and checked against the reference vectors in `tests/unit`.
 
 ### Garbage collector (M3)
 
-With reachability defined as a ghost function over the heap and the root set:
+The heap's ghost view is `Kinds (H)` (what each slot holds), `Colors (H)` and `Graph (H)`
+(the values each object holds: a table's entries). A path is a ghost sequence of handles
+whose first is a root and each next one a child of the one before.
 
-1. after the mark phase, every object reachable from the roots is marked;
-2. sweep frees only unmarked objects;
-3. `Is_Valid (Heap)` holds after collection.
+1. When marking completes, every root is not white and the set of objects that are not
+   white is closed under children (`Closed`). This comes from the tricolour invariant (no
+   child of a black object is white), kept by every shading and blackening, and the check
+   that no object is left gray.
+2. Sweep frees exactly the white objects and keeps the others with their contents.
+3. `Is_Valid (Heap)` holds after collection: every value in a kept object refers to a kept
+   object, and the intern set refers only to kept strings.
 
-Together these say the collector never frees a reachable object.
+`Collect`'s postcondition states 1 and 2 as what the heap keeps (`Keeps_Closed`), and
+`Lemma_Path_Kept` proves, by induction along any path from the roots, that its last object
+is kept with its kind: the collector never frees a reachable object.
 
 ### Tables (M3)
 
@@ -264,8 +275,8 @@ When it grows, find where by unit rather than guessing:
 | Parser, AST | Silver + well-formedness | proven |
 | Resolver | Silver | proven |
 | Compiler / bytecode validity | Gold | proven (output checked by the proven `Is_Valid`) |
-| Heap | Gold | proven for strings (table objects come with the collector) |
+| Heap | Gold | proven |
 | Tables | Gold | proven |
-| GC | Gold | not started |
+| GC | Gold | proven |
 | VM | Silver + frame invariant | not started |
 | API | Silver | not started |

@@ -875,6 +875,30 @@ package body Pyro.Tables with SPARK_Mode => On is
        then Value_Sequences.Empty_Sequence
        else Entries_Of (T.Items.all, T.Nodes.all));
 
+   procedure Lemma_Model_In_Entries (T : Table; Key : Value) is
+   begin
+      pragma Assert (Model (T) = Model_Of (T.Items.all, T.Nodes.all, T.Seed));
+      Lemma_Entry_Places (T.Items.all, T.Nodes.all);
+      if Array_Key (T.Items.all, Key) then
+         pragma Assert
+           (Value_Sequences.Get (Entries (T), Index_Of (T.Items.all, Key))
+            = Value_Maps.Get (Model (T), Key));
+         return;
+      end if;
+      for I in T.Nodes'Range loop
+         if T.Nodes (I).State = Used_Node and then T.Nodes (I).Key = Key then
+            pragma Assert (Value_Sequences.Get (Entries (T), T.Items'Length + 1 + I) = Key);
+            pragma Assert
+              (Value_Sequences.Get (Entries (T), T.Items'Length + T.Nodes'Length + 1 + I)
+               = Value_Maps.Get (Model (T), Key));
+            return;
+         end if;
+         pragma Loop_Invariant
+           (for all J in T.Nodes'First .. I =>
+              not (T.Nodes (J).State = Used_Node and then T.Nodes (J).Key = Key));
+      end loop;
+   end Lemma_Model_In_Entries;
+
    ----------------------------------------------------------------------------------------
    --  Setting
    ----------------------------------------------------------------------------------------
