@@ -940,32 +940,51 @@ package body Pyro.Heap with SPARK_Mode => On is
       Lemma_Refs_Live (H);
    end Sweep;
 
+   --  Frees what slot Item owns, and releases it from Budget.
+   procedure Release_Slot (Item : in out Slot; Budget : in out Memory_Budget)
+   with
+     Global => null,
+     Post   =>
+       Item.Bytes = null and then Item.Table = null and then Limit (Budget) = Limit (Budget)'Old
+   is
+   begin
+      if Item.Bytes /= null then
+         Release (Budget, Byte_Count (Item.Bytes'Length) + Object_Overhead);
+      end if;
+      Free_Bytes (Item.Bytes);
+      if Item.Table /= null then
+         Pyro.Tables.Clear (Item.Table.all, Budget);
+         Release (Budget, Object_Overhead);
+      end if;
+      Free_Table_Object (Item.Table);
+   end Release_Slot;
+
+   --  Frees chunk Chunk and what its slots own, and releases it all from Budget.
+   procedure Release_Chunk (Chunk : in out Slot_Chunk_Access; Budget : in out Memory_Budget)
+   with
+     Global => null,
+     Post   => Chunk = null and then Limit (Budget) = Limit (Budget)'Old
+   is
+   begin
+      if Chunk = null then
+         return;
+      end if;
+      for Offset in Chunk_Offset loop
+         Release_Slot (Chunk (Offset), Budget);
+         pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
+         pragma Loop_Invariant
+           (for all Earlier in 0 .. Offset =>
+              Chunk (Earlier).Bytes = null and then Chunk (Earlier).Table = null);
+      end loop;
+      Release (Budget, Chunk_Bytes);
+      Free_Chunk (Chunk);
+   end Release_Chunk;
+
    procedure Clear (H : in out Heap; Budget : in out Memory_Budget) is
    begin
       if H.Chunks /= null then
          for Chunk in Chunk_Number loop
-            if H.Chunks (Chunk) /= null then
-               for Offset in Chunk_Offset loop
-                  if H.Chunks (Chunk) (Offset).Bytes /= null then
-                     Release
-                       (Budget,
-                        Byte_Count (H.Chunks (Chunk) (Offset).Bytes'Length) + Object_Overhead);
-                  end if;
-                  Free_Bytes (H.Chunks (Chunk) (Offset).Bytes);
-                  if H.Chunks (Chunk) (Offset).Table /= null then
-                     Pyro.Tables.Clear (H.Chunks (Chunk) (Offset).Table.all, Budget);
-                     Release (Budget, Object_Overhead);
-                  end if;
-                  Free_Table_Object (H.Chunks (Chunk) (Offset).Table);
-                  pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
-                  pragma Loop_Invariant
-                    (for all Earlier in 0 .. Offset =>
-                       H.Chunks (Chunk) (Earlier).Bytes = null
-                       and then H.Chunks (Chunk) (Earlier).Table = null);
-               end loop;
-               Release (Budget, Chunk_Bytes);
-            end if;
-            Free_Chunk (H.Chunks (Chunk));
+            Release_Chunk (H.Chunks (Chunk), Budget);
             pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
             pragma Loop_Invariant (for all Earlier in 0 .. Chunk => H.Chunks (Earlier) = null);
          end loop;

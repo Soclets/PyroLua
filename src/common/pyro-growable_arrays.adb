@@ -18,23 +18,8 @@ package body Pyro.Growable_Arrays with SPARK_Mode => On is
    --  Bytes charged for one entry of the chunk table (a pointer to an unconstrained array).
    Entry_Bytes : constant Byte_Count := 16;
 
-   --  [proof] Positions differ exactly when their chunk or their place in it differs: the
-   --  provers derive it from Position - 1 = Chunk_Length * Chunk_Of + Offset_Of - 1.
-   procedure Lemma_Distinct (Left, Right : Index)
-   with
-     Ghost,
-     Global => null,
-     Pre    => Left /= Right,
-     Post   => Chunk_Of (Left) /= Chunk_Of (Right) or else Offset_Of (Left) /= Offset_Of (Right)
-   is
-   begin
-      pragma Assert
-        (Left - 1 = Chunk_Length * Index'Base (Chunk_Of (Left)) + Offset_Of (Left) - 1);
-      pragma Assert
-        (Right - 1 = Chunk_Length * Index'Base (Chunk_Of (Right)) + Offset_Of (Right) - 1);
-   end Lemma_Distinct;
-
-   --  [proof] The positions other than Position have another chunk or place.
+   --  [proof] The positions other than Position have another chunk or place: the provers
+   --  derive it from Position - 1 = Chunk_Length * Chunk_Of + Offset_Of - 1.
    procedure Lemma_Others (Position : Index; Last : Extended_Index)
    with
      Ghost,
@@ -48,7 +33,11 @@ package body Pyro.Growable_Arrays with SPARK_Mode => On is
    begin
       for Other in 1 .. Last loop
          if Other /= Position then
-            Lemma_Distinct (Other, Position);
+            pragma Assert
+              (Other - 1 = Chunk_Length * Index'Base (Chunk_Of (Other)) + Offset_Of (Other) - 1);
+            pragma Assert
+              (Position - 1
+               = Chunk_Length * Index'Base (Chunk_Of (Position)) + Offset_Of (Position) - 1);
          end if;
          pragma Loop_Invariant
            (for all Earlier in 1 .. Other =>
