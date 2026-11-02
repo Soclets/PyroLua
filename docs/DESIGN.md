@@ -94,6 +94,7 @@ locale.
 | `Pyro.Garbage_Collector` | M3 | Mark and sweep collector |
 | `Pyro.Virtual_Machine` | M4 | Interpreter loop, call frames, metamethods |
 | `Pyro.Embedding` | M6 | Embedding API for Ada/SPARK hosts |
+| `pyrolua.h` and its layer | M6 | The C API for C and C++ hosts (primary), over the same core |
 
 Source folders, file naming and the rules for private and public packages are in
 [STYLE.md](STYLE.md#packages-and-files).
@@ -347,7 +348,8 @@ operation preserves `Is_Valid (Heap)` (Gold).
 
 ### Strings
 
-Strings are immutable heap objects with a cached hash. Short strings (40 bytes or
+Strings are immutable heap objects with a cached hash, computed with the state's random
+seed (see Sandbox limits). Short strings (40 bytes or
 less, as in PUC Lua) are interned so equality is a handle comparison. Long strings
 are compared by content.
 
@@ -443,24 +445,61 @@ These are where differential tests matter most:
 
 ## Embedding API (M6)
 
-`Pyro.Embedding` gives an Ada/SPARK host what the Lua C API gives a C host, in a typed
-form instead of a raw stack:
+Pyro Lua is for hosts that run scripts they do not trust, and most such hosts are written
+in C or C++ (game engines, servers, rules engines). Its primary embedding API is therefore
+a C API, `pyrolua.h`, built as a static and a shared library; `Pyro.Embedding` gives the
+same operations to Ada and SPARK hosts. Both are thin layers over the same proven core,
+and neither adds behaviour of its own.
 
-- create and destroy a state, with limits (memory, instruction budget, call depth);
+What a host can do, in either API:
+
+- create and destroy a state, with limits (memory, instruction budget, call depth) and a
+  hash seed;
 - load a chunk from bytes, getting a function or a syntax error;
-- call a function, protected (errors come back as a value, never an exception);
+- call a function, protected (errors come back as a value, never an exception or a jump);
 - create and inspect values: numbers, strings, tables (get/set/next), metatables;
-- register host functions (access-to-subprogram types with contracts);
+- register host functions;
 - coroutines: create, resume, query status; host functions can yield;
 - handles to Lua values held by the host count as GC roots.
 
+The C API's shape follows from what the proofs need:
+
+- **Opaque handles**, for the state and for values, never raw stack slots. A host cannot
+  name a slot that does not exist, and the stack's layout stays the core's business.
+- **Errors as return codes**, never `longjmp`. Every call that can fail says so in its
+  result, and the core's own errors never unwind through host frames.
+- **Host functions as C function pointers**, registered with the state and called
+  through the same protected-call machinery as Lua functions.
+
+Host code is outside the proofs: a C host that passes a dangling handle or a buffer of
+the wrong size can still corrupt its own memory, and a host function can do whatever C
+can do. The proofs cover what the core does with whatever arrives through the API, and the
+API checks what it can (handle validity, sizes) before passing it on.
+
 The thread that calls Pyro needs `Pyro.Minimum_Stack_Size` bytes of stack (PROOFS.md,
-Assumptions); a host whose threads may have less runs Pyro in an Ada task with that
-`Storage_Size`, as the `pyrolua` program does.
+Assumptions); a host whose threads may have less runs Pyro in a thread or Ada task with
+that much stack, as the `pyrolua` program does.
 
 Pyro has no standard library, so these primitives are how a host exposes things like
 `setmetatable`, `pcall`, `error`, `pairs` or `coroutine.resume` to scripts, if it
 wants to.
+
+### Threat model
+
+The attacker controls the source of the scripts the host loads and everything they do at
+run time; the attacker does not control the host or the functions it registers. Against
+that attacker:
+
+- **Memory corruption** of the interpreter (overflows, out-of-bounds reads, use after
+  free, type confusion) is ruled out by the proofs.
+- **Crashes** of the interpreter are ruled out by the proofs (no runtime errors) and by
+  the limits below (no stack exhaustion).
+- **Denial of service** is bounded by the instruction budget, the memory limit and the
+  depth limits, and by a per-state random hash seed: a script cannot craft string keys
+  that all land in the same bucket of a table, because it cannot know the seed.
+
+What a script can still do is fail with a Lua error, run until its budget runs out, and
+call the functions its host chose to give it.
 
 ### Sandbox limits
 
@@ -469,6 +508,9 @@ wants to.
   resume, or abort).
 - **Memory limit:** enforced by the single allocator described above.
 - **Depth limits:** call depth, C-call nesting, parser nesting.
+- **Hash seed:** each state hashes strings with a random seed that the host gives when
+  it creates the state (the `pyrolua` program takes one from the operating system), so a
+  script cannot predict which keys collide in a table.
 
 Together with the proofs, these mean a script can neither crash the interpreter nor
 take over the host process. It can only fail with a Lua error.

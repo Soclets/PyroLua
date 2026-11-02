@@ -26,6 +26,11 @@ must add are in [STYLE.md](STYLE.md#testing).
 - **Mutation fuzzing:** random mutations of corpus files fed to both Pyro and
   reference `luac -p`, comparing accept/reject. The proofs already rule out crashes;
   fuzzing finds disagreements with the reference.
+- **CVE regression suite:** `tests/cve/`, one file per public PUC Lua 5.x CVE with a
+  Lua-level proof of concept, each with a header giving the CVE id, the affected PUC
+  versions, a one-line description and Pyro's expected behaviour. The front-end ones are
+  in; runtime ones are added as M3 to M5 land (the pending list is in the suite's
+  README).
 
 ## M1: Front end
 
@@ -83,6 +88,9 @@ in `tests/known-differences.md` with the reason (design session).
 
 - `Pyro.Values`, `Pyro.Heap`, `Pyro.Strings`, `Pyro.Tables`, `Pyro.Garbage_Collector`.
 - Mark and sweep collector, without weak tables and finalisers.
+- A random hash seed per state for strings and table keys, so scripts cannot craft keys
+  that collide. The seed comes from the host through the API; the `pyrolua` program gets
+  it from the operating system (a small trusted piece, added with the owner's OK).
 
 **Done when:** `Is_Valid (Heap)`, `Is_Valid (Table)` and the GC properties are proven; unit
 tests in `tests/` exercise tables (including traversal while deleting) and
@@ -118,13 +126,15 @@ may not); differential tests for coroutine and GC-related scripts pass.
 
 ## M6: Embedding API and sandbox
 
-- `Pyro.Embedding` as described in DESIGN.md.
+- The C API, `pyrolua.h`, as described in DESIGN.md: static and shared library builds, an
+  example C host and a C++ example in `examples/`.
+- `Pyro.Embedding`, the same API for Ada/SPARK hosts, with an example.
 - Instruction budget, memory limit, depth limits.
-- An example host program in `examples/`.
 
 **Done when:** the API is Silver; a script cannot exceed its limits, which is shown
 by tests that run hostile scripts (infinite loops, unbounded allocation, deep
-recursion, string bombs) and get clean Lua errors; the README documents embedding.
+recursion, string bombs, colliding keys) through both the C and the Ada API and get
+clean Lua errors; the README documents embedding.
 
 ## Later
 

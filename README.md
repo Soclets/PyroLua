@@ -2,20 +2,24 @@
 
 [![Linux](https://github.com/Soclets/PyroLua/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/Soclets/PyroLua/actions/workflows/linux.yml)
 
-Pyro Lua is an implementation of the **Lua 5.4** core language written in **SPARK** (the
-formally verifiable subset of Ada). The goal is an embeddable Lua interpreter with a
-machine-checked proof that the interpreter itself cannot crash or corrupt memory,
-whatever script it is given.
+Pyro Lua is a memory-safe **Lua 5.4** for running scripts you do not trust: game mods and
+plugins, server-side scripting in the style of Redis or nginx, rules engines. It is
+written in **SPARK** (the formally verifiable subset of Ada), and the goal is a
+machine-checked proof that no script can make the interpreter itself overflow a buffer,
+read out of bounds or use freed memory, so that a hostile script can only fail with a Lua
+error or run out of the limits its host gave it.
 
 - **Language:** Lua 5.4, as defined by the
   [Lua 5.4 Reference Manual](https://www.lua.org/manual/5.4/).
+- **Embedding:** Pyro's own C API (`pyrolua.h`) for C and C++ hosts, and an Ada/SPARK
+  API, both thin layers over the same proven core. See [Scope](#scope).
 - **Core only:** no standard library (`string`, `table`, `math`, `io`, `os`, …). The
-  host program decides which functions a script can call. See
-  [Scope](#scope).
+  host program decides which functions a script can call.
 - **Proof:** absence of runtime errors (SPARK *Silver*) for all of Pyro, plus
   functional proofs (*Gold*) for the parts where a bug would mean memory unsafety:
-  the heap and garbage collector, bytecode validity, the VM stack and tables. See
-  [docs/PROOFS.md](docs/PROOFS.md).
+  the heap and garbage collector, bytecode validity, the VM stack and tables. The host's
+  own code, C or Ada, is outside the proofs. See [docs/PROOFS.md](docs/PROOFS.md), and
+  [tests/cve/](tests/cve/README.md) for how Pyro handles the public PUC Lua CVEs.
 - **Behaviour vs. reference Lua:** checked by differential testing against the
   reference implementation (PUC Lua 5.4), not by proof.
 
@@ -51,19 +55,24 @@ In scope:
 - The full Lua 5.4 language: syntax, semantics, metatables and metamethods,
   integer/float numbers, closures and upvalues, varargs, `goto`, coroutines,
   `<const>` and `<close>` variables, garbage collection.
-- An Ada/SPARK embedding API: load a chunk, call functions, exchange values, register
-  host functions, and reach the primitives a host needs (metatables, protected calls,
+- Pyro's own C API (`pyrolua.h`, static and shared libraries) for C and C++ hosts, and
+  an Ada/SPARK API: load a chunk, call functions, exchange values, register host
+  functions, and reach the primitives a host needs (metatables, protected calls,
   coroutine resume/yield, table traversal).
-- Sandbox limits: instruction budget and memory limit, so untrusted scripts can be
-  stopped cleanly.
+- Sandbox limits: instruction budget, memory limit and depth limits, so untrusted
+  scripts can be stopped cleanly, and a random hash seed per state, so scripts cannot
+  craft table keys that all collide.
 - A small `pyrolua` command-line program for running and inspecting `.lua` files.
 
 Out of scope:
 
 - The Lua standard library. A host may implement any of it on top of the embedding
   API, but Pyro does not ship it.
-- The Lua C API and binary compatibility with PUC Lua (bytecode format, `.luac`
-  files, C modules).
+- Drop-in compatibility with PUC Lua's C API (`lua.h`). Its shared stack addressed by
+  index, its error handling by `longjmp` and its C modules, which run unproven code
+  inside the interpreter, would each undo what the proofs guarantee. Pyro's C API has
+  opaque handles instead of stack slots and returns errors as codes.
+- Binary compatibility with PUC Lua (bytecode format, `.luac` files).
 - Proving that Pyro's behaviour matches the reference manual in full. That is what
   differential testing is for.
 

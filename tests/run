@@ -30,6 +30,8 @@ ROOT = Path(__file__).resolve().parent.parent
 TESTS = ROOT / "tests"
 OUTPUT = TESTS / "output"
 CORPUS = TESTS / "corpus"
+# Proofs of concept of public PUC Lua CVEs (tests/cve/README.md), checked as corpus files.
+CVE = TESTS / "cve"
 GOLDEN = TESTS / "golden"
 OFFICIAL = TESTS / "official" / "lua-5.4.9-tests"
 KNOWN_DIFFERENCES = TESTS / "known-differences.md"
@@ -590,7 +592,8 @@ class Runner:
             shutil.rmtree(GOLDEN, ignore_errors=True)
         expected_files = set()
         for source in corpus_files():
-            relative = source.relative_to(CORPUS)
+            relative = (source.relative_to(CORPUS) if source.is_relative_to(CORPUS)
+                        else Path("cve") / source.relative_to(CVE))
             for mode in GOLDEN_MODES:
                 golden = GOLDEN / relative.with_suffix("." + mode)
                 expected_files.add(golden)
@@ -832,7 +835,8 @@ def tail(text, lines=30):
 
 
 def corpus_files():
-    return sorted(CORPUS.rglob("*.lua")) if CORPUS.exists() else []
+    """Pyro's corpus and the CVE proofs of concept (their goldens are in golden/cve/)."""
+    return sorted(CORPUS.rglob("*.lua")) + sorted(CVE.rglob("*.lua"))
 
 
 def minimum_stack_size():
