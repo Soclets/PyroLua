@@ -332,11 +332,17 @@ Limits follow PUC Lua: at most 200 locals per function, 255 upvalues, 255 regist
 
 ### Values
 
-A Lua value is a small discriminated record:
-`nil | boolean | integer (Integer_64) | float (raw bits) | object (Object_Handle)`.
-Strings, tables, closures, prototypes, upvalue cells, coroutines and host userdata
-are heap objects referenced by `Object_Handle`. Light userdata (a host-supplied opaque
-integer) can be added as an immediate case if the API needs it.
+A Lua value (`Pyro.Values`) is a small record of 16 bytes: a kind
+(`nil | boolean | integer | float | object`), 64 bits (the boolean, the integer's two's
+complement, or the float's IEEE bits) and an `Object_Handle`. Its fields are always
+canonical for its kind, so predefined equality is identity: integers, booleans and
+objects compare as Lua's raw equality does, floats by their bits. Strings, tables,
+closures, prototypes, upvalue cells, coroutines and host userdata are heap objects
+referenced by `Object_Handle`. Light userdata (a host-supplied opaque integer) can be
+added as an immediate case if the API needs it.
+
+A table key is normalised first (`Normalize_Key`): a float with an integral value becomes
+that integer (`2.0` is `2`, `-0.0` is `0`), and nil and NaN are not keys.
 
 ### Heap
 

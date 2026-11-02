@@ -9,7 +9,7 @@ project Pyro_Lua is
 
    for Library_Name use "pyrolua";
    for Library_Version use Project'Library_Name & ".so." & Pyro_Lua_Config.Crate_Version;
-   for Source_Dirs use ("src/common", "src/front_end", "src/compiler", "config");
+   for Source_Dirs use ("src/common", "src/front_end", "src/compiler", "src/runtime", "config");
    for Object_Dir use "obj/" & Pyro_Lua_Config.Build_Profile;
    for Create_Missing_Dirs use "True";
    for Library_Dir use "lib";
