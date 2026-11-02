@@ -147,14 +147,21 @@ package body Pyro.Compiler.Code.Scopes with SPARK_Mode => On is
    procedure Solve_Gotos
      (State : in out Compiler_State; Label : Label_Entry; Needs_Close : out Boolean)
    is
-      Index : Natural := Block_At (State, Block_Position (State, Depth (State))).First_Goto;
+      First : constant Natural :=
+        Block_At (State, Block_Position (State, Depth (State))).First_Goto;
+      Last  : constant Natural := Natural (Label_Arrays.Length (State.Gotos));
+      --  The gotos kept, in order, in one pass: PUC removes each solved one by moving the
+      --  rest down, which is quadratic in the number of pending gotos.
+      Kept  : Natural := First;
       Item  : Label_Entry;
    begin
       Needs_Close := False;
-      --  Each step either removes a goto or moves past one.
-      for Step in 1 .. Natural (Label_Arrays.Length (State.Gotos)) loop
+      if First >= Last then
+         return;
+      end if;
+      for Index in First .. Last - 1 loop
+         pragma Loop_Invariant (Kept in First .. Index);
          exit when Index >= Natural (Label_Arrays.Length (State.Gotos));
-         pragma Assert (Index < Natural (Label_Arrays.Length (State.Gotos)));
          Item := Label_Arrays.Element (State.Gotos, Next_Position (Index));
          if Item.Name = Label.Name then
             Needs_Close := Needs_Close or else Item.Close;
@@ -165,21 +172,15 @@ package body Pyro.Compiler.Code.Scopes with SPARK_Mode => On is
                return;
             end if;
             Patch_List (State, Item.PC, Natural'Max (Label.PC, 0));
-            exit when Index >= Natural (Label_Arrays.Length (State.Gotos));
-            --  Removes the goto, keeping the others in order.
-            for Moved in Index + 1 .. Natural (Label_Arrays.Length (State.Gotos)) - 1 loop
-               pragma Loop_Invariant
-                 (Label_Arrays.Length (State.Gotos)
-                  = Label_Arrays.Length (State.Gotos)'Loop_Entry);
-               Label_Arrays.Replace_Element
-                 (State.Gotos, Work_Position (Moved),
-                  Label_Arrays.Element (State.Gotos, Work_Position (Moved + 1)));
-            end loop;
-            Label_Arrays.Truncate (State.Gotos, Label_Arrays.Length (State.Gotos) - 1);
          else
-            Index := Index + 1;
+            exit when Kept >= Natural (Label_Arrays.Length (State.Gotos));
+            Label_Arrays.Replace_Element (State.Gotos, Next_Position (Kept), Item);
+            Kept := Kept + 1;
          end if;
       end loop;
+      if Kept <= Natural (Label_Arrays.Length (State.Gotos)) then
+         Label_Arrays.Truncate (State.Gotos, Label_Arrays.Extended_Index (Kept));
+      end if;
    end Solve_Gotos;
 
    procedure Create_Label

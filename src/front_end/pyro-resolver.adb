@@ -91,21 +91,6 @@ package body Pyro.Resolver with SPARK_Mode => On is
       end if;
    end Enter_Block;
 
-   --  Removes pending goto Position, keeping the others in order.
-   procedure Remove_Goto (Gotos : in out Jump_Arrays.Growable_Array; Position : Entry_Index)
-   with
-     Pre  => Position in 1 .. Jump_Arrays.Length (Gotos),
-     Post => Jump_Arrays.Length (Gotos) = Jump_Arrays.Length (Gotos)'Old - 1
-   is
-      Last : constant Entry_Index := Jump_Arrays.Length (Gotos);
-   begin
-      for Index in Position .. Last - 1 loop
-         pragma Loop_Invariant (Jump_Arrays.Length (Gotos) = Last);
-         Jump_Arrays.Replace_Element (Gotos, Index, Jump_Arrays.Element (Gotos, Index + 1));
-      end loop;
-      Jump_Arrays.Truncate (Gotos, Last - 1);
-   end Remove_Goto;
-
    --  [puc lparser.c:leaveblock] Closes the innermost block: its variables and labels go,
    --  a loop resolves its breaks, and its pending gotos move out to the enclosing block, or,
    --  at the end of a function, are reported as undefined.
@@ -134,18 +119,25 @@ package body Pyro.Resolver with SPARK_Mode => On is
       if Closed.First_Goto <= Jump_Arrays.Length (W.Gotos) then
          --  [puc lparser.c:createlabel] A loop's "break" label resolves its breaks.
          if Closed.Is_Loop then
-            Index := Entry_Index'Base (Closed.First_Goto) + 1;
-            for Step in 1 .. Jump_Arrays.Length (W.Gotos) loop
-               pragma Loop_Invariant (Index >= 1 and then Index <= Entry_Index'Last + 1);
-               pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
-               pragma Loop_Invariant (Block_Arrays.Length (W.Blocks) = Blocks);
-               exit when Index > Jump_Arrays.Length (W.Gotos);
-               if Jump_Arrays.Element (W.Gotos, Index).Is_Break then
-                  Remove_Goto (W.Gotos, Index);
-               else
-                  Index := Index + 1;
-               end if;
-            end loop;
+            --  The other gotos are kept in order, in one pass (Index counts them).
+            declare
+               Last : constant Entry_Index := Jump_Arrays.Length (W.Gotos);
+               Item : Jump_Entry;
+            begin
+               Index := Entry_Index'Base (Closed.First_Goto);
+               for Position in Index + 1 .. Last loop
+                  pragma Loop_Invariant (Index in Closed.First_Goto .. Position - 1);
+                  pragma Loop_Invariant (Jump_Arrays.Length (W.Gotos) = Last);
+                  pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
+                  pragma Loop_Invariant (Block_Arrays.Length (W.Blocks) = Blocks);
+                  Item := Jump_Arrays.Element (W.Gotos, Position);
+                  if not Item.Is_Break then
+                     Index := Index + 1;
+                     Jump_Arrays.Replace_Element (W.Gotos, Index, Item);
+                  end if;
+               end loop;
+               Jump_Arrays.Truncate (W.Gotos, Index);
+            end;
          end if;
       end if;
       if Closed.First_Label <= Jump_Arrays.Length (W.Labels) then
@@ -314,7 +306,8 @@ package body Pyro.Resolver with SPARK_Mode => On is
       Block    : Block_Entry;
       Created  : Jump_Entry;
       Success  : Boolean;
-      Position : Entry_Index'Base;
+      Kept     : Entry_Index;
+      Last     : Entry_Index;
       Item     : Diagnostic;
    begin
       if Function_Arrays.Length (W.Functions) = 0 or else Block_Arrays.Length (W.Blocks) = 0 then
@@ -358,11 +351,16 @@ package body Pyro.Resolver with SPARK_Mode => On is
          return;
       end if;
       --  [puc lparser.c:solvegotos]
-      Position := Entry_Index'Base (Block.First_Goto) + 1;
-      for Step in 1 .. Jump_Arrays.Length (W.Gotos) loop
-         pragma Loop_Invariant (Position >= 1 and then Position <= Entry_Index'Last + 1);
+      --  The other gotos are kept in order, in one pass (Kept counts them).
+      if Block.First_Goto > Jump_Arrays.Length (W.Gotos) then
+         return;
+      end if;
+      Kept := Block.First_Goto;
+      Last := Jump_Arrays.Length (W.Gotos);
+      for Position in Kept + 1 .. Last loop
+         pragma Loop_Invariant (Kept in Block.First_Goto .. Position - 1);
+         pragma Loop_Invariant (Jump_Arrays.Length (W.Gotos) = Last);
          pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
-         exit when Position > Jump_Arrays.Length (W.Gotos);
          declare
             Pending : constant Jump_Entry := Jump_Arrays.Element (W.Gotos, Position);
          begin
@@ -393,12 +391,13 @@ package body Pyro.Resolver with SPARK_Mode => On is
                   Item.Detection := Label.Check_Point;
                   Report (W.Stopped, Budget, Problems, Item);
                end if;
-               Remove_Goto (W.Gotos, Position);
             else
-               Position := Position + 1;
+               Kept := Kept + 1;
+               Jump_Arrays.Replace_Element (W.Gotos, Kept, Pending);
             end if;
          end;
       end loop;
+      Jump_Arrays.Truncate (W.Gotos, Kept);
    end Declare_Label;
 
    --  [puc lparser.c:gotostat, breakstat] A goto to a visible label is resolved at once
