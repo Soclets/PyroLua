@@ -1,0 +1,16 @@
+--  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+--
+--  [proof] Configuration pragmas for pyro-value_maps.ads only (pyro_lua.gpr): its instance of
+--  SPARKlib's functional maps compares keys by "=", so the map's lemmas about keys that are
+--  equivalent but not equal are never used. Without equivalence handling their contracts are
+--  False, as is the precondition of a lemma of SPARKlib's parameter checks
+--  (Use_Logical_Equality, which the maps generic sets to False), and proving the instance
+--  would warn about each. A pragma in the unit itself does not reach messages placed in the
+--  generic, so they are hidden for this one compilation, which holds nothing else.
+
+pragma Warnings
+  (GNATprove, Off, "precondition is always False, in instantiation at *",
+   Reason => "unused lemmas of SPARKlib's functional maps");
+pragma Warnings
+  (GNATprove, Off, "postcondition is always False, in instantiation at *",
+   Reason => "unused lemmas of SPARKlib's functional maps");

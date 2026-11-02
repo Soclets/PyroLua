@@ -140,10 +140,13 @@ Also counted as trust, and listed here when used:
 
 `pragma Annotate (GNATprove, Hide_Info | Unhide_Info, …)` only keeps a definition out
 of proofs (they then rely on contracts alone), so it is not trust and needs no entry.
-Likewise the one `pragma Warnings (GNATprove, Off, …)` in `pyro.adc`: it hides the warning
-that every instance of SPARKlib's functional maps gives (a lemma of its parameter checks
-whose precondition, `Use_Logical_Equality`, the maps generic sets to False; it is never
-called), and hides no check.
+Likewise the two `pragma Warnings (GNATprove, Off, …)` in `src/runtime/pyro-value_maps.adc`,
+which `pyro_lua.gpr` applies to that one unit, the instance of SPARKlib's functional maps
+that models tables: they hide the warnings that lemmas of the instance never used have
+contracts that are always False (keys compare by `"="`, so there is no equivalence to
+handle, and a parameter check's precondition is `Use_Logical_Equality`, which the maps
+generic sets to False). A pragma in the unit itself does not reach messages placed in the
+generic. They hide no check, and nothing in Pyro's own code.
 
 Current list of assumptions and justified checks:
 

@@ -329,6 +329,16 @@ class Runner:
         # Results of earlier runs (possibly of units that no longer exist) must not count.
         for stale in (ROOT / "obj").glob("*/gnatprove"):
             shutil.rmtree(stale, ignore_errors=True)
+        # Proofs always run on the development profile: Alire writes the profile of the last
+        # build into the library's configuration, and the manifests of cli/ and tests/unit/
+        # keep it at development. A proof on another profile would not be the one measured.
+        config = (ROOT / "config" / "pyro_lua_config.gpr").read_text()
+        profile = re.search(r'Build_Profile : Build_Profile_Kind := "(\w+)"', config)
+        if profile is None or profile.group(1) != "development":
+            self.fail("the library is configured for the "
+                      + (profile.group(1) if profile else "unknown")
+                      + " profile, not development: build it with alr build --development")
+            return
         command = ["alr", "exec", "--", "gnatprove", "-P", "pyro_lua.gpr", "-f"]
         key = self.toolchain_key() if self.mode == "quick" else None
         if key is not None:

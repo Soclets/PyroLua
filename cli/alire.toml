@@ -14,3 +14,8 @@ pyro_lua = "*"
 
 [[pins]]
 pyro_lua = { path = ".." }
+
+# The library keeps the profile its proofs run on (development), whichever crate was built
+# last: tests/run proves it with the configuration the last build left.
+[build-profiles]
+pyro_lua = "development"

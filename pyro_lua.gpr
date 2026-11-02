@@ -29,6 +29,11 @@ project Pyro_Lua is
         ("-gnat2022", "-g", "-O1", "-gnatwa", "-gnatw.X", "-gnatwe", "-gnatVa", "-gnatf")
         & Style_Switches;
       for Default_Switches ("C") use ("-g", "-O1", "-Wall", "-Wextra", "-Werror");
+      --  [proof] Hides the warnings proving SPARKlib's functional maps always gives, for this
+      --  instance only (see the file).
+      for Switches ("pyro-value_maps.ads") use
+        Compiler'Default_Switches ("Ada")
+        & ("-gnatec=" & Project'Project_Dir & "src/runtime/pyro-value_maps.adc");
    end Compiler;
 
    --  pyro_floats.c calls pow, fmod and floor from libm, which Linux does not link by default.
