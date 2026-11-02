@@ -1010,6 +1010,170 @@ package body Pyro.Tables with SPARK_Mode => On is
    end Place;
 
    --  Resize, with what Set needs to know of the parts it leaves.
+   --  [proof] Every object among the entries of A and N is among the entries of Old_A and Old_N.
+   function Entries_Within
+     (A : Value_Array; N : Node_Array; Old_A : Value_Array; Old_N : Node_Array) return Boolean
+   is (for all Position in 1 .. A'Length + 2 * N'Length =>
+         Entry_Of (A, N, Position).Kind /= Object_Value
+         or else Value_Sequences.Contains
+                   (Entries_Of (Old_A, Old_N), 1, Value_Sequences.Last (Entries_Of (Old_A, Old_N)),
+                    Entry_Of (A, N, Position)))
+   with
+     Ghost,
+     Pre => A'Length <= Maximum_Array_Size and then N'Length <= Maximum_Capacity
+            and then Old_A'Length <= Maximum_Array_Size and then Old_N'Length <= Maximum_Capacity;
+
+   --  [proof] Every key of the parts A and N is a key of the array part Old_A, or of a used
+   --  node of Old_N, with its value in Old_A and Old_N.
+   function Keys_Within
+     (A : Value_Array; N : Node_Array; Old_A : Value_Array; Old_N : Node_Array;
+      S : Pyro.Strings.Seed; Nodes_Too : Boolean) return Boolean
+   is (for all Key of Model_Of (A, N, S) =>
+         Value_Maps.Has_Key (Model_Of (Old_A, Old_N, S), Key)
+         and then Value_Maps.Get (Model_Of (Old_A, Old_N, S), Key)
+                  = Value_Maps.Get (Model_Of (A, N, S), Key)
+         and then (Array_Key (Old_A, Key) or else (Nodes_Too and then Holds (Old_N, Key))))
+   with Ghost, Pre => Parts_Valid (A, N, S) and then Parts_Valid (Old_A, Old_N, S);
+
+   --  Copies the array part of Old_A and Old_N into the empty parts A and N. Placed is False
+   --  when a key found no free node.
+   procedure Copy_Array_Part
+     (Old_A  : Value_Array;
+      Old_N  : Node_Array;
+      S      : Pyro.Strings.Seed;
+      A      : in out Value_Array;
+      N      : in out Node_Array;
+      Placed : out Boolean)
+   with
+     Global => null,
+     Pre    =>
+       Parts_Valid (Old_A, Old_N, S)
+       and then Parts_Valid (A, N, S)
+       and then No_Dead (N)
+       and then Value_Maps.Is_Empty (Model_Of (A, N, S))
+       and then (for all Position in 1 .. A'Length + 2 * N'Length =>
+                   Entry_Of (A, N, Position) = Nil),
+     Post   =>
+       Parts_Valid (A, N, S)
+       and then No_Dead (N)
+       and then (if Placed
+                 then Entries_Within (A, N, Old_A, Old_N)
+                      and then Keys_Within (A, N, Old_A, Old_N, S, False)
+                      and then (for all I in Old_A'Range =>
+                                  (if Old_A (I) /= Nil
+                                   then Value_Maps.Has_Key
+                                          (Model_Of (A, N, S), Integer_Value_Of (Integer_64 (I))))))
+   is
+      Old_Model   : constant Value_Maps.Map := Model_Of (Old_A, Old_N, S) with Ghost;
+      Old_Entries : constant Value_Sequences.Sequence := Entries_Of (Old_A, Old_N) with Ghost;
+   begin
+      Placed := True;
+      Lemma_Entry_Places (Old_A, Old_N);
+      for I in Old_A'Range loop
+         if Old_A (I) /= Nil then
+            Lemma_Item (Old_A, Old_N, S, I);
+            Lemma_Contains (Old_Entries, I);
+            Place (A, N, S, Integer_Value_Of (Integer_64 (I)), Old_A (I), Placed);
+            exit when not Placed;
+         end if;
+         pragma Loop_Invariant (Parts_Valid (A, N, S));
+         pragma Loop_Invariant (No_Dead (N));
+         pragma Loop_Invariant
+           (for all Position in 1 .. A'Length + 2 * N'Length =>
+              Entry_Of (A, N, Position).Kind /= Object_Value
+              or else Value_Sequences.Contains
+                        (Old_Entries, 1, Value_Sequences.Last (Old_Entries),
+                         Entry_Of (A, N, Position)));
+         pragma Loop_Invariant
+           (for all Key of Model_Of (A, N, S) =>
+              Value_Maps.Has_Key (Old_Model, Key)
+              and then Value_Maps.Get (Old_Model, Key) = Value_Maps.Get (Model_Of (A, N, S), Key)
+              and then Array_Key (Old_A, Key)
+              and then Index_Of (Old_A, Key) <= I);
+         pragma Loop_Invariant
+           (for all J in Old_A'First .. I =>
+              (if Old_A (J) /= Nil
+               then Value_Maps.Has_Key (Model_Of (A, N, S), Integer_Value_Of (Integer_64 (J)))));
+      end loop;
+   end Copy_Array_Part;
+
+   --  Copies the keys of the used nodes of Old_A and Old_N into A and N, which hold its array
+   --  part already. Placed is False when a key found no free node.
+   procedure Copy_Hash_Part
+     (Old_A  : Value_Array;
+      Old_N  : Node_Array;
+      S      : Pyro.Strings.Seed;
+      A      : in out Value_Array;
+      N      : in out Node_Array;
+      Placed : out Boolean)
+   with
+     Global => null,
+     Pre    =>
+       Parts_Valid (Old_A, Old_N, S)
+       and then Parts_Valid (A, N, S)
+       and then No_Dead (N)
+       and then Entries_Within (A, N, Old_A, Old_N)
+       and then Keys_Within (A, N, Old_A, Old_N, S, False)
+       and then (for all I in Old_A'Range =>
+                   (if Old_A (I) /= Nil
+                    then Value_Maps.Has_Key
+                           (Model_Of (A, N, S), Integer_Value_Of (Integer_64 (I))))),
+     Post   =>
+       Parts_Valid (A, N, S)
+       and then No_Dead (N)
+       and then (if Placed
+                 then Entries_Within (A, N, Old_A, Old_N)
+                      and then Keys_Within (A, N, Old_A, Old_N, S, True)
+                      and then (for all I in Old_A'Range =>
+                                  (if Old_A (I) /= Nil
+                                   then Value_Maps.Has_Key
+                                          (Model_Of (A, N, S), Integer_Value_Of (Integer_64 (I)))))
+                      and then (for all J in Old_N'Range =>
+                                  (if Old_N (J).State = Used_Node
+                                   then Value_Maps.Has_Key (Model_Of (A, N, S), Old_N (J).Key))))
+   is
+      Old_Model   : constant Value_Maps.Map := Model_Of (Old_A, Old_N, S) with Ghost;
+      Old_Entries : constant Value_Sequences.Sequence := Entries_Of (Old_A, Old_N) with Ghost;
+   begin
+      Placed := True;
+      Lemma_Entry_Places (Old_A, Old_N);
+      for J in Old_N'Range loop
+         if Old_N (J).State = Used_Node then
+            Lemma_Node (Old_A, Old_N, S, J);
+            Lemma_Unique (Old_N, J);
+            Lemma_Contains (Old_Entries, Old_A'Length + 1 + J);
+            Lemma_Contains (Old_Entries, Old_A'Length + Old_N'Length + 1 + J);
+            Place (A, N, S, Old_N (J).Key, Old_N (J).Item, Placed);
+            exit when not Placed;
+         end if;
+         pragma Loop_Invariant (Parts_Valid (A, N, S));
+         pragma Loop_Invariant (No_Dead (N));
+         pragma Loop_Invariant
+           (for all Position in 1 .. A'Length + 2 * N'Length =>
+              Entry_Of (A, N, Position).Kind /= Object_Value
+              or else Value_Sequences.Contains
+                        (Old_Entries, 1, Value_Sequences.Last (Old_Entries),
+                         Entry_Of (A, N, Position)));
+         pragma Loop_Invariant
+           (for all Key of Model_Of (A, N, S) =>
+              Value_Maps.Has_Key (Old_Model, Key)
+              and then Value_Maps.Get (Old_Model, Key) = Value_Maps.Get (Model_Of (A, N, S), Key)
+              and then (Array_Key (Old_A, Key)
+                        or else (for some Earlier in Old_N'First .. J =>
+                                   Old_N (Earlier).State = Used_Node
+                                   and then Old_N (Earlier).Key = Key)));
+         pragma Loop_Invariant
+           (for all I in Old_A'Range =>
+              (if Old_A (I) /= Nil
+               then Value_Maps.Has_Key (Model_Of (A, N, S), Integer_Value_Of (Integer_64 (I)))));
+         pragma Loop_Invariant
+           (for all Earlier in Old_N'First .. J =>
+              (if Old_N (Earlier).State = Used_Node
+               then Value_Maps.Has_Key (Model_Of (A, N, S), Old_N (Earlier).Key)));
+      end loop;
+      pragma Assert (Parts_Valid (A, N, S));
+   end Copy_Hash_Part;
+
    procedure Resize_Parts
      (T          : in out Table;
       Budget     : in out Memory_Budget;
@@ -1048,85 +1212,10 @@ package body Pyro.Tables with SPARK_Mode => On is
       pragma Assert (Value_Maps.Is_Empty (Model_Of (Items.all, Nodes.all, T.Seed)));
       Lemma_Empty_Entries (Items.all, Nodes.all);
       if T.Items /= null then
-         Lemma_Entry_Places (T.Items.all, T.Nodes.all);
-         for I in T.Items'Range loop
-            if T.Items (I) /= Nil then
-               Lemma_Item (T.Items.all, T.Nodes.all, T.Seed, I);
-               Lemma_Contains (Old_Entries, I);
-               Place (Items.all, Nodes.all, T.Seed, Integer_Value_Of (Integer_64 (I)), T.Items (I),
-                      Placed);
-               exit when not Placed;
-            end if;
-            pragma Loop_Invariant (Items /= null and then Nodes /= null);
-            pragma Loop_Invariant (Items'First = 1 and then Items'Last = Array_Size);
-            pragma Loop_Invariant (Nodes'First = 0 and then Nodes'Length = Capacity);
-            pragma Loop_Invariant (Parts_Valid (Items.all, Nodes.all, T.Seed));
-            pragma Loop_Invariant (No_Dead (Nodes.all));
-            pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
-            pragma Loop_Invariant
-              (for all Position in 1 .. Array_Size + 2 * Capacity =>
-                 Entry_Of (Items.all, Nodes.all, Position).Kind /= Object_Value
-                 or else Value_Sequences.Contains
-                           (Old_Entries, 1, Value_Sequences.Last (Old_Entries),
-                            Entry_Of (Items.all, Nodes.all, Position)));
-            pragma Loop_Invariant
-              (for all Key of Model_Of (Items.all, Nodes.all, T.Seed) =>
-                 Value_Maps.Has_Key (Old_Model, Key)
-                 and then Value_Maps.Get (Old_Model, Key)
-                          = Value_Maps.Get (Model_Of (Items.all, Nodes.all, T.Seed), Key)
-                 and then Array_Key (T.Items.all, Key)
-                 and then Index_Of (T.Items.all, Key) <= I);
-            pragma Loop_Invariant
-              (for all J in T.Items'First .. I =>
-                 (if T.Items (J) /= Nil
-                  then Value_Maps.Has_Key
-                         (Model_Of (Items.all, Nodes.all, T.Seed),
-                          Integer_Value_Of (Integer_64 (J)))));
-         end loop;
-      end if;
-      if T.Items /= null and then Placed then
-         for J in T.Nodes'Range loop
-            if T.Nodes (J).State = Used_Node then
-               Lemma_Node (T.Items.all, T.Nodes.all, T.Seed, J);
-               Lemma_Unique (T.Nodes.all, J);
-               Lemma_Contains (Old_Entries, T.Items'Length + 1 + J);
-               Lemma_Contains (Old_Entries, T.Items'Length + T.Nodes'Length + 1 + J);
-               Place (Items.all, Nodes.all, T.Seed, T.Nodes (J).Key, T.Nodes (J).Item, Placed);
-               exit when not Placed;
-            end if;
-            pragma Loop_Invariant (Items /= null and then Nodes /= null);
-            pragma Loop_Invariant (Items'First = 1 and then Items'Last = Array_Size);
-            pragma Loop_Invariant (Nodes'First = 0 and then Nodes'Length = Capacity);
-            pragma Loop_Invariant (Parts_Valid (Items.all, Nodes.all, T.Seed));
-            pragma Loop_Invariant (No_Dead (Nodes.all));
-            pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
-            pragma Loop_Invariant
-              (for all Position in 1 .. Array_Size + 2 * Capacity =>
-                 Entry_Of (Items.all, Nodes.all, Position).Kind /= Object_Value
-                 or else Value_Sequences.Contains
-                           (Old_Entries, 1, Value_Sequences.Last (Old_Entries),
-                            Entry_Of (Items.all, Nodes.all, Position)));
-            pragma Loop_Invariant
-              (for all Key of Model_Of (Items.all, Nodes.all, T.Seed) =>
-                 Value_Maps.Has_Key (Old_Model, Key)
-                 and then Value_Maps.Get (Old_Model, Key)
-                          = Value_Maps.Get (Model_Of (Items.all, Nodes.all, T.Seed), Key)
-                 and then (Array_Key (T.Items.all, Key)
-                           or else (for some Earlier in T.Nodes'First .. J =>
-                                      T.Nodes (Earlier).State = Used_Node
-                                      and then T.Nodes (Earlier).Key = Key)));
-            pragma Loop_Invariant
-              (for all I in T.Items'Range =>
-                 (if T.Items (I) /= Nil
-                  then Value_Maps.Has_Key
-                         (Model_Of (Items.all, Nodes.all, T.Seed),
-                          Integer_Value_Of (Integer_64 (I)))));
-            pragma Loop_Invariant
-              (for all Earlier in T.Nodes'First .. J =>
-                 (if T.Nodes (Earlier).State = Used_Node
-                  then Value_Maps.Has_Key
-                         (Model_Of (Items.all, Nodes.all, T.Seed), T.Nodes (Earlier).Key)));
-         end loop;
+         Copy_Array_Part (T.Items.all, T.Nodes.all, T.Seed, Items.all, Nodes.all, Placed);
+         if Placed then
+            Copy_Hash_Part (T.Items.all, T.Nodes.all, T.Seed, Items.all, Nodes.all, Placed);
+         end if;
       end if;
       Success := Placed;
       if not Success then
@@ -1145,6 +1234,12 @@ package body Pyro.Tables with SPARK_Mode => On is
         (for all Key of Old_Model =>
            Value_Maps.Has_Key (Model_Of (Items.all, Nodes.all, T.Seed), Key));
       pragma Assert (Model_Of (Items.all, Nodes.all, T.Seed) = Old_Model);
+      pragma Assert
+        (for all Position in 1 .. Array_Size + 2 * Capacity =>
+           Entry_Of (Items.all, Nodes.all, Position).Kind /= Object_Value
+           or else Value_Sequences.Contains
+                     (Old_Entries, 1, Value_Sequences.Last (Old_Entries),
+                      Entry_Of (Items.all, Nodes.all, Position)));
       if T.Items /= null then
          Release (Budget, Item_Bytes * Byte_Count (T.Items'Length)
                           + Node_Bytes * Byte_Count (T.Nodes'Length));

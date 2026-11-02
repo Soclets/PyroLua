@@ -105,21 +105,8 @@ package body Pyro.Growable_Arrays with SPARK_Mode => On is
       New_Chunk := new Element_Array'(1 .. New_Length => Default_Element);
       pragma Assert (New_Chunk'First = 1 and then New_Chunk'Last = New_Length);
       pragma Assert (New_Length >= Old_Length);
-      if Container.First /= null then
-         for Position in 1 .. Old_Length loop
-            if Position in Container.First'Range then
-               New_Chunk (Position) := Container.First (Position);
-            end if;
-            pragma Loop_Invariant (New_Chunk'First = 1 and then New_Chunk'Last = New_Length);
-            pragma Loop_Invariant
-              (for all Earlier in 1 .. Position =>
-                 New_Chunk (Earlier)
-                 = (if Earlier in Container.First'Range then Container.First (Earlier)
-                    else Default_Element));
-            pragma Loop_Invariant
-              (for all Later in 1 .. New_Length =>
-                 (if Later > Position then New_Chunk (Later) = Default_Element));
-         end loop;
+      if Old_Length > 0 then
+         New_Chunk (1 .. Old_Length) := Container.First (1 .. Old_Length);
       end if;
       Old_Chunk := Container.First;
       Container.First := New_Chunk;
