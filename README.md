@@ -1,5 +1,7 @@
 # Pyro Lua
 
+[![Linux](https://github.com/Soclets/PyroLua/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/Soclets/PyroLua/actions/workflows/linux.yml)
+
 Pyro Lua is an implementation of the **Lua 5.4** core language written in **SPARK** (the
 formally verifiable subset of Ada). The goal is an embeddable Lua interpreter with a
 machine-checked proof that the interpreter itself cannot crash or corrupt memory,
