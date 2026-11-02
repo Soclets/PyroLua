@@ -4,10 +4,13 @@
 --  before the virtual machine exists. Prints each failure and exits with status 1 if any.
 
 with Ada.Command_Line;
+with Ada.Containers.Ordered_Maps;
 with Ada.Text_IO;          use Ada.Text_IO;
 with Interfaces;           use Interfaces;
 with Pyro.Heap;            use Pyro.Heap;
+with Pyro.Floats;
 with Pyro.Strings;
+with Pyro.Tables;          use Pyro.Tables;
 with Pyro.Memory_Budgets;  use Pyro.Memory_Budgets;
 with Pyro.Values;          use Pyro.Values;
 
@@ -146,7 +149,177 @@ procedure Runtime_Test is
       Check (Used (Budget) = 0, "interning: Clear releases the intern set");
    end Test_Interning;
 
+   --  A reference map for tables: plain Ada, keyed by the normalized key.
+   function Less (Left, Right : Value) return Boolean
+   is (Value_Kind'Pos (Left.Kind) < Value_Kind'Pos (Right.Kind)
+       or else (Left.Kind = Right.Kind
+                and then (Left.Bits < Right.Bits
+                          or else (Left.Bits = Right.Bits and then Left.Object < Right.Object))));
+
+   package Reference_Maps is new Ada.Containers.Ordered_Maps
+     (Key_Type => Value, Element_Type => Value, "<" => Less);
+
+   --  A deterministic pseudo-random sequence (xorshift).
+   Random_State : Unsigned_64 := 16#9E37_79B9_7F4A_7C15#;
+
+   function Random (Bound : Positive) return Natural is
+   begin
+      Random_State := Random_State xor Shift_Left (Random_State, 13);
+      Random_State := Random_State xor Shift_Right (Random_State, 7);
+      Random_State := Random_State xor Shift_Left (Random_State, 17);
+      return Natural (Random_State mod Unsigned_64 (Bound));
+   end Random;
+
+   --  A random key: mostly small integers (the array part), some large ones, integral floats
+   --  (which are the same keys as integers), other floats, booleans and object handles.
+   function Random_Key return Value is
+   begin
+      case Random (10) is
+         when 0 .. 3 => return Integer_Value_Of (Integer_64 (Random (80) + 1));
+         when 4      => return Integer_Value_Of (Integer_64 (Random (1_000_000)) - 500_000);
+         when 5      =>
+            return Float_Value_Of (Pyro.Floats.From_Integer (Integer_64 (Random (80) + 1)));
+         when 6      =>
+            return Float_Value_Of
+                     (Pyro.Floats.Arithmetic
+                        (Pyro.Floats.Divide, Pyro.Floats.From_Integer (Integer_64 (Random (1000))),
+                         Pyro.Floats.From_Integer (7)));
+         when 7      => return Boolean_Value_Of (Random (2) = 0);
+         when others => return Object_Value_Of (Valid_Handle (Random (300) + 1));
+      end case;
+   end Random_Key;
+
+   --  The table against the reference map, through long random sequences of operations.
+   procedure Test_Tables_Model is
+      T         : Table;
+      Budget    : Memory_Budget := Create (Default_Limit);
+      Reference : Reference_Maps.Map;
+      Key, K    : Value;
+      Item      : Value;
+      Status    : Set_Status;
+      Success   : Boolean;
+      Same      : Boolean := True;
+   begin
+      Set_Seed (T, (K0 => 16#0123#, K1 => 16#4567#));
+      for Step in 1 .. 200_000 loop
+         Key := Random_Key;
+         K := Key_Of (Key);
+         case Random (10) is
+            when 0 .. 4 =>
+               Item := Integer_Value_Of (Integer_64 (Step));
+               Set (T, Budget, Key, Item, Status);
+               Same := Same and then Status = Done;
+               Reference.Include (K, Item);
+            when 5 .. 6 =>
+               Set (T, Budget, Key, Nil, Status);
+               Same := Same and then Status = Done;
+               Reference.Exclude (K);
+            when 7 =>
+               Resize (T, Budget, Random (100), Random (100) + Natural (Reference.Length), Success);
+            when others =>
+               null;
+         end case;
+         Item := Get (T, Key);
+         if Reference.Contains (K) then
+            Same := Same and then Item = Reference.Element (K);
+         else
+            Same := Same and then Item = Nil;
+         end if;
+         if not Same then
+            Put_Line ("tables: model differs at step" & Integer'Image (Step));
+            exit;
+         end if;
+      end loop;
+      Check (Same, "tables: random operations agree with the reference map");
+      --  Every key, by traversal, deleting every other key on the way.
+      declare
+         Seen      : Reference_Maps.Map;
+         Next_Key  : Value;
+         Next_Item : Value;
+         Visit     : Next_Status;
+         Current   : Value := Nil;
+         Toggle    : Boolean := False;
+         Agreed    : Boolean := True;
+      begin
+         loop
+            Next (T, Current, Next_Key, Next_Item, Visit);
+            exit when Visit /= Found;
+            Agreed := Agreed and then not Seen.Contains (Next_Key)
+              and then Reference.Contains (Next_Key)
+              and then Reference.Element (Next_Key) = Next_Item;
+            Seen.Include (Next_Key, Next_Item);
+            Toggle := not Toggle;
+            if Toggle then
+               Set (T, Budget, Next_Key, Nil, Status);
+               Reference.Exclude (Next_Key);
+            end if;
+            Current := Next_Key;
+         end loop;
+         Check (Visit = Finished, "tables: traversal ends");
+         Check (Agreed, "tables: traversal gives each key once, with its value");
+         Check (Natural (Seen.Length) >= Natural (Reference.Length),
+                "tables: traversal while deleting misses no key");
+      end;
+      Check (Get (T, Nil) = Nil, "tables: nil key reads nil");
+      Set (T, Budget, Nil, Integer_Value_Of (1), Status);
+      Check (Status = Invalid_Key, "tables: nil key cannot be set");
+      Clear (T, Budget);
+      Check (Used (Budget) = 0, "tables: Clear releases everything");
+   end Test_Tables_Model;
+
+   --  The length of sequences, and a border when there are holes.
+   procedure Test_Tables_Length is
+      T      : Table;
+      Budget : Memory_Budget := Create (Default_Limit);
+      Status : Set_Status;
+      N      : Integer_64;
+   begin
+      Check (Length (T) = 0, "length: empty table");
+      for Index in 1 .. 1000 loop
+         Set (T, Budget, Integer_Value_Of (Integer_64 (Index)), Boolean_Value_Of (True), Status);
+         if Index mod 97 = 0 then
+            Check (Length (T) = Integer_64 (Index), "length: sequence of" & Index'Image);
+         end if;
+      end loop;
+      Set (T, Budget, Integer_Value_Of (500), Nil, Status);
+      N := Length (T);
+      Check ((N = 0 or else Get (T, Integer_Value_Of (N)) /= Nil)
+             and then Get (T, Integer_Value_Of (N + 1)) = Nil, "length: a border with a hole");
+      Clear (T, Budget);
+   end Test_Tables_Length;
+
+   --  Long churn of inserts and deletes: probe sequences stay short.
+   procedure Test_Tables_Probes is
+      T       : Table;
+      Budget  : Memory_Budget := Create (Default_Limit);
+      Status  : Set_Status;
+      Longest : Natural := 0;
+   begin
+      Set_Seed (T, (K0 => 16#DEAD_BEEF#, K1 => 16#CAFE#));
+      for Round in 0 .. 49 loop
+         for Index in 1 .. 2_000 loop
+            --  Keys spaced by a large power of two, the worst case for a hash taken modulo
+            --  a power of two without mixing; and object handles in sequence.
+            Set (T, Budget, Integer_Value_Of (Integer_64 (Round * 2_000 + Index) * 2 ** 20),
+                 Boolean_Value_Of (True), Status);
+            Set (T, Budget, Object_Value_Of (Valid_Handle (Round * 2_000 + Index)),
+                 Boolean_Value_Of (True), Status);
+         end loop;
+         for Index in 1 .. 1_500 loop
+            Set (T, Budget, Integer_Value_Of (Integer_64 (Round * 2_000 + Index) * 2 ** 20), Nil,
+                 Status);
+         end loop;
+         Longest := Natural'Max (Longest, Longest_Probe (T));
+      end loop;
+      Put_Line ("tables: longest probe after churn:" & Longest'Image);
+      Check (Longest <= 64, "tables: probe sequences stay short under churn");
+      Clear (T, Budget);
+   end Test_Tables_Probes;
+
 begin
+   Test_Tables_Model;
+   Test_Tables_Length;
+   Test_Tables_Probes;
    Test_Heap_Strings;
    Test_Heap_Many;
    Test_Hash;

@@ -92,6 +92,7 @@ locale.
 | `Pyro.Kind_Sequences` | M3 | [proof] The kind of every slot, as a ghost sequence |
 | `Pyro.Strings` | M3 | String bytes, the seed, SipHash-1-3 (strings are interned by `Pyro.Heap`) |
 | `Pyro.Tables` | M3 | Lua tables |
+| `Pyro.Value_Maps`, `Pyro.Value_Sequences` | M3 | [proof] A table's contents and the values it holds, as ghost containers |
 | `Pyro.Garbage_Collector` | M3 | Mark and sweep collector |
 | `Pyro.Virtual_Machine` | M4 | Interpreter loop, call frames, metamethods |
 | `Pyro.Embedding` | M6 | Embedding API for Ada/SPARK hosts |
@@ -381,22 +382,36 @@ strings alive: the collector removes the strings it frees from it, and
 
 ### Tables
 
-A table has an array part (keys `1..N`) and a hash part (open addressing). Key rules
-from the manual: `nil` and NaN keys are errors on assignment; float keys with an
-integral value are normalised to integers (`t[2.0]` is `t[2]`).
+A table (`Pyro.Tables`) has an array part (keys `1..N`) and a hash part of nodes with
+linear probing. Key rules from the manual: `nil` and NaN keys are errors on assignment,
+and keys are normalised before hashing (`t[2.0]` is `t[2]`, `-0.0` is `0`). A key's hash
+is SipHash-1-3 of its bits and kind under the table's seed, so a string's hash does not
+depend on its bytes being read again, and two tables order the same keys differently from
+each other and from PUC Lua.
 
-`next`-style traversal must keep working when existing fields are set to `nil`
-during traversal, as Lua allows. Deleting therefore leaves a tombstone, and rehashing
-happens only when a new key is inserted.
+Sizing follows `ltable.c`: when an insert finds no room, the table counts its integer
+keys by powers of two and picks the largest array size that is more than half full
+(`computesizes`), then puts the rest in a hash part of the next power of two
+(`luaH_resize`). `#` returns a border by the same search as `luaH_getn`: a binary search
+in the array part when its last slot is empty, otherwise an unbounded doubling search in
+the hash part. Any border is a correct answer when the sequence has holes, and the proof
+says the result is one.
 
-The invariant `Is_Valid (Table)` (Gold) says: every key in the hash part can be found
-along its probe sequence, element counts are consistent, no key appears twice, and
-array-part keys are never also stored in the hash part. Get, set, delete, resize and
-next are proven to preserve it, and get is proven to return what the last set
-stored for that key.
+Setting an existing field to `nil` turns its node into a tombstone and keeps its key, so
+`next` can continue from a key set to `nil` during traversal, as Lua allows. Setting the
+key again revives its node, a new key takes the first dead or empty node on its probe
+sequence, and a rehash drops the rest. The table keeps one
+counter, the nodes that are used or dead; it is only a trigger: a new key is inserted in
+place while that counter is under three quarters of the hash part, and the table is
+rehashed otherwise (and also when a probe finds no free node, which is the fallback the
+proof relies on, not the counter). Tests churn inserts and deletes with adversarial
+integer and string keys and check the longest probe stays short (`Longest_Probe`).
 
-The length operator `#` follows Lua's border semantics (any border is acceptable
-when the sequence has holes), so it doesn't have to match the reference exactly.
+The keys of tombstones are strong in M3: the collector marks them, so an object stays
+alive while a dead node names it. M5 revisits this with weak tables and `__gc`.
+
+The order of `next` differs from PUC Lua (other hashes, other probing), so the M4
+differential tests must not depend on the order of `pairs`.
 
 ### Garbage collector
 

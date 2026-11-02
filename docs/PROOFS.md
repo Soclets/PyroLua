@@ -82,10 +82,24 @@ Together these say the collector never frees a reachable object.
 
 ### Tables (M3)
 
-Invariant `Is_Valid (Table)`: every hash-part key can be found along its probe sequence,
-no key is stored twice, counts are consistent, array-part keys are not also in the
-hash part. Get, set, delete, resize and next preserve it. Get after set returns the
-stored value for that key (a functional model of the table as a ghost map).
+Invariant `Is_Valid (Table)`: the array part is 1-based and its values canonical, every
+node in use or dead holds a canonical key that can be found along its probe sequence
+from its hash (no empty node before it), no key is stored twice, and keys in the
+array part's range are not stored in the hash part. It keeps no counts: the one counter
+only decides when to rehash, and safety never depends on it.
+
+The table's meaning is a ghost map (`Model`), and every operation is specified against it:
+
+- `Get` returns the model's value for the normalised key, or nil;
+- `Set` stores the value for the key (nil removes it), leaves every other key as it was,
+  and reports an invalid key or running out of memory without changing the model;
+- `Resize` and rehashing keep the model;
+- `Next` returns only pairs of the model;
+- `Length` returns a border: zero or a key in the model, and one past it is not;
+- `Clear` empties the model and returns its memory to the budget.
+
+For the heap and the collector, every object a table names (in a key, a dead key or a
+value) is in its ghost `Entries`, and `Set` is proven to add only its key and value to them.
 
 ### VM stack and frames (M4)
 
@@ -115,6 +129,10 @@ Also counted as trust, and listed here when used:
 
 `pragma Annotate (GNATprove, Hide_Info | Unhide_Info, …)` only keeps a definition out
 of proofs (they then rely on contracts alone), so it is not trust and needs no entry.
+Likewise the one `pragma Warnings (GNATprove, Off, …)` in `pyro.adc`: it hides the warning
+that every instance of SPARKlib's functional maps gives (a lemma of its parameter checks
+whose precondition, `Use_Logical_Equality`, the maps generic sets to False; it is never
+called), and hides no check.
 
 Current list of assumptions and justified checks:
 
@@ -135,6 +153,8 @@ object, each proven to mean exactly that, and nothing about runtime safety depen
 - `Pyro.Heap.Heap`, likewise: a chunked store of slots owning their objects, hidden from
   every client's proofs (M3). Its `Is_Released` is that the chunk table is gone, which
   `Clear` reaches only after freeing every slot's objects and every chunk.
+- `Pyro.Tables.Table`, likewise: an array part and a hash part, hidden from the heap's
+  proofs (M3). Its `Is_Released` is that both parts are gone.
 
 ## Assumptions
 
@@ -213,9 +233,10 @@ Rules:
 
 ### Proof time
 
-The uncached proof (`tests/run --full`'s proof stage) took 584 s of its 900 s cap after
-the front-end memory work (632 s in another forced run on the same commit, so allow a
-few percent between runs; M2 ended at 484 s). Keep it at about two thirds of the cap or
+The uncached proof (`tests/run --full`'s proof stage) took 587 s of its 900 s cap with
+tables (584 s after the front-end memory work, and 632 s in another forced run on that
+commit, so allow a few percent between runs; M2 ended at 484 s). The runtime units prove
+in parallel with the compiler's, which set the wall time. Keep it at about two thirds of the cap or
 below: past that, restructure before adding proofs.
 
 When it grows, find where by unit rather than guessing:
@@ -243,8 +264,8 @@ When it grows, find where by unit rather than guessing:
 | Parser, AST | Silver + well-formedness | proven |
 | Resolver | Silver | proven |
 | Compiler / bytecode validity | Gold | proven (output checked by the proven `Is_Valid`) |
-| Heap | Gold | not started |
-| Tables | Gold | not started |
+| Heap | Gold | proven for strings (table objects come with the collector) |
+| Tables | Gold | proven |
 | GC | Gold | not started |
 | VM | Silver + frame invariant | not started |
 | API | Silver | not started |

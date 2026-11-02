@@ -43,11 +43,33 @@ package Pyro.Values with SPARK_Mode => On, Always_Terminates is
    is ((Kind => Boolean_Value, Bits => (if Item then 1 else 0), Object => No_Object))
    with Post => Is_Canonical (Boolean_Value_Of'Result);
 
+   --  The integer an integer value holds.
+   function Integer_Of (Item : Value) return Integer_64
+   is (Pyro.Integer_Arithmetic.To_Signed (Item.Bits))
+   with Pre => Item.Kind = Integer_Value;
+
+   --  Clients reason through the contracts of Integer_Value_Of and Lemma_Integer_Value, not
+   --  the bits, which would otherwise unfold into every quantified invariant on integer keys.
+   pragma Annotate (GNATprove, Hide_Info, "Expression_Function_Body", Integer_Of);
+
    function Integer_Value_Of (Item : Integer_64) return Value
-   is ((Kind   => Integer_Value,
-        Bits   => Pyro.Integer_Arithmetic.To_Unsigned (Item),
-        Object => No_Object))
-   with Post => Is_Canonical (Integer_Value_Of'Result);
+   with
+     Global => null,
+     Post   =>
+       Integer_Value_Of'Result
+       = (Kind   => Integer_Value,
+          Bits   => Pyro.Integer_Arithmetic.To_Unsigned (Item),
+          Object => No_Object)
+       and then Is_Canonical (Integer_Value_Of'Result)
+       and then Integer_Of (Integer_Value_Of'Result) = Item;
+
+   --  [proof] An integer value is the value of its integer.
+   procedure Lemma_Integer_Value (Item : Value)
+   with
+     Ghost,
+     Global => null,
+     Pre    => Item.Kind = Integer_Value and then Is_Canonical (Item),
+     Post   => Integer_Value_Of (Integer_Of (Item)) = Item;
 
    function Float_Value_Of (Bits : Unsigned_64) return Value
    is ((Kind => Float_Value, Bits => Bits, Object => No_Object))
@@ -57,11 +79,6 @@ package Pyro.Values with SPARK_Mode => On, Always_Terminates is
    is ((Kind => Object_Value, Bits => 0, Object => Handle))
    with Post => Is_Canonical (Object_Value_Of'Result);
 
-   --  The integer an integer value holds.
-   function Integer_Of (Item : Value) return Integer_64
-   is (Pyro.Integer_Arithmetic.To_Signed (Item.Bits))
-   with Pre => Item.Kind = Integer_Value;
-
    --  The handle an object value holds, or No_Object for any other value.
    function Handle_Of (Item : Value) return Object_Handle
    is (if Item.Kind = Object_Value then Item.Object else No_Object);
@@ -69,7 +86,12 @@ package Pyro.Values with SPARK_Mode => On, Always_Terminates is
    --  A value that can be a table key as it is: not nil, not a NaN, and not a float with an
    --  integral value (those are keyed by the integer, Normalize_Key).
    function Is_Key (Item : Value) return Boolean
-   with Global => null;
+   with
+     Global => null,
+     Post   =>
+       (if Item.Kind = Nil_Value then not Is_Key'Result)
+       and then (if Item.Kind in Boolean_Value | Integer_Value | Object_Value
+                 then Is_Key'Result);
 
    --  [puc ltable.c:luaH_get, luaV_flttointns] Item as a table key: a float with an integral
    --  value in the integer range becomes that integer (2.0 is 2, -0.0 is 0). Valid is False
@@ -78,6 +100,20 @@ package Pyro.Values with SPARK_Mode => On, Always_Terminates is
    with
      Global => null,
      Pre    => Is_Canonical (Item),
-     Post   => (if Valid then Is_Key (Key) and then Is_Canonical (Key) else Key = Nil);
+     Post   =>
+       (if Valid then Is_Key (Key) and then Is_Canonical (Key) else Key = Nil)
+       and then (if Item.Kind in Boolean_Value | Integer_Value | Object_Value
+                 then Valid and then Key = Item);
+
+   --  Item as a table key (Normalize_Key), or Nil when it cannot be one.
+   function Key_Of (Item : Value) return Value
+   with
+     Global => null,
+     Pre    => Is_Canonical (Item),
+     Post   =>
+       (Key_Of'Result = Nil
+        or else (Is_Key (Key_Of'Result) and then Is_Canonical (Key_Of'Result)))
+       and then (if Item.Kind in Boolean_Value | Integer_Value | Object_Value
+                 then Key_Of'Result = Item);
 
 end Pyro.Values;

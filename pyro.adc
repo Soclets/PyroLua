@@ -5,3 +5,11 @@
 --  Postconditions name 'Old values inside conditions. Contracts are proven, not executed, so
 --  evaluating those prefixes unconditionally on entry costs nothing.
 pragma Unevaluated_Use_Of_Old (Allow);
+
+--  SPARKlib's functional maps check their parameters with a lemma whose precondition is
+--  Use_Logical_Equality, which the maps generic always sets to False, so proving any instance
+--  warns that it is always False. The lemma is never called.
+pragma Warnings
+  (GNATprove, Off,
+   "precondition is always False, in instantiation at spark-containers-functional-maps.ads*",
+   Reason => "unused lemma of SPARKlib's parameter checks");

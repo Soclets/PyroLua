@@ -865,7 +865,7 @@ def trusted_units():
 
 # Library-level instances of SPARKlib's functional containers (ghost models), which
 # SPARKlib proves itself.
-FUNCTIONAL_INSTANCES = {"Pyro.Kind_Sequences"}
+FUNCTIONAL_INSTANCES = {"Pyro.Kind_Sequences", "Pyro.Value_Maps", "Pyro.Value_Sequences"}
 
 
 def is_generic_noise(unit, location):
