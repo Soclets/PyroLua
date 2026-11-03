@@ -1,0 +1,128 @@
+
+main <tests/corpus/runtime/calls/varargs.lua:0,0> (67 instructions at #4)
+0+ params, 10 slots, 1 upvalue, 3 locals, 6 constants, 3 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	closure  	0 0	; #1
+	3	[3]	closure  	1 1	; #2
+	4	[4]	closure  	2 2	; #3
+	5	[5]	get_table_upvalue	3 0 0	; _ENV "print"
+	6	[5]	move     	4 0
+	7	[5]	call     	4 1 2	; 0 in 1 out
+	8	[5]	move     	5 0
+	9	[5]	load_nil 	6 0	; 1 out
+	10	[5]	call     	5 2 2	; 1 in 1 out
+	11	[5]	move     	6 0
+	12	[5]	load_integer	7 1
+	13	[5]	load_nil 	8 0	; 1 out
+	14	[5]	load_integer	9 3
+	15	[5]	call     	6 4 2	; 3 in 1 out
+	16	[5]	move     	7 0
+	17	[5]	load_nil 	8 1	; 2 out
+	18	[5]	call     	7 3 0	; 2 in all out
+	19	[5]	call     	3 0 1	; all in 0 out
+	20	[6]	get_table_upvalue	3 0 0	; _ENV "print"
+	21	[6]	move     	4 1
+	22	[6]	load_integer	5 1
+	23	[6]	load_integer	6 2
+	24	[6]	load_integer	7 3
+	25	[6]	call     	4 4 0	; 3 in all out
+	26	[6]	call     	3 0 1	; all in 0 out
+	27	[7]	get_table_upvalue	3 0 0	; _ENV "print"
+	28	[7]	move     	4 1
+	29	[7]	call     	4 1 0	; 0 in all out
+	30	[7]	call     	3 0 1	; all in 0 out
+	31	[8]	get_table_upvalue	3 0 0	; _ENV "print"
+	32	[8]	move     	4 2
+	33	[8]	load_integer	5 1
+	34	[8]	load_integer	6 2
+	35	[8]	load_integer	7 3
+	36	[8]	call     	4 4 0	; 3 in all out
+	37	[8]	call     	3 0 1	; all in 0 out
+	38	[9]	get_table_upvalue	3 0 0	; _ENV "print"
+	39	[9]	move     	4 2
+	40	[9]	call     	4 1 0	; 0 in all out
+	41	[9]	call     	3 0 1	; all in 0 out
+	42	[10]	get_table_upvalue	3 0 0	; _ENV "print"
+	43	[10]	get_table_upvalue	4 0 1	; _ENV "select"
+	44	[10]	load_integer	5 2
+	45	[10]	load_constant	6 2	; "a"
+	46	[10]	load_constant	7 3	; "b"
+	47	[10]	load_constant	8 4	; "c"
+	48	[10]	call     	4 5 0	; 4 in all out
+	49	[10]	call     	3 0 1	; all in 0 out
+	50	[11]	get_table_upvalue	3 0 0	; _ENV "print"
+	51	[11]	get_table_upvalue	4 0 1	; _ENV "select"
+	52	[11]	load_integer	5 -1
+	53	[11]	load_constant	6 2	; "a"
+	54	[11]	load_constant	7 3	; "b"
+	55	[11]	load_constant	8 4	; "c"
+	56	[11]	call     	4 5 0	; 4 in all out
+	57	[11]	call     	3 0 1	; all in 0 out
+	58	[12]	get_table_upvalue	3 0 0	; _ENV "print"
+	59	[12]	get_table_upvalue	4 0 1	; _ENV "select"
+	60	[12]	load_constant	5 5	; "#"
+	61	[12]	move     	6 1
+	62	[12]	load_integer	7 1
+	63	[12]	load_nil 	8 0	; 1 out
+	64	[12]	call     	6 3 0	; 2 in all out
+	65	[12]	call     	4 0 0	; all in all out
+	66	[12]	call     	3 0 1	; all in 0 out
+	67	[12]	return_values	3 1 1	; 0 out
+constants (6) for #4:
+	0	S	"print"
+	1	S	"select"
+	2	S	"a"
+	3	S	"b"
+	4	S	"c"
+	5	S	"#"
+locals (3) for #4:
+	0	count	3	68
+	1	pass	4	68
+	2	first	5	68
+upvalues (1) for #4:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/calls/varargs.lua:2,2> (7 instructions at #1)
+0+ params, 3 slots, 1 upvalue, 0 locals, 2 constants, 0 functions
+	1	[2]	vararg_prepare	0
+	2	[2]	get_table_upvalue	0 0 0	; _ENV "select"
+	3	[2]	load_constant	1 1	; "#"
+	4	[2]	vararg   	2 0	; all out
+	5	[2]	tail_call	0 0 1	; -1 in
+	6	[2]	return_values	0 0 1	; all out
+	7	[2]	return_values	0 1 1	; 0 out
+constants (2) for #1:
+	0	S	"select"
+	1	S	"#"
+locals (0) for #1:
+upvalues (1) for #1:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/calls/varargs.lua:3,3> (4 instructions at #2)
+0+ params, 2 slots, 0 upvalues, 0 locals, 0 constants, 0 functions
+	1	[3]	vararg_prepare	0
+	2	[3]	vararg   	0 0	; all out
+	3	[3]	return_values	0 0 1	; all out
+	4	[3]	return_values	0 1 1	; 0 out
+constants (0) for #2:
+locals (0) for #2:
+upvalues (0) for #2:
+
+function <tests/corpus/runtime/calls/varargs.lua:4,4> (8 instructions at #3)
+1+ param, 5 slots, 1 upvalue, 1 local, 2 constants, 0 functions
+	1	[4]	vararg_prepare	1
+	2	[4]	move     	1 0
+	3	[4]	get_table_upvalue	2 0 0	; _ENV "select"
+	4	[4]	load_constant	3 1	; "#"
+	5	[4]	vararg   	4 0	; all out
+	6	[4]	call     	2 0 0	; all in all out
+	7	[4]	return_values	1 0 2	; all out
+	8	[4]	return_values	1 1 2	; 0 out
+constants (2) for #3:
+	0	S	"select"
+	1	S	"#"
+locals (1) for #3:
+	0	a	1	9
+upvalues (1) for #3:
+	0	_ENV	0	0
+exit 0

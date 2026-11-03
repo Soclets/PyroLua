@@ -1,0 +1,107 @@
+1 function_body vararg
+  1 block
+    2 local_function
+      2 local_name "count"
+      2 function_body vararg
+        2 name_list
+        2 block
+          2 return_statement
+            2 expression_list
+              2 call_expression
+                2 name_expression "select" global
+                2 string_literal "#"
+                2 vararg_expression
+    3 local_function
+      3 local_name "pass"
+      3 function_body vararg
+        3 name_list
+        3 block
+          3 return_statement
+            3 expression_list
+              3 vararg_expression
+    4 local_function
+      4 local_name "first"
+      4 function_body vararg
+        4 name_list
+          4 local_name "a"
+        4 block
+          4 return_statement
+            4 expression_list
+              4 name_expression "a" local@21
+              4 call_expression
+                4 name_expression "select" global
+                4 string_literal "#"
+                4 vararg_expression
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 call_expression
+          5 name_expression "count" local@1
+        5 call_expression
+          5 name_expression "count" local@1
+          5 nil_literal
+        5 call_expression
+          5 name_expression "count" local@1
+          5 integer_literal 1
+          5 nil_literal
+          5 integer_literal 3
+        5 call_expression
+          5 name_expression "count" local@1
+          5 nil_literal
+          5 nil_literal
+    6 call_statement
+      6 call_expression
+        6 name_expression "print" global
+        6 call_expression
+          6 name_expression "pass" local@12
+          6 integer_literal 1
+          6 integer_literal 2
+          6 integer_literal 3
+    7 call_statement
+      7 call_expression
+        7 name_expression "print" global
+        7 call_expression
+          7 name_expression "pass" local@12
+    8 call_statement
+      8 call_expression
+        8 name_expression "print" global
+        8 call_expression
+          8 name_expression "first" local@20
+          8 integer_literal 1
+          8 integer_literal 2
+          8 integer_literal 3
+    9 call_statement
+      9 call_expression
+        9 name_expression "print" global
+        9 call_expression
+          9 name_expression "first" local@20
+    10 call_statement
+      10 call_expression
+        10 name_expression "print" global
+        10 call_expression
+          10 name_expression "select" global
+          10 integer_literal 2
+          10 string_literal "a"
+          10 string_literal "b"
+          10 string_literal "c"
+    11 call_statement
+      11 call_expression
+        11 name_expression "print" global
+        11 call_expression
+          11 name_expression "select" global
+          11 unary_operation negate
+            11 integer_literal 1
+          11 string_literal "a"
+          11 string_literal "b"
+          11 string_literal "c"
+    12 call_statement
+      12 call_expression
+        12 name_expression "print" global
+        12 call_expression
+          12 name_expression "select" global
+          12 string_literal "#"
+          12 call_expression
+            12 name_expression "pass" local@12
+            12 integer_literal 1
+            12 nil_literal
+exit 0

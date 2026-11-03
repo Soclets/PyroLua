@@ -1,0 +1,42 @@
+1 function_body vararg
+  1 block
+    2 call_statement
+      2 call_expression
+        2 name_expression "print" global
+        2 string_literal "text"
+        2 string_literal "single"
+        2 string_literal "long"
+        2 string_literal ""
+    3 call_statement
+      3 call_expression
+        3 name_expression "print" global
+        3 integer_literal 1
+        3 unary_operation negate
+          3 integer_literal 1
+        3 integer_literal 0
+        3 integer_literal 9223372036854775807
+        3 unary_operation negate
+          3 integer_literal 9223372036854775807
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 float_literal 0x3FF0000000000000
+        4 float_literal 0x3FE0000000000000
+        4 float_literal 0x430C6BF526340000
+        4 float_literal 0x4341C37937E08000
+        4 float_literal 0x54B249AD2594C37D
+        4 binary_operation power
+          4 integer_literal 2
+          4 integer_literal 63
+        4 float_literal 0x3FB999999999999A
+        4 integer_literal 123456789012345678
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 true_literal
+        5 false_literal
+        5 nil_literal
+    6 call_statement
+      6 call_expression
+        6 name_expression "print" global
+exit 0

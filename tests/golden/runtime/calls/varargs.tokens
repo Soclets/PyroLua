@@ -1,0 +1,145 @@
+2 keyword local
+2 keyword function
+2 name count
+2 (
+2 ...
+2 )
+2 keyword return
+2 name select
+2 (
+2 string "#"
+2 ,
+2 ...
+2 )
+2 keyword end
+3 keyword local
+3 keyword function
+3 name pass
+3 (
+3 ...
+3 )
+3 keyword return
+3 ...
+3 keyword end
+4 keyword local
+4 keyword function
+4 name first
+4 (
+4 name a
+4 ,
+4 ...
+4 )
+4 keyword return
+4 name a
+4 ,
+4 name select
+4 (
+4 string "#"
+4 ,
+4 ...
+4 )
+4 keyword end
+5 name print
+5 (
+5 name count
+5 (
+5 )
+5 ,
+5 name count
+5 (
+5 keyword nil
+5 )
+5 ,
+5 name count
+5 (
+5 integer 1
+5 ,
+5 keyword nil
+5 ,
+5 integer 3
+5 )
+5 ,
+5 name count
+5 (
+5 keyword nil
+5 ,
+5 keyword nil
+5 )
+5 )
+6 name print
+6 (
+6 name pass
+6 (
+6 integer 1
+6 ,
+6 integer 2
+6 ,
+6 integer 3
+6 )
+6 )
+7 name print
+7 (
+7 name pass
+7 (
+7 )
+7 )
+8 name print
+8 (
+8 name first
+8 (
+8 integer 1
+8 ,
+8 integer 2
+8 ,
+8 integer 3
+8 )
+8 )
+9 name print
+9 (
+9 name first
+9 (
+9 )
+9 )
+10 name print
+10 (
+10 name select
+10 (
+10 integer 2
+10 ,
+10 string "a"
+10 ,
+10 string "b"
+10 ,
+10 string "c"
+10 )
+10 )
+11 name print
+11 (
+11 name select
+11 (
+11 -
+11 integer 1
+11 ,
+11 string "a"
+11 ,
+11 string "b"
+11 ,
+11 string "c"
+11 )
+11 )
+12 name print
+12 (
+12 name select
+12 (
+12 string "#"
+12 ,
+12 name pass
+12 (
+12 integer 1
+12 ,
+12 keyword nil
+12 )
+12 )
+12 )
+13 <eof>
+exit 0

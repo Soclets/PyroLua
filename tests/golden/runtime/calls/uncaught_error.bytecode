@@ -1,0 +1,36 @@
+
+main <tests/corpus/runtime/calls/uncaught_error.lua:0,0> (11 instructions at #2)
+0+ params, 3 slots, 1 upvalue, 1 local, 3 constants, 1 function
+	1	[1]	vararg_prepare	0
+	2	[2]	get_table_upvalue	0 0 0	; _ENV "print"
+	3	[2]	load_constant	1 1	; "before"
+	4	[2]	call     	0 2 1	; 1 in 0 out
+	5	[3]	closure  	0 0	; #1
+	6	[4]	move     	1 0
+	7	[4]	call     	1 1 1	; 0 in 0 out
+	8	[5]	get_table_upvalue	1 0 0	; _ENV "print"
+	9	[5]	load_constant	2 2	; "not reached"
+	10	[5]	call     	1 2 1	; 1 in 0 out
+	11	[5]	return_values	1 1 1	; 0 out
+constants (3) for #2:
+	0	S	"print"
+	1	S	"before"
+	2	S	"not reached"
+locals (1) for #2:
+	0	fail	6	12
+upvalues (1) for #2:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/calls/uncaught_error.lua:3,3> (4 instructions at #1)
+0 params, 2 slots, 1 upvalue, 0 locals, 2 constants, 0 functions
+	1	[3]	get_table_upvalue	0 0 0	; _ENV "error"
+	2	[3]	load_constant	1 1	; "stopped here"
+	3	[3]	call     	0 2 1	; 1 in 0 out
+	4	[3]	return_none	
+constants (2) for #1:
+	0	S	"error"
+	1	S	"stopped here"
+locals (0) for #1:
+upvalues (1) for #1:
+	0	_ENV	0	0
+exit 0

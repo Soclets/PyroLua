@@ -13,7 +13,10 @@ with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 with GNAT.OS_Lib;
 with Interfaces;
+with Interfaces.C;
+with System;
 with Bytecode_Listing;
+with Host_Functions;
 with Pyro;
 with Pyro.Bytecode;
 with Pyro.Character_Arrays;
@@ -26,9 +29,11 @@ with Pyro.Memory_Budgets;
 with Pyro.Parser;
 with Pyro.Resolver;
 with Pyro.Sources;
+with Pyro.Strings;
 with Pyro.Symbols;
 with Pyro.Syntax_Trees;
 with Pyro.Tokens;
+with Pyro.Virtual_Machine;
 
 procedure Pyro_Program is
    use Ada.Command_Line;
@@ -41,7 +46,12 @@ procedure Pyro_Program is
    function To_Integer is new Ada.Unchecked_Conversion
      (Interfaces.Unsigned_64, Interfaces.Integer_64);
 
-   type Mode is (Tokens_Mode, Tree_Mode, Check_Mode, Bytecode_Mode);
+   type Mode is (Tokens_Mode, Tree_Mode, Check_Mode, Bytecode_Mode, Run_Mode);
+
+   --  Settings of a run: --max-steps, --max-memory, --gc-stress.
+   Step_Limit   : Interfaces.Unsigned_64 := 0;
+   Memory_Limit : Pyro.Memory_Budgets.Byte_Count := Pyro.Memory_Budgets.Default_Limit;
+   Stress       : Boolean := False;
 
    --  Report errors as luac does (one line), rather than the rich report.
    Lua_Style : Boolean := False;
@@ -227,11 +237,91 @@ procedure Pyro_Program is
       end;
    end Load;
 
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Pyro.Bytecode.Chunk, Pyro.Virtual_Machine.Chunk_Access);
+
+   --  [puc lstate.c:luai_makeseed] A random key for the machine's hashes, from the operating
+   --  system. Success is False, with the system's error number, when it cannot give one.
+   procedure Random_Seed
+     (Seed : out Pyro.Strings.Seed; Success : out Boolean; Error : out Integer)
+   is
+      function Get_Entropy
+        (Buffer : System.Address; Length : Interfaces.C.size_t) return Interfaces.C.int
+      with Import, Convention => C, External_Name => "getentropy";
+      use type Interfaces.C.int;
+      Words : array (1 .. 2) of Interfaces.Unsigned_64 := [0, 0];
+   begin
+      Success := Get_Entropy (Words'Address, 16) = 0;
+      Error := (if Success then 0 else GNAT.OS_Lib.Errno);
+      Seed := (K0 => Words (1), K1 => Words (2));
+   end Random_Seed;
+
+   --  Runs the compiled chunk Program with the host functions, taking Program and the symbols
+   --  it names.
+   procedure Execute
+     (Program    : in out Pyro.Virtual_Machine.Chunk_Access;
+      Symbols    : in out Pyro.Symbols.Symbol_Table;
+      Budget     : in out Pyro.Memory_Budgets.Memory_Budget;
+      Chunk_Name : String)
+   is
+      use Pyro.Virtual_Machine;
+      M       : Machine;
+      Names   : Symbols_Access := new Pyro.Symbols.Symbol_Table;
+      Seed    : Pyro.Strings.Seed;
+      Status  : Run_Status;
+      Success : Boolean;
+      Error   : Integer;
+   begin
+      Pyro.Symbols.Swap (Names.all, Symbols);
+      Random_Seed (Seed, Success, Error);
+      if not Success then
+         Put_Error ("pyrolua: cannot get a random seed: "
+                    & GNAT.OS_Lib.Errno_Message (Err => Error) & ASCII.LF);
+         Set_Exit_Status (Failure);
+         Pyro.Symbols.Swap (Names.all, Symbols);
+         Pyro.Symbols.Clear (Names.all, Budget);
+         return;
+      end if;
+      Load (M, Budget, Program, Names, Chunk_Name, Seed,
+            (Step_Limit => Step_Limit, Stress => Stress), Success);
+      if Success then
+         Host_Functions.Register_All (M, Budget, Success);
+      end if;
+      if not Success then
+         Put_Error ("pyrolua: not enough memory" & ASCII.LF);
+         Set_Exit_Status (Failure);
+         Clear (M, Budget);
+         return;
+      end if;
+      loop
+         Run (M, Budget, Status);
+         case Status is
+            when Host_Call =>
+               Host_Functions.Answer (M, Budget);
+            when Paused =>
+               null;
+            when Finished =>
+               exit;
+            when Errored =>
+               Host_Functions.Flush;
+               Put_Error ("pyrolua: " & Error_Text (M) & ASCII.LF);
+               Set_Exit_Status (Failure);
+               exit;
+            when Step_Limit_Reached =>
+               Host_Functions.Flush;
+               Put_Error ("pyrolua: instruction limit reached" & ASCII.LF);
+               Set_Exit_Status (Failure);
+               exit;
+         end case;
+      end loop;
+      Host_Functions.Flush;
+      Clear (M, Budget);
+   end Execute;
+
    procedure Run (Selected : Mode; Path : String) is
       Source  : Source_Access;
       Binary  : Boolean;
-      Budget  : Pyro.Memory_Budgets.Memory_Budget :=
-        Pyro.Memory_Budgets.Create (Pyro.Memory_Budgets.Default_Limit);
+      Budget  : Pyro.Memory_Budgets.Memory_Budget := Pyro.Memory_Budgets.Create (Memory_Limit);
       Symbols : Pyro.Symbols.Symbol_Table;
       Lexer   : Pyro.Lexer.Lexer_State;
       Item    : Token;
@@ -329,7 +419,7 @@ procedure Pyro_Program is
             if Pyro.Lexer.Failed (Lexer) then
                Report (Pyro.Lexer.Error (Lexer));
             end if;
-         when Tree_Mode | Check_Mode | Bytecode_Mode =>
+         when Tree_Mode | Check_Mode | Bytecode_Mode | Run_Mode =>
             declare
                use Pyro.Syntax_Trees;
                Tree     : Syntax_Tree;
@@ -337,7 +427,7 @@ procedure Pyro_Program is
                Root     : Node_Index;
                Count    : Natural;
                Bindings : Pyro.Resolver.Binding_Table;
-               Compiled : Pyro.Bytecode.Chunk;
+               Program : Pyro.Virtual_Machine.Chunk_Access := new Pyro.Bytecode.Chunk;
 
                --  Prints one node's line. Trees can be far deeper than the parser's nesting limit
                --  (a long chain of "a + a + ..."), so nothing here depends on the depth.
@@ -443,13 +533,15 @@ procedure Pyro_Program is
                   Pyro.Resolver.Clear (Bindings, Budget);
                   --  Also in a chunk with errors, for the limit errors PUC Lua finds first.
                   Pyro.Compiler.Compile
-                    (Source.all, Tree, Root, Symbols, Budget, Problems, Compiled);
+                    (Source.all, Tree, Root, Symbols, Budget, Problems, Program.all);
                   Count := Natural (Pyro.Diagnostic_Lists.Length (Problems));
                end if;
                if Selected = Tree_Mode then
                   Print (Root);
                elsif Selected = Bytecode_Mode and then Count = 0 then
-                  Bytecode_Listing.Print (Compiled, Symbols, Source.all, Lua_Style);
+                  Bytecode_Listing.Print (Program.all, Symbols, Source.all, Lua_Style);
+               elsif Selected = Run_Mode and then Count = 0 then
+                  Execute (Program, Symbols, Budget, Pyro.Sources.Chunk_Id (Source.all));
                end if;
                if Count > 0 and then Lua_Style then
                   --  The error PUC Lua would raise first.
@@ -511,7 +603,10 @@ procedure Pyro_Program is
                      Free (Order);
                   end;
                end if;
-               Pyro.Bytecode.Clear (Compiled, Budget);
+               if Pyro.Virtual_Machine."/=" (Program, null) then
+                  Pyro.Bytecode.Clear (Program.all, Budget);
+                  Free (Program);
+               end if;
                Clear (Tree, Budget);
                Pyro.Diagnostic_Lists.Clear (Problems, Budget);
                Pyro.Resolver.Clear (Bindings, Budget);
@@ -526,11 +621,50 @@ procedure Pyro_Program is
    procedure Usage is
    begin
       Put_Error ("usage: pyrolua (--tokens | --ast | --check [--lua-style]"
-                 & " | --bytecode [--lua-style]) file.lua" & ASCII.LF);
+                 & " | --bytecode [--lua-style]) file.lua" & ASCII.LF
+                 & "       pyrolua [--max-steps N] [--max-memory BYTES] [--gc-stress] file.lua"
+                 & ASCII.LF);
       Set_Exit_Status (2);
    end Usage;
    procedure Main is
+      First : Positive := 1;
    begin
+      --  Running a file: its settings first.
+      while First <= Argument_Count loop
+         if Argument (First) = "--gc-stress" then
+            Stress := True;
+            First := First + 1;
+         elsif Argument (First) in "--max-steps" | "--max-memory"
+           and then First < Argument_Count
+         then
+            begin
+               if Argument (First) = "--max-steps" then
+                  Step_Limit := Interfaces.Unsigned_64'Value (Argument (First + 1));
+               else
+                  Memory_Limit := Pyro.Memory_Budgets.Byte_Count'Min
+                    (Pyro.Memory_Budgets.Maximum_Limit,
+                     Pyro.Memory_Budgets.Byte_Count'Value (Argument (First + 1)));
+               end if;
+            exception
+               when Constraint_Error =>
+                  Usage;
+                  return;
+            end;
+            First := First + 2;
+         else
+            exit;
+         end if;
+      end loop;
+      if First > 1 or else (Argument_Count = 1 and then Argument (1) (Argument (1)'First) /= '-')
+      then
+         if First /= Argument_Count then
+            Usage;
+            return;
+         end if;
+         Lua_Style := True;
+         Run (Run_Mode, Argument (First));
+         return;
+      end if;
       if Argument_Count = 3 and then Argument (1) in "--check" | "--bytecode"
         and then Argument (2) = "--lua-style"
       then

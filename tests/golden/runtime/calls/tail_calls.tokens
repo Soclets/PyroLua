@@ -1,0 +1,97 @@
+2 keyword local
+2 keyword function
+2 name last
+2 (
+2 ...
+2 )
+2 keyword return
+2 name select
+2 (
+2 string "#"
+2 ,
+2 ...
+2 )
+2 ,
+2 ...
+2 keyword end
+3 keyword local
+3 keyword function
+3 name middle
+3 (
+3 ...
+3 )
+3 keyword return
+3 name last
+3 (
+3 ...
+3 )
+3 keyword end
+4 keyword local
+4 keyword function
+4 name outer
+4 (
+4 ...
+4 )
+4 keyword return
+4 name middle
+4 (
+4 string "x"
+4 ,
+4 ...
+4 )
+4 keyword end
+5 name print
+5 (
+5 name outer
+5 (
+5 integer 1
+5 ,
+5 integer 2
+5 )
+5 )
+6 keyword local
+6 keyword function
+6 name to_host
+6 (
+6 ...
+6 )
+6 keyword return
+6 name select
+6 (
+6 integer 2
+6 ,
+6 ...
+6 )
+6 keyword end
+7 name print
+7 (
+7 name to_host
+7 (
+7 string "a"
+7 ,
+7 string "b"
+7 ,
+7 string "c"
+7 )
+7 )
+8 keyword local
+8 keyword function
+8 name to_print
+8 (
+8 ...
+8 )
+8 keyword return
+8 name print
+8 (
+8 ...
+8 )
+8 keyword end
+9 name print
+9 (
+9 name to_print
+9 (
+9 string "printed"
+9 )
+9 )
+10 <eof>
+exit 0

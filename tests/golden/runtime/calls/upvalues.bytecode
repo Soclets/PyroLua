@@ -1,0 +1,149 @@
+
+main <tests/corpus/runtime/calls/upvalues.lua:0,0> (49 instructions at #8)
+0+ params, 10 slots, 1 upvalue, 8 locals, 7 constants, 3 functions
+	1	[1]	vararg_prepare	0
+	2	[6]	closure  	0 0	; #3
+	3	[7]	move     	1 0
+	4	[7]	load_constant	2 0	; "a"
+	5	[7]	call     	1 2 3	; 1 in 2 out
+	6	[8]	get_table_upvalue	3 0 1	; _ENV "print"
+	7	[8]	move     	4 1
+	8	[8]	call     	4 1 0	; 0 in all out
+	9	[8]	call     	3 0 1	; all in 0 out
+	10	[9]	move     	3 2
+	11	[9]	load_constant	4 2	; "b"
+	12	[9]	call     	3 2 1	; 1 in 0 out
+	13	[10]	get_table_upvalue	3 0 1	; _ENV "print"
+	14	[10]	move     	4 1
+	15	[10]	call     	4 1 0	; 0 in all out
+	16	[10]	call     	3 0 1	; all in 0 out
+	17	[11]	move     	3 0
+	18	[11]	load_constant	4 3	; "c"
+	19	[11]	call     	3 2 3	; 1 in 2 out
+	20	[12]	get_table_upvalue	5 0 1	; _ENV "print"
+	21	[12]	move     	6 1
+	22	[12]	call     	6 1 2	; 0 in 1 out
+	23	[12]	move     	7 3
+	24	[12]	call     	7 1 0	; 0 in all out
+	25	[12]	call     	5 0 1	; all in 0 out
+	26	[13]	move     	5 4
+	27	[13]	load_constant	6 4	; "d"
+	28	[13]	call     	5 2 1	; 1 in 0 out
+	29	[14]	get_table_upvalue	5 0 1	; _ENV "print"
+	30	[14]	move     	6 1
+	31	[14]	call     	6 1 2	; 0 in 1 out
+	32	[14]	move     	7 3
+	33	[14]	call     	7 1 0	; 0 in all out
+	34	[14]	call     	5 0 1	; all in 0 out
+	35	[15]	load_constant	5 5	; "outer"
+	36	[16]	closure  	6 1	; #4
+	37	[17]	load_constant	5 6	; "changed"
+	38	[18]	get_table_upvalue	7 0 1	; _ENV "print"
+	39	[18]	move     	8 6
+	40	[18]	call     	8 1 0	; 0 in all out
+	41	[18]	call     	7 0 1	; all in 0 out
+	42	[22]	closure  	7 2	; #7
+	43	[23]	get_table_upvalue	8 0 1	; _ENV "print"
+	44	[23]	move     	9 7
+	45	[23]	call     	9 1 2	; 0 in 1 out
+	46	[23]	call     	9 1 2	; 0 in 1 out
+	47	[23]	call     	9 1 0	; 0 in all out
+	48	[23]	call     	8 0 1	; all in 0 out
+	49	[23]	return_values	8 1 1k	; 0 out
+constants (7) for #8:
+	0	S	"a"
+	1	S	"print"
+	2	S	"b"
+	3	S	"c"
+	4	S	"d"
+	5	S	"outer"
+	6	S	"changed"
+locals (8) for #8:
+	0	make	3	50
+	1	get	6	50
+	2	set	6	50
+	3	get2	20	50
+	4	set2	20	50
+	5	shared	36	50
+	6	read	37	50
+	7	nest	43	50
+upvalues (1) for #8:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/calls/upvalues.lua:2,6> (6 instructions at #3)
+1 param, 5 slots, 0 upvalues, 3 locals, 0 constants, 2 functions
+	1	[3]	closure  	1 0	; #1
+	2	[4]	closure  	2 1	; #2
+	3	[5]	move     	3 1
+	4	[5]	move     	4 2
+	5	[5]	return_values	3 3 0k	; 2 out
+	6	[6]	return_values	3 1 0k	; 0 out
+constants (0) for #3:
+locals (3) for #3:
+	0	value	1	7
+	1	get	2	7
+	2	set	3	7
+upvalues (0) for #3:
+
+function <tests/corpus/runtime/calls/upvalues.lua:3,3> (3 instructions at #1)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 0 functions
+	1	[3]	get_upvalue	0 0	; value
+	2	[3]	return_one	0
+	3	[3]	return_none	
+constants (0) for #1:
+locals (0) for #1:
+upvalues (1) for #1:
+	0	value	1	0
+
+function <tests/corpus/runtime/calls/upvalues.lua:4,4> (2 instructions at #2)
+1 param, 2 slots, 1 upvalue, 1 local, 0 constants, 0 functions
+	1	[4]	set_upvalue	0 0	; value
+	2	[4]	return_none	
+constants (0) for #2:
+locals (1) for #2:
+	0	new	1	3
+upvalues (1) for #2:
+	0	value	1	0
+
+function <tests/corpus/runtime/calls/upvalues.lua:16,16> (3 instructions at #4)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 0 functions
+	1	[16]	get_upvalue	0 0	; shared
+	2	[16]	return_one	0
+	3	[16]	return_none	
+constants (0) for #4:
+locals (0) for #4:
+upvalues (1) for #4:
+	0	shared	1	5
+
+function <tests/corpus/runtime/calls/upvalues.lua:19,22> (4 instructions at #7)
+0 params, 2 slots, 0 upvalues, 1 local, 1 constant, 1 function
+	1	[20]	load_constant	0 0	; "in"
+	2	[21]	closure  	1 0	; #6
+	3	[21]	return_values	1 2 0k	; 1 out
+	4	[22]	return_values	1 1 0k	; 0 out
+constants (1) for #7:
+	0	S	"in"
+locals (1) for #7:
+	0	inner	2	5
+upvalues (0) for #7:
+
+function <tests/corpus/runtime/calls/upvalues.lua:21,21> (3 instructions at #6)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 1 function
+	1	[21]	closure  	0 0	; #5
+	2	[21]	return_one	0
+	3	[21]	return_none	
+constants (0) for #6:
+locals (0) for #6:
+upvalues (1) for #6:
+	0	inner	1	0
+
+function <tests/corpus/runtime/calls/upvalues.lua:21,21> (3 instructions at #5)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 0 functions
+	1	[21]	get_upvalue	0 0	; inner
+	2	[21]	return_one	0
+	3	[21]	return_none	
+constants (0) for #5:
+locals (0) for #5:
+upvalues (1) for #5:
+	0	inner	0	0
+exit 0

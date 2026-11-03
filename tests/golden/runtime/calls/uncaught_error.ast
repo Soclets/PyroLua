@@ -1,0 +1,23 @@
+1 function_body vararg
+  1 block
+    2 call_statement
+      2 call_expression
+        2 name_expression "print" global
+        2 string_literal "before"
+    3 local_function
+      3 local_name "fail"
+      3 function_body
+        3 name_list
+        3 block
+          3 call_statement
+            3 call_expression
+              3 name_expression "error" global
+              3 string_literal "stopped here"
+    4 call_statement
+      4 call_expression
+        4 name_expression "fail" local@5
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 string_literal "not reached"
+exit 0

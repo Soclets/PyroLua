@@ -1,0 +1,137 @@
+1 function_body vararg
+  1 block
+    2 local_function
+      2 local_name "make"
+      2 function_body
+        2 name_list
+          2 local_name "value"
+        3 block
+          3 local_function
+            3 local_name "get"
+            3 function_body
+              3 name_list
+              3 block
+                3 return_statement
+                  3 expression_list
+                    3 name_expression "value" upvalue@2
+          4 local_function
+            4 local_name "set"
+            4 function_body
+              4 name_list
+                4 local_name "new"
+              4 block
+                4 assignment
+                  4 expression_list
+                    4 assignment_target "value"
+                      4 name_expression "value" upvalue@2
+                  4 expression_list
+                    4 name_expression "new" local@13
+          5 return_statement
+            5 expression_list
+              5 name_expression "get" local@4
+              5 name_expression "set" local@12
+    7 local_statement
+      7 name_list
+        7 local_name "get"
+        7 local_name "set"
+      7 expression_list
+        7 call_expression
+          7 name_expression "make" local@1
+          7 string_literal "a"
+    8 call_statement
+      8 call_expression
+        8 name_expression "print" global
+        8 call_expression
+          8 name_expression "get" local@31
+    9 call_statement
+      9 call_expression
+        9 name_expression "set" local@32
+        9 string_literal "b"
+    10 call_statement
+      10 call_expression
+        10 name_expression "print" global
+        10 call_expression
+          10 name_expression "get" local@31
+    11 local_statement
+      11 name_list
+        11 local_name "get2"
+        11 local_name "set2"
+      11 expression_list
+        11 call_expression
+          11 name_expression "make" local@1
+          11 string_literal "c"
+    12 call_statement
+      12 call_expression
+        12 name_expression "print" global
+        12 call_expression
+          12 name_expression "get" local@31
+        12 call_expression
+          12 name_expression "get2" local@53
+    13 call_statement
+      13 call_expression
+        13 name_expression "set2" local@54
+        13 string_literal "d"
+    14 call_statement
+      14 call_expression
+        14 name_expression "print" global
+        14 call_expression
+          14 name_expression "get" local@31
+        14 call_expression
+          14 name_expression "get2" local@53
+    15 local_statement
+      15 name_list
+        15 local_name "shared"
+      15 expression_list
+        15 string_literal "outer"
+    16 local_function
+      16 local_name "read"
+      16 function_body
+        16 name_list
+        16 block
+          16 return_statement
+            16 expression_list
+              16 name_expression "shared" upvalue@79
+    17 assignment
+      17 expression_list
+        17 assignment_target "shared"
+          17 name_expression "shared" local@79
+      17 expression_list
+        17 string_literal "changed"
+    18 call_statement
+      18 call_expression
+        18 name_expression "print" global
+        18 call_expression
+          18 name_expression "read" local@84
+    19 local_function
+      19 local_name "nest"
+      19 function_body
+        19 name_list
+        20 block
+          20 local_statement
+            20 name_list
+              20 local_name "inner"
+            20 expression_list
+              20 string_literal "in"
+          21 return_statement
+            21 expression_list
+              21 function_expression
+                21 function_body
+                  21 name_list
+                  21 block
+                    21 return_statement
+                      21 expression_list
+                        21 function_expression
+                          21 function_body
+                            21 name_list
+                            21 block
+                              21 return_statement
+                                21 expression_list
+                                  21 name_expression "inner" upvalue@105
+    23 call_statement
+      23 call_expression
+        23 name_expression "print" global
+        23 call_expression
+          23 call_expression
+            23 call_expression
+              23 name_expression "nest" local@103
+exit 0

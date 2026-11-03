@@ -1,0 +1,168 @@
+2 name print
+2 (
+2 name pcall
+2 (
+2 name error
+2 ,
+2 string "plain"
+2 )
+2 )
+3 name print
+3 (
+3 name pcall
+3 (
+3 name error
+3 ,
+3 string "no position"
+3 ,
+3 integer 0
+3 )
+3 )
+4 name print
+4 (
+4 name pcall
+4 (
+4 keyword function
+4 (
+4 )
+4 name error
+4 (
+4 string "level one"
+4 )
+4 keyword end
+4 )
+4 )
+5 name print
+5 (
+5 name pcall
+5 (
+5 keyword function
+5 (
+5 )
+5 name error
+5 (
+5 string "level two"
+5 ,
+5 integer 2
+5 )
+5 keyword end
+5 )
+5 )
+6 name print
+6 (
+6 name pcall
+6 (
+6 keyword function
+6 (
+6 )
+6 name error
+6 (
+6 )
+6 keyword end
+6 )
+6 )
+7 name print
+7 (
+7 name pcall
+7 (
+7 keyword function
+7 (
+7 )
+7 name error
+7 (
+7 integer 42
+7 )
+7 keyword end
+7 )
+7 )
+8 name print
+8 (
+8 name pcall
+8 (
+8 keyword function
+8 (
+8 )
+8 name error
+8 (
+8 keyword false
+8 )
+8 keyword end
+8 )
+8 )
+9 name print
+9 (
+9 name pcall
+9 (
+9 keyword function
+9 (
+9 )
+9 keyword return
+9 string "fine"
+9 ,
+9 integer 2
+9 keyword end
+9 )
+9 )
+10 name print
+10 (
+10 name pcall
+10 (
+10 name pcall
+10 ,
+10 name error
+10 ,
+10 string "nested"
+10 )
+10 )
+11 name print
+11 (
+11 name pcall
+11 (
+11 name assert
+11 ,
+11 keyword true
+11 ,
+11 string "kept"
+11 )
+11 )
+12 name print
+12 (
+12 name pcall
+12 (
+12 name assert
+12 ,
+12 keyword false
+12 )
+12 )
+13 name print
+13 (
+13 name pcall
+13 (
+13 name assert
+13 ,
+13 keyword nil
+13 ,
+13 string "message"
+13 )
+13 )
+14 name print
+14 (
+14 name pcall
+14 (
+14 name assert
+14 )
+14 )
+15 name print
+15 (
+15 name select
+15 (
+15 string "#"
+15 ,
+15 name pcall
+15 (
+15 name error
+15 )
+15 )
+15 )
+16 <eof>
+exit 0

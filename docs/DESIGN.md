@@ -473,10 +473,44 @@ frame, a return pops one. Consequences:
   jump, continue a concatenation, …). This is the same idea as `luaV_finishOp` in
   PUC Lua.
 
-Host functions (registered through the API) are Ada subprograms called from the
-loop. If a host function needs to call back into Lua, it can either request a call
-with a continuation (preferred, keeps the loop flat) or re-enter the VM, which is
-allowed up to a fixed nesting depth.
+The stack and the frames follow `lstate.h`. A frame records where its function is
+(`Func`), where its registers end (`Top`), its prototype and program counter, how many
+results its caller wants, and its origin: the place its results go. A vararg function
+moves its function above its arguments (`luaT_adjustvarargs`), keeping the extra ones
+below it, so its origin and its function differ; returns and tail calls use the origin,
+not the RETURN instruction's operand. The frame invariant (PROOFS.md) says every frame
+lies in the stack and starts above the function of the frame below it; growing the stack
+keeps it, and passing the stack or frame limit raises "stack overflow" as a Lua error.
+
+The dispatch loop (`Pyro.Virtual_Machine.Execution`) decodes one instruction and calls
+its handler. The handlers work through a small core in the parent package (registers,
+constants, upvalues, calls, returns, errors), whose contracts are stated over a view of
+the running frame, so they prove against those contracts and never see the machine's
+representation. The core passes the parts of the machine it changes (the stack, the
+frames, the heap) to its helpers, so that what it does not pass is known unchanged.
+
+### Host functions
+
+A host function is called from the dispatch loop without the loop calling back into the
+host: `Run` returns to its caller with the status `Host_Call`, and the host reads the call
+(`Host_Function`, `Argument_Count`, `Argument`) and answers with one of:
+
+- `Return_Values`: return these values;
+- `Raise_Error` or `Raise_Message`: raise this error value, or this message after the
+  position of a calling function (as `luaL_error` and `error` do);
+- `Call`: call this function with these arguments, then continue me with its results.
+  With `Protect`, an error in that call is caught and continues me with the error
+  instead (`Call_Succeeded` is then false).
+
+The host function's frame stays on the stack, holding its arguments, while the call it
+asked for runs; when the call returns, `Run` reports the same frame again with the
+continuation number the host gave (`Continuation`), its arguments and the call's results
+(`Result_Count`, `Result`). This is `lua_callk`'s continuation: `pcall` is a host function
+that asks for a protected call and returns `true` and the results, or `false` and the
+error. A host function keeps no handle across answers except in its frame, so the
+collector's roots cover everything a host function holds. `Run` also returns `Paused`
+after a slice of instructions, so that every call of it returns, and `Step_Limit_Reached`
+when the step limit set at `Load` is reached.
 
 ### Errors
 

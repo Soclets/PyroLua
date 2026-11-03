@@ -1,0 +1,89 @@
+1 function_body vararg
+  1 block
+    2 local_function
+      2 local_name "none"
+      2 function_body
+        2 name_list
+        2 block
+    3 local_function
+      3 local_name "one"
+      3 function_body
+        3 name_list
+        3 block
+          3 return_statement
+            3 expression_list
+              3 integer_literal 1
+    4 local_function
+      4 local_name "three"
+      4 function_body
+        4 name_list
+        4 block
+          4 return_statement
+            4 expression_list
+              4 integer_literal 1
+              4 integer_literal 2
+              4 integer_literal 3
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 call_expression
+          5 name_expression "none" local@1
+    6 call_statement
+      6 call_expression
+        6 name_expression "print" global
+        6 call_expression
+          6 name_expression "three" local@14
+    7 call_statement
+      7 call_expression
+        7 name_expression "print" global
+        7 call_expression
+          7 name_expression "three" local@14
+        7 string_literal "last"
+    8 call_statement
+      8 call_expression
+        8 name_expression "print" global
+        8 string_literal "first"
+        8 call_expression
+          8 name_expression "three" local@14
+    9 call_statement
+      9 call_expression
+        9 name_expression "print" global
+        9 parenthesized
+          9 call_expression
+            9 name_expression "three" local@14
+    10 local_statement
+      10 name_list
+        10 local_name "a"
+        10 local_name "b"
+        10 local_name "c"
+        10 local_name "d"
+      10 expression_list
+        10 call_expression
+          10 name_expression "three" local@14
+    11 call_statement
+      11 call_expression
+        11 name_expression "print" global
+        11 name_expression "a" local@52
+        11 name_expression "b" local@53
+        11 name_expression "c" local@54
+        11 name_expression "d" local@55
+    12 local_statement
+      12 name_list
+        12 local_name "e"
+      12 expression_list
+        12 call_expression
+          12 name_expression "none" local@1
+    13 call_statement
+      13 call_expression
+        13 name_expression "print" global
+        13 name_expression "e" local@68
+    14 call_statement
+      14 call_expression
+        14 name_expression "print" global
+        14 call_expression
+          14 name_expression "one" local@6
+        14 call_expression
+          14 name_expression "one" local@6
+        14 call_expression
+          14 name_expression "three" local@14
+exit 0

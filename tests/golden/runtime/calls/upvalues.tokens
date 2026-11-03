@@ -1,0 +1,142 @@
+2 keyword local
+2 keyword function
+2 name make
+2 (
+2 name value
+2 )
+3 keyword local
+3 keyword function
+3 name get
+3 (
+3 )
+3 keyword return
+3 name value
+3 keyword end
+4 keyword local
+4 keyword function
+4 name set
+4 (
+4 name new
+4 )
+4 name value
+4 =
+4 name new
+4 keyword end
+5 keyword return
+5 name get
+5 ,
+5 name set
+6 keyword end
+7 keyword local
+7 name get
+7 ,
+7 name set
+7 =
+7 name make
+7 (
+7 string "a"
+7 )
+8 name print
+8 (
+8 name get
+8 (
+8 )
+8 )
+9 name set
+9 (
+9 string "b"
+9 )
+10 name print
+10 (
+10 name get
+10 (
+10 )
+10 )
+11 keyword local
+11 name get2
+11 ,
+11 name set2
+11 =
+11 name make
+11 (
+11 string "c"
+11 )
+12 name print
+12 (
+12 name get
+12 (
+12 )
+12 ,
+12 name get2
+12 (
+12 )
+12 )
+13 name set2
+13 (
+13 string "d"
+13 )
+14 name print
+14 (
+14 name get
+14 (
+14 )
+14 ,
+14 name get2
+14 (
+14 )
+14 )
+15 keyword local
+15 name shared
+15 =
+15 string "outer"
+16 keyword local
+16 keyword function
+16 name read
+16 (
+16 )
+16 keyword return
+16 name shared
+16 keyword end
+17 name shared
+17 =
+17 string "changed"
+18 name print
+18 (
+18 name read
+18 (
+18 )
+18 )
+19 keyword local
+19 keyword function
+19 name nest
+19 (
+19 )
+20 keyword local
+20 name inner
+20 =
+20 string "in"
+21 keyword return
+21 keyword function
+21 (
+21 )
+21 keyword return
+21 keyword function
+21 (
+21 )
+21 keyword return
+21 name inner
+21 keyword end
+21 keyword end
+22 keyword end
+23 name print
+23 (
+23 name nest
+23 (
+23 )
+23 (
+23 )
+23 (
+23 )
+23 )
+24 <eof>
+exit 0

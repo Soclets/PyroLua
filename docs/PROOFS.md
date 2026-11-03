@@ -119,6 +119,21 @@ the thread's value stack and starts at or after the previous frame's base. Stack
 growth keeps all frame windows valid, and exceeding the frame or stack limit produces
 a Lua error, not a failed check.
 
+In the proof this is `Frames_Valid` in `Pyro.Virtual_Machine`'s body, part of the
+machine's `Is_Valid`: every frame up to the depth has its function below its top and its
+top at most one past the stack's last place, the results its caller wants fit from its
+origin, a Lua frame has exactly its prototype's registers, a program counter inside its
+code and its extra arguments below its function, and each frame's origin is above the
+function of the frame below. Every operation that grows the stack, pushes, pops or
+changes a frame keeps it (`Lemma_Frames_Larger`, `Lemma_Frames_Set`, `Lemma_Frames_Pop`),
+and both limits are checked before anything changes, raising "stack overflow".
+
+The rest of the VM is Silver, with one more property the collector relies on: every value
+the machine keeps (its stack, constants, registry and open upvalues) is canonical and
+refers to an object of its heap (`Roots_Live`). Instruction handlers rely on the
+chunk's `Is_Valid` through `Fits`, which restates `Instruction_Valid` for the running
+frame, so they check no operand at run time.
+
 ## Trusted code
 
 Units whose bodies are `SPARK_Mode => Off`, with the reason for each. Their specs are
@@ -128,7 +143,7 @@ kept small and conservative.
 | Unit | Reason | Since |
 | --- | --- | --- |
 | `Pyro.Floats` (body) and its C helper `src/common/pyro_floats.c` | IEEE 754 arithmetic with infinities and NaN, correctly rounded decimal-to-float conversion, `%.14g` formatting (Lua's, with ".0" after an integral value, since M4). SPARK assumes floats are finite, so these must operate on raw bits outside SPARK. Decimal conversion is libc's `strtod_l` with an explicit "C" locale, so a host calling `setlocale` cannot change how numerals are read. Constant folding (M2) uses libc's `pow`, `fmod` and `floor` as luac does, so folded constants are bit-identical to luac's. | M1, M2, M4 |
-| `cli/` (`pyrolua` executable) | File and console I/O, command-line handling, bytecode listings. Not part of the library. | M1 |
+| `cli/` (`pyrolua` executable) | File and console I/O, command-line handling, bytecode listings, and the host functions test scripts use (`print`, `pcall`, …), written in ordinary Ada around the VM's host-function protocol. The SipHash seed comes from `getentropy`, imported directly; when it fails `pyrolua` stops with an error rather than run with a guessable seed. Not part of the library. | M1, M4 |
 
 Any new entry needs a reason here and should be as small as possible.
 
@@ -301,5 +316,5 @@ When it grows, find where by unit rather than guessing:
 | Heap | Gold | proven |
 | Tables | Gold | proven |
 | GC | Gold | proven |
-| VM | Silver + frame invariant | not started |
+| VM | Silver + frame invariant | in progress: proven for the instructions it runs so far |
 | API | Silver | not started |

@@ -1,0 +1,110 @@
+2 keyword local
+2 keyword function
+2 name none
+2 (
+2 )
+2 keyword end
+3 keyword local
+3 keyword function
+3 name one
+3 (
+3 )
+3 keyword return
+3 integer 1
+3 keyword end
+4 keyword local
+4 keyword function
+4 name three
+4 (
+4 )
+4 keyword return
+4 integer 1
+4 ,
+4 integer 2
+4 ,
+4 integer 3
+4 keyword end
+5 name print
+5 (
+5 name none
+5 (
+5 )
+5 )
+6 name print
+6 (
+6 name three
+6 (
+6 )
+6 )
+7 name print
+7 (
+7 name three
+7 (
+7 )
+7 ,
+7 string "last"
+7 )
+8 name print
+8 (
+8 string "first"
+8 ,
+8 name three
+8 (
+8 )
+8 )
+9 name print
+9 (
+9 (
+9 name three
+9 (
+9 )
+9 )
+9 )
+10 keyword local
+10 name a
+10 ,
+10 name b
+10 ,
+10 name c
+10 ,
+10 name d
+10 =
+10 name three
+10 (
+10 )
+11 name print
+11 (
+11 name a
+11 ,
+11 name b
+11 ,
+11 name c
+11 ,
+11 name d
+11 )
+12 keyword local
+12 name e
+12 =
+12 name none
+12 (
+12 )
+13 name print
+13 (
+13 name e
+13 )
+14 name print
+14 (
+14 name one
+14 (
+14 )
+14 ,
+14 name one
+14 (
+14 )
+14 ,
+14 name three
+14 (
+14 )
+14 )
+15 <eof>
+exit 0

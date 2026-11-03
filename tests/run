@@ -39,6 +39,24 @@ KNOWN_DIFFERENCES = TESTS / "known-differences.md"
 PYRO = ROOT / "cli" / "bin" / "pyrolua"
 REFERENCE = Path(os.environ.get("PYRO_REF_LUA", "/opt/homebrew/opt/lua@5.4/bin"))
 LUAC = REFERENCE / "luac"
+LUA = REFERENCE / "lua"
+
+# The runtime corpus: scripts run under pyrolua and reference Lua, their output compared.
+RUNTIME = TESTS / "corpus" / "runtime"
+
+# Run by reference Lua before each runtime script: leaves only the host functions pyrolua
+# provides in _ENV (and arg, which lua.c reads before it runs the script), and empties the
+# string metatable (string methods and string arithmetic), so a script cannot depend on the
+# standard library by accident.
+REFERENCE_PRELUDE = (
+    "local keep = {print = true, setmetatable = true, getmetatable = true, pcall = true, "
+    "error = true, type = true, select = true, tostring = true, rawget = true, rawset = true, "
+    "rawequal = true, rawlen = true, next = true, pairs = true, ipairs = true, assert = true, "
+    "arg = true} "
+    "local strings = getmetatable('') "
+    "for key in next, strings do strings[key] = nil end "
+    "local globals = _G "
+    "for key in next, globals do if not keep[key] then globals[key] = nil end end")
 
 # The pyrolua modes whose output has golden files.
 GOLDEN_MODES = ("tokens", "ast", "check", "bytecode")
@@ -49,9 +67,9 @@ TOTAL_LIMIT = {"quick": 300, "full": 2700}
 # Wall-clock cap of each stage, in seconds, within the total.
 STAGE_LIMITS = {
     "quick": {"build": 120, "proof": 200, "tags": 10, "unit": 20, "golden": 30, "cli": 30,
-              "differential": 60, "listing": 60, "fuzz": 30},
+              "differential": 60, "runtime": 60, "listing": 60, "fuzz": 30},
     "full": {"build": 120, "proof": 1800, "tags": 10, "unit": 20, "golden": 30, "cli": 60,
-             "differential": 60, "listing": 120, "fuzz": 600},
+             "differential": 60, "runtime": 120, "listing": 120, "fuzz": 600},
 }
 # The stages of the process check (tests/run --process-check).
 for _limits in STAGE_LIMITS.values():
@@ -677,6 +695,27 @@ class Runner:
                     self.fail(f"{relative}: message differs (not in tests/known-differences.md): "
                               f"luac -p {verdict(reference)}, pyrolua --check {verdict(pyro)}")
 
+    def stage_runtime(self):
+        """pyrolua file.lua against reference Lua (with REFERENCE_PRELUDE) on the runtime corpus:
+        the same exit status, the same standard output byte for byte, and the same error
+        message (the first line of the standard error, without the program's name; reference
+        Lua then prints a stack traceback, which pyrolua does not)."""
+        files = sorted(RUNTIME.rglob("*.lua"))
+
+        def compare(source):
+            relative = source.relative_to(ROOT)
+            reference = self.run([LUA, "-e", REFERENCE_PRELUDE, relative], what=str(relative))
+            pyro = self.run([PYRO, relative], what=str(relative))
+            return relative, reference, pyro
+
+        with concurrent.futures.ThreadPoolExecutor(os.cpu_count() or 4) as pool:
+            for relative, reference, pyro in pool.map(compare, files):
+                if reference[0] is None or pyro[0] is None:
+                    continue
+                problem = runtime_difference(reference, pyro)
+                if problem:
+                    self.fail(f"{relative}: {problem}")
+
     def stage_listing(self):
         """pyrolua --bytecode --lua-style against luac -l -l on every chunk luac accepts."""
         if not OFFICIAL.exists():
@@ -908,6 +947,30 @@ def is_generic_noise(unit, location):
             or location.startswith("spark-containers-functional-"))
 
 
+def error_message(stderr):
+    """The error message a Lua program printed: the first line of its standard error, without
+    the program's name before it."""
+    first = stderr.decode("latin-1").split("\n", 1)[0]
+    return first.split(": ", 1)[1] if ": " in first else first
+
+
+def runtime_difference(reference, pyro):
+    """How pyrolua's run differs from reference Lua's, or None."""
+    if (reference[0] == 0) != (pyro[0] == 0):
+        return (f"exit status {pyro[0]}, reference Lua {reference[0]} "
+                f"({error_message(pyro[2] or reference[2])!r})")
+    if reference[1] != pyro[1]:
+        expected, actual = reference[1].splitlines(), pyro[1].splitlines()
+        for number, (left, right) in enumerate(zip(expected, actual), 1):
+            if left != right:
+                return f"output line {number}: {right!r}, reference Lua {left!r}"
+        return (f"output has {len(actual)} lines, reference Lua's {len(expected)}")
+    if reference[0] != 0 and error_message(reference[2]) != error_message(pyro[2]):
+        return (f"error {error_message(pyro[2])!r}, reference Lua "
+                f"{error_message(reference[2])!r}")
+    return None
+
+
 def message_exemptions():
     """Files whose error message may differ from luac's: backquoted paths in the
     known-differences list."""
@@ -1022,6 +1085,7 @@ def main():
         ("golden", runner.stage_golden),
         ("cli", runner.stage_cli),
         ("differential", runner.stage_differential),
+        ("runtime", runner.stage_runtime),
         ("listing", runner.stage_listing),
         ("fuzz", runner.stage_fuzz),
     ]
