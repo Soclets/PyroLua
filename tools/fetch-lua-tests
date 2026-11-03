@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 #
 # Downloads the official Lua 5.4.9 test suite from lua.org into tests/official/, checking its
-# SHA-256 first. The suite is not committed; tests/run reads it from there.
+# SHA-256 first. The suite is not committed; tests/run reads it from there. With
+# PYRO_DOWNLOADS set to a directory, the archive is kept there and taken from there when
+# present (CI caches it, so that lua.org being unreachable does not fail a run).
 
 set -eu
 
@@ -13,10 +15,17 @@ sha256=7d971845f545ffc09fbb3128a86b2c6524161c70d0fdf0154a16e8c00c343fca
 
 root=$(cd "$(dirname "$0")/.." && pwd)
 target=$root/tests/official
-download=$(mktemp -d)
-trap 'rm -rf "$download"' EXIT
+if [ -n "${PYRO_DOWNLOADS:-}" ]; then
+   download=$PYRO_DOWNLOADS
+   mkdir -p "$download"
+else
+   download=$(mktemp -d)
+   trap 'rm -rf "$download"' EXIT
+fi
 
-curl -fsSL -o "$download/$archive" "$url"
+if [ ! -f "$download/$archive" ]; then
+   curl -fsSL -o "$download/$archive" "$url"
+fi
 
 if command -v sha256sum > /dev/null 2>&1; then
    actual=$(sha256sum "$download/$archive" | cut -d ' ' -f 1)
@@ -24,6 +33,7 @@ else
    actual=$(shasum -a 256 "$download/$archive" | cut -d ' ' -f 1)
 fi
 if [ "$actual" != "$sha256" ]; then
+   rm -f "$download/$archive"
    echo "fetch-lua-tests: checksum mismatch for $archive" >&2
    echo "  expected $sha256" >&2
    echo "  got      $actual" >&2

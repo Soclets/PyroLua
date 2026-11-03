@@ -32,18 +32,29 @@ jobs:
           path: ~/.local/share/alire/releases
           key: alire-releases-${{ runner.os }}-${{ hashFiles('alire.toml', 'cli/alire.toml', 'tests/unit/alire.toml') }}
 
+      # The two lua.org archives, kept across runs so that lua.org being unreachable does not
+      # fail one. The key is their SHA-256s, which each step below checks again.
+      - name: Cache the Lua 5.4.9 archives
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: ~/lua-archives
+          key: lua-archives-2335b6c582a52654f94612bf10d2f4672805d05329aa6568b1d8cd9e5c6fb8e6-7d971845f545ffc09fbb3128a86b2c6524161c70d0fdf0154a16e8c00c343fca
+
       - name: Build PUC Lua 5.4.9 (the reference)
         run: |
-          curl -fsSL -o "$RUNNER_TEMP/lua-5.4.9.tar.gz" https://www.lua.org/ftp/lua-5.4.9.tar.gz
-          echo "2335b6c582a52654f94612bf10d2f4672805d05329aa6568b1d8cd9e5c6fb8e6  $RUNNER_TEMP/lua-5.4.9.tar.gz" \
-            | sha256sum -c -
+          mkdir -p ~/lua-archives
+          if [ ! -f ~/lua-archives/lua-5.4.9.tar.gz ]; then
+            curl -fsSL -o ~/lua-archives/lua-5.4.9.tar.gz https://www.lua.org/ftp/lua-5.4.9.tar.gz
+          fi
+          echo "2335b6c582a52654f94612bf10d2f4672805d05329aa6568b1d8cd9e5c6fb8e6  $HOME/lua-archives/lua-5.4.9.tar.gz" \
+            | sha256sum -c - || { rm -f ~/lua-archives/lua-5.4.9.tar.gz; exit 1; }
           mkdir "$RUNNER_TEMP/lua"
-          tar -xzf "$RUNNER_TEMP/lua-5.4.9.tar.gz" -C "$RUNNER_TEMP/lua" --strip-components=1
+          tar -xzf ~/lua-archives/lua-5.4.9.tar.gz -C "$RUNNER_TEMP/lua" --strip-components=1
           make -C "$RUNNER_TEMP/lua" linux
           echo "PYRO_REF_LUA=$RUNNER_TEMP/lua/src" >> "$GITHUB_ENV"
 
       - name: Fetch the official Lua 5.4.9 tests
-        run: tools/fetch-lua-tests
+        run: PYRO_DOWNLOADS=~/lua-archives tools/fetch-lua-tests
 
       - name: Fetch Unicode's grapheme break test (and regenerate the tables, unchanged)
         run: |
