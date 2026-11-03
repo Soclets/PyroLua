@@ -489,6 +489,25 @@ the running frame, so they prove against those contracts and never see the machi
 representation. The core passes the parts of the machine it changes (the stack, the
 frames, the heap) to its helpers, so that what it does not pass is known unchanged.
 
+### Metamethods
+
+A metamethod that is a function is called like any function, by pushing its frame: the
+loop never recurses into itself. The Lua frame that called it records what to do when it
+returns (`luaV_finishOp`'s job): store the result in a register (`__index`, arithmetic,
+`__len`, `__unm`, ...), or skip the jump after a comparison unless the result's truth is
+the one its k flag asks for (`__eq`, `__lt`, `__le`); `__newindex` wants no result. The
+frame invariant says the register is one of the frame's. `__index` and `__newindex` chains
+of tables are followed in place, at most `MAXTAGLOOP` (2000) of them. `__call` puts its
+metamethod below the arguments, as `luaD_tryfuncTM` does.
+
+Table constructors do not presize their tables (tests/known-differences.md): a table's
+parts grow as keys arrive. The VM reads tables (next, length) through
+`Pyro.Heap.Table_Reads`, a child of the heap, so that the heap's own proofs do not grow.
+
+Only tables have metatables for now: the string metatable comes with the string library
+(M5), and pyrolua's runtime corpus runs reference Lua without one. Metamethod names are
+interned when a chunk is loaded and kept in the registry, so a lookup allocates nothing.
+
 ### Host functions
 
 A host function is called from the dispatch loop without the loop calling back into the

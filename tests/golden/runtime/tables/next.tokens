@@ -1,0 +1,389 @@
+2 keyword local
+2 keyword function
+2 name sorted_keys
+2 (
+2 name t
+2 )
+3 keyword local
+3 name keys
+3 ,
+3 name n
+3 =
+3 {
+3 }
+3 ,
+3 integer 0
+4 keyword local
+4 name k
+4 =
+4 name next
+4 (
+4 name t
+4 )
+5 keyword while
+5 name k
+5 ~=
+5 keyword nil
+5 keyword do
+6 name n
+6 =
+6 name n
+6 +
+6 integer 1
+7 name keys
+7 [
+7 name n
+7 ]
+7 =
+7 name k
+8 name k
+8 =
+8 name next
+8 (
+8 name t
+8 ,
+8 name k
+8 )
+9 keyword end
+10 keyword local
+10 name i
+10 =
+10 integer 2
+11 keyword while
+11 name i
+11 <=
+11 name n
+11 keyword do
+12 keyword local
+12 name j
+12 ,
+12 name key
+12 =
+12 name i
+12 ,
+12 name keys
+12 [
+12 name i
+12 ]
+13 keyword while
+13 name j
+13 >
+13 integer 1
+13 keyword and
+13 name tostring
+13 (
+13 name keys
+13 [
+13 name j
+13 -
+13 integer 1
+13 ]
+13 )
+13 >
+13 name tostring
+13 (
+13 name key
+13 )
+13 keyword do
+14 name keys
+14 [
+14 name j
+14 ]
+14 =
+14 name keys
+14 [
+14 name j
+14 -
+14 integer 1
+14 ]
+15 name j
+15 =
+15 name j
+15 -
+15 integer 1
+16 keyword end
+17 name keys
+17 [
+17 name j
+17 ]
+17 =
+17 name key
+18 name i
+18 =
+18 name i
+18 +
+18 integer 1
+19 keyword end
+20 keyword return
+20 name keys
+20 ,
+20 name n
+21 keyword end
+22 keyword local
+22 name t
+22 =
+22 {
+22 integer 1
+22 ,
+22 integer 2
+22 ,
+22 integer 3
+22 ,
+22 name a
+22 =
+22 string "x"
+22 ,
+22 name b
+22 =
+22 string "y"
+22 ,
+22 name c
+22 =
+22 string "z"
+22 ,
+22 [
+22 integer 10
+22 ]
+22 =
+22 string "ten"
+22 }
+23 keyword local
+23 name keys
+23 ,
+23 name n
+23 =
+23 name sorted_keys
+23 (
+23 name t
+23 )
+24 keyword local
+24 name i
+24 =
+24 integer 1
+25 keyword while
+25 name i
+25 <=
+25 name n
+25 keyword do
+25 name print
+25 (
+25 name keys
+25 [
+25 name i
+25 ]
+25 ,
+25 name t
+25 [
+25 name keys
+25 [
+25 name i
+25 ]
+25 ]
+25 )
+25 ;
+25 name i
+25 =
+25 name i
+25 +
+25 integer 1
+25 keyword end
+26 name print
+26 (
+26 name next
+26 (
+26 {
+26 }
+26 )
+26 ,
+26 name next
+26 (
+26 {
+26 }
+26 ,
+26 keyword nil
+26 )
+26 )
+27 keyword local
+27 name f
+27 ,
+27 name s
+27 ,
+27 name init
+27 =
+27 name pairs
+27 (
+27 name t
+27 )
+28 name print
+28 (
+28 name f
+28 ==
+28 name next
+28 ,
+28 name s
+28 ==
+28 name t
+28 ,
+28 name init
+28 )
+29 keyword local
+29 name custom
+29 =
+29 name setmetatable
+29 (
+29 {
+29 }
+29 ,
+29 {
+29 name __pairs
+29 =
+29 keyword function
+29 (
+29 name self
+29 )
+29 keyword return
+29 string "iter"
+29 ,
+29 name self
+29 ,
+29 string "start"
+29 keyword end
+29 }
+29 )
+30 keyword local
+30 name cf
+30 ,
+30 name cs
+30 ,
+30 name ci
+30 =
+30 name pairs
+30 (
+30 name custom
+30 )
+31 name print
+31 (
+31 name cf
+31 ,
+31 name cs
+31 ==
+31 name custom
+31 ,
+31 name ci
+31 )
+32 keyword local
+32 name g
+32 ,
+32 name gs
+32 ,
+32 name gi
+32 =
+32 name ipairs
+32 (
+32 {
+32 integer 5
+32 ,
+32 integer 6
+32 }
+32 )
+33 name print
+33 (
+33 name gs
+33 [
+33 integer 1
+33 ]
+33 ,
+33 name gi
+33 ,
+33 name g
+33 (
+33 name gs
+33 ,
+33 integer 0
+33 )
+33 )
+34 name print
+34 (
+34 name g
+34 (
+34 name gs
+34 ,
+34 integer 1
+34 )
+34 )
+35 name print
+35 (
+35 name g
+35 (
+35 name gs
+35 ,
+35 integer 2
+35 )
+35 )
+36 keyword local
+36 name indexed
+36 =
+36 name setmetatable
+36 (
+36 {
+36 }
+36 ,
+36 {
+36 name __index
+36 =
+36 keyword function
+36 (
+36 name _
+36 ,
+36 name k
+36 )
+36 keyword if
+36 name k
+36 <
+36 integer 4
+36 keyword then
+36 keyword return
+36 name k
+36 *
+36 integer 100
+36 keyword end
+36 keyword end
+36 }
+36 )
+37 name print
+37 (
+37 name g
+37 (
+37 name indexed
+37 ,
+37 integer 0
+37 )
+37 ,
+37 name g
+37 (
+37 name indexed
+37 ,
+37 integer 2
+37 )
+37 ,
+37 name g
+37 (
+37 name indexed
+37 ,
+37 integer 3
+37 )
+37 )
+38 name print
+38 (
+38 name pcall
+38 (
+38 name next
+38 ,
+38 {
+38 }
+38 ,
+38 string "missing"
+38 )
+38 )
+39 <eof>
+exit 0

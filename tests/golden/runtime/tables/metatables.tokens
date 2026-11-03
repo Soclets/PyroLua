@@ -1,0 +1,883 @@
+2 keyword local
+2 name base
+2 =
+2 {
+2 name greeting
+2 =
+2 string "hello"
+2 }
+3 keyword local
+3 name mid
+3 =
+3 name setmetatable
+3 (
+3 {
+3 }
+3 ,
+3 {
+3 name __index
+3 =
+3 name base
+3 }
+3 )
+4 keyword local
+4 name top
+4 =
+4 name setmetatable
+4 (
+4 {
+4 }
+4 ,
+4 {
+4 name __index
+4 =
+4 name mid
+4 }
+4 )
+5 name print
+5 (
+5 name top
+5 .
+5 name greeting
+5 ,
+5 name rawget
+5 (
+5 name top
+5 ,
+5 string "greeting"
+5 )
+5 ,
+5 name top
+5 .
+5 name missing
+5 )
+6 keyword local
+6 name computed
+6 =
+6 name setmetatable
+6 (
+6 {
+6 }
+6 ,
+6 {
+6 name __index
+6 =
+6 keyword function
+6 (
+6 name t
+6 ,
+6 name k
+6 )
+6 keyword return
+6 name k
+6 *
+6 integer 2
+6 keyword end
+6 }
+6 )
+7 name print
+7 (
+7 name computed
+7 [
+7 integer 21
+7 ]
+7 ,
+7 name rawget
+7 (
+7 name computed
+7 ,
+7 integer 21
+7 )
+7 )
+8 keyword local
+8 name log
+8 =
+8 {
+8 }
+9 keyword local
+9 name guarded
+9 =
+9 name setmetatable
+9 (
+9 {
+9 }
+9 ,
+9 {
+9 name __newindex
+9 =
+9 keyword function
+9 (
+9 name t
+9 ,
+9 name k
+9 ,
+9 name v
+9 )
+9 name rawset
+9 (
+9 name t
+9 ,
+9 name k
+9 ,
+9 name v
+9 *
+9 integer 10
+9 )
+9 keyword end
+9 }
+9 )
+10 name guarded
+10 .
+10 name a
+10 =
+10 integer 1
+11 name print
+11 (
+11 name guarded
+11 .
+11 name a
+11 ,
+11 name rawget
+11 (
+11 name guarded
+11 ,
+11 string "a"
+11 )
+11 )
+12 keyword local
+12 name store
+12 =
+12 {
+12 }
+13 keyword local
+13 name proxy
+13 =
+13 name setmetatable
+13 (
+13 {
+13 }
+13 ,
+13 {
+13 name __newindex
+13 =
+13 name store
+13 }
+13 )
+14 name proxy
+14 .
+14 name x
+14 =
+14 integer 5
+15 name print
+15 (
+15 name rawget
+15 (
+15 name proxy
+15 ,
+15 string "x"
+15 )
+15 ,
+15 name store
+15 .
+15 name x
+15 )
+16 keyword local
+16 name existing
+16 =
+16 name setmetatable
+16 (
+16 {
+16 name y
+16 =
+16 integer 1
+16 }
+16 ,
+16 {
+16 name __newindex
+16 =
+16 keyword function
+16 (
+16 )
+16 name print
+16 (
+16 string "not called"
+16 )
+16 keyword end
+16 }
+16 )
+17 name existing
+17 .
+17 name y
+17 =
+17 integer 2
+18 name print
+18 (
+18 name existing
+18 .
+18 name y
+18 )
+19 keyword local
+19 name V
+19 =
+19 {
+19 }
+20 name V
+20 .
+20 name __index
+20 =
+20 name V
+21 keyword local
+21 keyword function
+21 name n_of
+21 (
+21 name x
+21 )
+21 keyword if
+21 name type
+21 (
+21 name x
+21 )
+21 ==
+21 string "table"
+21 keyword then
+21 keyword return
+21 name x
+21 .
+21 name n
+21 keyword end
+21 keyword return
+21 name x
+21 keyword end
+22 name V
+22 .
+22 name __add
+22 =
+22 keyword function
+22 (
+22 name a
+22 ,
+22 name b
+22 )
+22 keyword return
+22 string "add"
+22 ,
+22 name n_of
+22 (
+22 name a
+22 )
+22 ,
+22 name n_of
+22 (
+22 name b
+22 )
+22 keyword end
+23 name V
+23 .
+23 name __sub
+23 =
+23 keyword function
+23 (
+23 name a
+23 ,
+23 name b
+23 )
+23 keyword return
+23 string "sub"
+23 keyword end
+24 name V
+24 .
+24 name __mul
+24 =
+24 keyword function
+24 (
+24 name a
+24 ,
+24 name b
+24 )
+24 keyword return
+24 string "mul"
+24 keyword end
+25 name V
+25 .
+25 name __div
+25 =
+25 keyword function
+25 (
+25 name a
+25 ,
+25 name b
+25 )
+25 keyword return
+25 string "div"
+25 keyword end
+26 name V
+26 .
+26 name __mod
+26 =
+26 keyword function
+26 (
+26 name a
+26 ,
+26 name b
+26 )
+26 keyword return
+26 string "mod"
+26 keyword end
+27 name V
+27 .
+27 name __pow
+27 =
+27 keyword function
+27 (
+27 name a
+27 ,
+27 name b
+27 )
+27 keyword return
+27 string "pow"
+27 keyword end
+28 name V
+28 .
+28 name __idiv
+28 =
+28 keyword function
+28 (
+28 name a
+28 ,
+28 name b
+28 )
+28 keyword return
+28 string "idiv"
+28 keyword end
+29 name V
+29 .
+29 name __band
+29 =
+29 keyword function
+29 (
+29 name a
+29 ,
+29 name b
+29 )
+29 keyword return
+29 string "band"
+29 keyword end
+30 name V
+30 .
+30 name __bor
+30 =
+30 keyword function
+30 (
+30 name a
+30 ,
+30 name b
+30 )
+30 keyword return
+30 string "bor"
+30 keyword end
+31 name V
+31 .
+31 name __bxor
+31 =
+31 keyword function
+31 (
+31 name a
+31 ,
+31 name b
+31 )
+31 keyword return
+31 string "bxor"
+31 keyword end
+32 name V
+32 .
+32 name __shl
+32 =
+32 keyword function
+32 (
+32 name a
+32 ,
+32 name b
+32 )
+32 keyword return
+32 string "shl"
+32 keyword end
+33 name V
+33 .
+33 name __shr
+33 =
+33 keyword function
+33 (
+33 name a
+33 ,
+33 name b
+33 )
+33 keyword return
+33 string "shr"
+33 keyword end
+34 name V
+34 .
+34 name __unm
+34 =
+34 keyword function
+34 (
+34 name a
+34 )
+34 keyword return
+34 string "unm"
+34 ,
+34 name a
+34 .
+34 name n
+34 keyword end
+35 name V
+35 .
+35 name __bnot
+35 =
+35 keyword function
+35 (
+35 name a
+35 )
+35 keyword return
+35 string "bnot"
+35 keyword end
+36 name V
+36 .
+36 name __len
+36 =
+36 keyword function
+36 (
+36 name a
+36 )
+36 keyword return
+36 integer 42
+36 keyword end
+37 name V
+37 .
+37 name __eq
+37 =
+37 keyword function
+37 (
+37 name a
+37 ,
+37 name b
+37 )
+37 keyword return
+37 name n_of
+37 (
+37 name a
+37 )
+37 ==
+37 name n_of
+37 (
+37 name b
+37 )
+37 keyword end
+38 name V
+38 .
+38 name __lt
+38 =
+38 keyword function
+38 (
+38 name a
+38 ,
+38 name b
+38 )
+38 keyword return
+38 name n_of
+38 (
+38 name a
+38 )
+38 <
+38 name n_of
+38 (
+38 name b
+38 )
+38 keyword end
+39 name V
+39 .
+39 name __le
+39 =
+39 keyword function
+39 (
+39 name a
+39 ,
+39 name b
+39 )
+39 keyword return
+39 name n_of
+39 (
+39 name a
+39 )
+39 <=
+39 name n_of
+39 (
+39 name b
+39 )
+39 keyword end
+40 name V
+40 .
+40 name __call
+40 =
+40 keyword function
+40 (
+40 name self
+40 ,
+40 name x
+40 ,
+40 name y
+40 )
+40 keyword return
+40 string "called"
+40 ,
+40 name self
+40 .
+40 name n
+40 ,
+40 name x
+40 ,
+40 name y
+40 keyword end
+41 keyword local
+41 keyword function
+41 name new
+41 (
+41 name n
+41 )
+41 keyword return
+41 name setmetatable
+41 (
+41 {
+41 name n
+41 =
+41 name n
+41 }
+41 ,
+41 name V
+41 )
+41 keyword end
+42 keyword local
+42 name one
+42 ,
+42 name two
+42 =
+42 name new
+42 (
+42 integer 1
+42 )
+42 ,
+42 name new
+42 (
+42 integer 2
+42 )
+43 name print
+43 (
+43 name one
+43 +
+43 name two
+43 ,
+43 name one
+43 +
+43 integer 5
+43 ,
+43 integer 5
+43 +
+43 name one
+43 ,
+43 name one
+43 -
+43 integer 1
+43 ,
+43 integer 2
+43 *
+43 name one
+43 ,
+43 name one
+43 /
+43 name two
+43 ,
+43 name one
+43 %
+43 integer 3
+43 ,
+43 name one
+43 ^
+43 integer 2
+43 )
+44 name print
+44 (
+44 name one
+44 //
+44 name two
+44 ,
+44 name one
+44 &
+44 integer 1
+44 ,
+44 integer 1
+44 |
+44 name one
+44 ,
+44 name one
+44 ~
+44 name one
+44 ,
+44 name one
+44 <<
+44 integer 1
+44 ,
+44 integer 1
+44 >>
+44 name one
+44 ,
+44 -
+44 name one
+44 ,
+44 ~
+44 name one
+44 ,
+44 #
+44 name one
+44 )
+45 name print
+45 (
+45 name one
+45 ==
+45 name two
+45 ,
+45 name one
+45 ==
+45 name new
+45 (
+45 integer 1
+45 )
+45 ,
+45 name one
+45 ~=
+45 name new
+45 (
+45 integer 1
+45 )
+45 ,
+45 name one
+45 <
+45 name two
+45 ,
+45 name two
+45 <
+45 name one
+45 ,
+45 name one
+45 <=
+45 name two
+45 )
+46 name print
+46 (
+46 name one
+46 >
+46 name two
+46 ,
+46 name one
+46 >=
+46 name two
+46 ,
+46 float 1.5 0x3FF8000000000000
+46 <
+46 name one
+46 ,
+46 name one
+46 (
+46 integer 7
+46 ,
+46 integer 8
+46 )
+46 )
+47 name print
+47 (
+47 name getmetatable
+47 (
+47 name one
+47 )
+47 ==
+47 name V
+47 ,
+47 name getmetatable
+47 (
+47 string "x"
+47 )
+47 ,
+47 name getmetatable
+47 (
+47 integer 1
+47 )
+47 )
+48 keyword local
+48 name protected
+48 =
+48 name setmetatable
+48 (
+48 {
+48 }
+48 ,
+48 {
+48 name __metatable
+48 =
+48 string "locked"
+48 }
+48 )
+49 name print
+49 (
+49 name getmetatable
+49 (
+49 name protected
+49 )
+49 )
+50 name print
+50 (
+50 name pcall
+50 (
+50 name setmetatable
+50 ,
+50 name protected
+50 ,
+50 {
+50 }
+50 )
+50 )
+51 name print
+51 (
+51 name rawequal
+51 (
+51 name one
+51 ,
+51 name one
+51 )
+51 ,
+51 name rawequal
+51 (
+51 name one
+51 ,
+51 name new
+51 (
+51 integer 1
+51 )
+51 )
+51 ,
+51 name rawlen
+51 (
+51 {
+51 integer 1
+51 ,
+51 integer 2
+51 ,
+51 integer 3
+51 }
+51 )
+51 ,
+51 name rawlen
+51 (
+51 string "four"
+51 )
+51 )
+52 name print
+52 (
+52 name rawequal
+52 (
+52 integer 1
+52 ,
+52 float 1.0 0x3FF0000000000000
+52 )
+52 ,
+52 name rawequal
+52 (
+52 string "a"
+52 ,
+52 string "a"
+52 )
+52 ,
+52 name rawequal
+52 (
+52 integer 0
+52 /
+52 integer 0
+52 ,
+52 integer 0
+52 /
+52 integer 0
+52 )
+52 )
+53 keyword local
+53 name named
+53 =
+53 name setmetatable
+53 (
+53 {
+53 }
+53 ,
+53 {
+53 name __name
+53 =
+53 string "MyType"
+53 }
+53 )
+54 name print
+54 (
+54 name pcall
+54 (
+54 name setmetatable
+54 ,
+54 name named
+54 )
+54 )
+55 keyword local
+55 name shown
+55 =
+55 name setmetatable
+55 (
+55 {
+55 }
+55 ,
+55 {
+55 name __tostring
+55 =
+55 keyword function
+55 (
+55 )
+55 keyword return
+55 string "shown!"
+55 keyword end
+55 }
+55 )
+56 name print
+56 (
+56 name shown
+56 ,
+56 name tostring
+56 (
+56 name shown
+56 )
+56 )
+57 name print
+57 (
+57 name setmetatable
+57 (
+57 {
+57 }
+57 ,
+57 keyword nil
+57 )
+57 ~=
+57 keyword nil
+57 ,
+57 name getmetatable
+57 (
+57 name setmetatable
+57 (
+57 {
+57 }
+57 ,
+57 keyword nil
+57 )
+57 )
+57 )
+58 <eof>
+exit 0

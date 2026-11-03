@@ -5,6 +5,7 @@
 
 with Ada.Unchecked_Deallocation;
 with Pyro.Floats;
+with Pyro.Heap.Table_Reads;
 with Pyro.Integer_Arithmetic;
 with Pyro.Virtual_Machine.Execution;
 
@@ -32,12 +33,23 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    --  The most places of the stack.
    Stack_Limit : constant := Maximum_Stack + Extra_Stack;
 
-   --  The places of the registry: the globals, the error being raised, and the message for
-   --  running out of memory.
-   Globals_Place : constant := 1;
-   Error_Place   : constant := 2;
-   Memory_Place  : constant := 3;
-   Registry_Size : constant := 3;
+   --  The places of the registry: the globals, the error being raised, the message for
+   --  running out of memory, the host functions by number (so that each has one value, as a
+   --  C function has one address), and the name of each event (ltm.c's luaT_init interns
+   --  them).
+   Globals_Place   : constant := 1;
+   Error_Place     : constant := 2;
+   Memory_Place    : constant := 3;
+   Functions_Place : constant := 4;
+   Event_Base      : constant := 5;
+   Registry_Size : constant := Event_Base + Event'Pos (Event'Last);
+
+   function Event_Place (Item : Event) return Positive
+   is (Event_Base + Event'Pos (Item))
+   with Post => Event_Place'Result <= Registry_Size;
+
+   --  [puc lvm.c:MAXTAGLOOP] The longest chain of __index or __newindex tables.
+   Maximum_Tag_Loop : constant := 2_000;
 
    --  The sizes of the stack, the frames and the open upvalues a machine starts with.
    Initial_Stack  : constant := 64;
@@ -79,7 +91,11 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
                      and then F.Top
                               = F.Func + 1 + Natural (Header (Program, F.Prototype).Stack_Size)
                      and then F.PC < Code_Length (Program, F.Prototype)
-                     and then F.Extra < F.Func,
+                     and then F.Extra < F.Func
+                     and then (if F.Action = Store_Result
+                               then F.Target < F.Top - F.Func - 1)
+                     and then (if F.Action = Test_Result
+                               then F.PC + 1 < Code_Length (Program, F.Prototype)),
                    when Host_Frame => True))
    with Ghost, Pre => Is_Well_Formed (Program);
 
@@ -160,11 +176,14 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
      Pre => M.Constants /= null and then M.Registry /= null and then M.Stack /= null
             and then M.Open /= null;
 
-   --  [proof] What the state says of the frames: a Lua frame runs when Ready, a host frame
-   --  waits when Waiting.
+   --  [proof] What the state says of the frames: a Lua frame with nothing pending runs when
+   --  Ready, a host frame waits when Waiting.
    function State_Valid (M : Machine) return Boolean
    is (case M.State is
-         when Ready   => M.Depth >= 1 and then M.Frames (M.Depth).Kind = Lua_Frame,
+         when Ready   =>
+           M.Depth >= 1
+           and then M.Frames (M.Depth).Kind = Lua_Frame
+           and then M.Frames (M.Depth).Action = No_Action,
          when Waiting => M.Depth >= 1 and then M.Frames (M.Depth).Kind = Host_Frame,
          when others  => True)
    with
@@ -568,7 +587,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    end Store_Value;
 
    --  Makes the places of Items from From hold the values of List.
-   procedure Store_List
+   procedure Store_Values
      (Items : in out Root_Array; Heap : Pyro.Heap.Heap; From : Positive; List : Value_List)
    with
      Global => null,
@@ -588,7 +607,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          Store_Value (Items, Heap, From + (Index - List'First), List (Index));
          pragma Loop_Invariant (Values_Live (Pyro.Heap.Kinds (Heap), Items));
       end loop;
-   end Store_List;
+   end Store_Values;
 
    --  Copies Count values of Items from From to To, as memmove does.
    procedure Copy
@@ -696,6 +715,31 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
             end case;
       end case;
    end Type_Name;
+
+   function Is_Table (M : Machine; Item : Value) return Boolean
+   is (Item.Kind = Object_Value
+       and then Pyro.Heap.Kind_Of (M.Heap, Item.Object) = Table_Object);
+
+   function Is_Function (M : Machine; Item : Value) return Boolean
+   is (Item.Kind = Object_Value
+       and then Pyro.Heap.Kind_Of (M.Heap, Item.Object)
+                in Closure_Object | Host_Function_Object);
+
+   function Raw_Equal (Left, Right : Value) return Boolean is
+      Converted : Integer_64;
+      Exact     : Boolean;
+   begin
+      if Left.Kind = Float_Value and then Right.Kind = Float_Value then
+         return Pyro.Floats.Compare (Pyro.Floats.Equal, Left.Bits, Right.Bits);
+      elsif Left.Kind = Float_Value and then Right.Kind = Integer_Value then
+         Pyro.Floats.To_Integer (Left.Bits, Converted, Exact);
+         return Exact and then Converted = Integer_Of (Right);
+      elsif Left.Kind = Integer_Value and then Right.Kind = Float_Value then
+         Pyro.Floats.To_Integer (Right.Bits, Converted, Exact);
+         return Exact and then Converted = Integer_Of (Left);
+      end if;
+      return Left = Right;
+   end Raw_Equal;
 
    --  The bytes of Text, for the heap.
    function To_Bytes (Text : String) return Pyro.Strings.Byte_Array
@@ -944,6 +988,110 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          Pyro.Heap.Table_Set (M.Heap, Budget, T.Object, Key, Item, Status);
       end if;
    end Raw_Set;
+
+   --  The metatable of Item, in a machine that may be between two states.
+   function Metatable_Of (M : Machine; Item : Value) return Value
+   with
+     Global => null,
+     Pre    => Core_Valid (M),
+     Post   =>
+       Is_Canonical (Metatable_Of'Result)
+       and then Pyro.Heap.Live_In (Objects (M), Metatable_Of'Result)
+   is
+      Result : Value;
+   begin
+      if not Is_Table (M, Item)
+        or else Pyro.Heap.Reference_Count (M.Heap, Item.Object) < 1
+      then
+         return Nil;
+      end if;
+      Pyro.Heap.Lemma_Reference_Live (M.Heap, Item.Object, 1);
+      Result := Pyro.Heap.Reference_At (M.Heap, Item.Object, 1);
+      Lemma_Heap_Live (M.Heap, Result);
+      return (if Is_Table (M, Result) then Result else Nil);
+   end Metatable_Of;
+
+   --  Field Field of Item's metatable, in a machine that may be between two states.
+   function Field_Of (M : Machine; Item : Value; Field : Event) return Value
+   with
+     Global => null,
+     Pre    => Core_Valid (M),
+     Post   =>
+       Is_Canonical (Field_Of'Result) and then Pyro.Heap.Live_In (Objects (M), Field_Of'Result)
+   is
+      Table  : constant Value := Metatable_Of (M, Item);
+      Result : Value;
+   begin
+      if not Is_Table (M, Table) then
+         return Nil;
+      end if;
+      Lemma_Value (Objects (M), M.Registry.all, Event_Place (Field));
+      Result := Pyro.Heap.Table_Get (M.Heap, Table.Object, M.Registry (Event_Place (Field)));
+      Lemma_Heap_Live (M.Heap, Result);
+      return Result;
+   end Field_Of;
+
+   function Metatable (M : Machine; Item : Value) return Value is
+      Result : constant Value := Metatable_Of (M, Item);
+   begin
+      Lemma_Live_Heap (M.Heap, Result);
+      return Result;
+   end Metatable;
+
+   function Metafield (M : Machine; Item : Value; Field : Event) return Value is
+      Result : constant Value := Field_Of (M, Item, Field);
+   begin
+      Lemma_Live_Heap (M.Heap, Result);
+      return Result;
+   end Metafield;
+
+   procedure Set_Metatable (M : in out Machine; T : Value; Table : Value) is
+   begin
+      if Pyro.Heap.Reference_Count (M.Heap, T.Object) >= 1 then
+         Pyro.Heap.Set_Reference (M.Heap, T.Object, 1, Table);
+      end if;
+   end Set_Metatable;
+
+   function Raw_Index (M : Machine; T : Value; Key : Value) return Value is
+   begin
+      if Is_Table (M, T) then
+         return Pyro.Heap.Table_Get (M.Heap, T.Object, Key);
+      end if;
+      return Nil;
+   end Raw_Index;
+
+   procedure Raw_Store
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      T      : Value;
+      Key    : Value;
+      Item   : Value;
+      Status : out Pyro.Tables.Set_Status) is
+   begin
+      Pyro.Heap.Table_Set (M.Heap, Budget, T.Object, Key, Item, Status);
+   end Raw_Store;
+
+   procedure Next_Pair
+     (M         : Machine;
+      T         : Value;
+      Key       : Value;
+      Next_Key  : out Value;
+      Next_Item : out Value;
+      Status    : out Pyro.Tables.Next_Status) is
+   begin
+      Pyro.Heap.Table_Reads.Table_Next (M.Heap, T.Object, Key, Next_Key, Next_Item, Status);
+   end Next_Pair;
+
+   function Raw_Length (M : Machine; Item : Value) return Integer_64 is
+      Length : Integer_64 := 0;
+   begin
+      if Is_String (M, Item) then
+         Length := Integer_64 (Pyro.Heap.String_Length (M.Heap, Item.Object));
+      elsif Is_Table (M, Item) then
+         Pyro.Heap.Table_Reads.Table_Length (M.Heap, Item.Object, Length);
+      end if;
+      return Length;
+   end Raw_Length;
 
    ----------------------------------------------------------------------------------------
    --  Stack and frames
@@ -1390,6 +1538,8 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Target : constant Positive := F.Origin;
       Wanted : Natural;
       Moved  : Natural;
+      Caller : Frame;
+      Result : Value;
    begin
       Lemma_Frame (M, M.Depth);
       Wanted := (if F.Results < 0 then Count else F.Results);
@@ -1408,6 +1558,32 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          M.State := Waiting;
       else
          M.State := Ready;
+         Caller := M.Frames (M.Depth);
+         if Caller.Action /= No_Action then
+            --  [puc lvm.c:luaV_finishOp] The metamethod the caller called returned.
+            Lemma_Frame (M, M.Depth);
+            Result := Nil;
+            if Wanted >= 1 then
+               Lemma_Value (Objects (M), M.Stack.all, Target);
+               Result := M.Stack (Target);
+            end if;
+            if Caller.Action = Store_Result then
+               Store_Value (M.Stack.all, M.Heap, Caller.Func + 1 + Caller.Target, Result);
+               Set_Top_Frame
+                 (M.Frames.all, M.Depth, (Caller with delta Action => No_Action), M.Stack'Last,
+                  M.Program.all);
+            else
+               Set_Top_Frame
+                 (M.Frames.all, M.Depth,
+                  (Caller with delta
+                     Action => No_Action,
+                     PC     =>
+                       (if (Result.Kind = Nil_Value or else Result = Boolean_Value_Of (False))
+                           = Caller.Expected
+                        then Caller.PC + 1 else Caller.PC)),
+                  M.Stack'Last, M.Program.all);
+            end if;
+         end if;
       end if;
    end Finish_Return;
 
@@ -1436,14 +1612,33 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
        and then (M.Depth = 0 or else M.Frames (M.Depth).Func < Func),
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old
    is
-      Callee     : constant Value := M.Stack (Func);
-      Last       : constant Stack_Size := M.Stack'Last;
+      Callee     : Value := M.Stack (Func);
+      Count      : Natural := Arguments;
+      Last       : Stack_Size := M.Stack'Last;
+      Handler    : Value;
       P          : Prototype_Index;
       Parameters : Natural;
       Size       : Natural;
       Success    : Boolean;
    begin
       Lemma_Value (Objects (M), M.Stack.all, Func);
+      if not Is_Function (M, Callee) then
+         --  [puc ldo.c:luaD_tryfuncTM] Its __call metamethod, with Callee as first argument.
+         Handler := Field_Of (M, Callee, Call_Event);
+         if Is_Function (M, Handler) then
+            Reserve (M.Stack, M.Heap, Budget, Func + Arguments + 1 + Extra_Stack, Success);
+            Lemma_Frames_Larger (M.Frames.all, M.Depth, Last, M.Stack'Last, M.Program.all);
+            if not Success then
+               Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
+               return;
+            end if;
+            Last := M.Stack'Last;
+            Copy (M.Stack.all, M.Heap, Func, Func + 1, Arguments + 1);
+            Store_Value (M.Stack.all, M.Heap, Func, Handler);
+            Callee := Handler;
+            Count := Arguments + 1;
+         end if;
+      end if;
       if Callee.Kind = Object_Value
         and then Pyro.Heap.Kind_Of (M.Heap, Callee.Object) = Closure_Object
       then
@@ -1458,16 +1653,16 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          Size := Natural (Header (M.Program.all, P).Stack_Size);
          Reserve
            (M.Stack, M.Heap, Budget,
-            Func + Natural'Max (Size, Natural'Max (Arguments, Results)) + Extra_Stack, Success);
+            Func + Natural'Max (Size, Natural'Max (Count, Results)) + Extra_Stack, Success);
          Lemma_Frames_Larger (M.Frames.all, M.Depth, Last, M.Stack'Last, M.Program.all);
          if not Success then
             Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
             return;
          end if;
-         if Arguments < Parameters then
-            Fill_Nil (M.Stack.all, M.Heap, Func + 1 + Arguments, Parameters - Arguments);
+         if Count < Parameters then
+            Fill_Nil (M.Stack.all, M.Heap, Func + 1 + Count, Parameters - Count);
          end if;
-         M.Top := Func + 1 + Natural'Max (Arguments, Parameters);
+         M.Top := Func + 1 + Natural'Max (Count, Parameters);
          Push_Frame
            (M.Frames, M.Depth, Budget,
             (Kind      => Lua_Frame,
@@ -1480,7 +1675,10 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
              Extra     => 0,
              Host      => 1,
              Context   => 0,
-             Protect   => False),
+             Protect   => False,
+             Action    => No_Action,
+             Target    => 0,
+             Expected  => False),
             M.Stack'Last, M.Program.all, Success);
          if not Success then
             Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
@@ -1490,7 +1688,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       then
          Reserve
            (M.Stack, M.Heap, Budget,
-            Func + Natural'Max (Arguments, Results) + Extra_Stack, Success);
+            Func + Natural'Max (Count, Results) + Extra_Stack, Success);
          Lemma_Frames_Larger (M.Frames.all, M.Depth, Last, M.Stack'Last, M.Program.all);
          if not Success then
             Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
@@ -1501,7 +1699,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
             (Kind      => Host_Frame,
              Origin    => Func,
              Func      => Func,
-             Top       => Func + 1 + Arguments,
+             Top       => Func + 1 + Count,
              Prototype => 0,
              PC        => 0,
              Results   => Results,
@@ -1510,7 +1708,10 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
                                     (Pyro.Heap.Tag_Of (M.Heap, Callee.Object),
                                      Natural (Host_Id'Last)))),
              Context   => 0,
-             Protect   => False),
+             Protect   => False,
+             Action    => No_Action,
+             Target    => 0,
+             Expected  => False),
             M.Stack'Last, M.Program.all, Success);
          if not Success then
             Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
@@ -1730,6 +1931,198 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    end Make_Closure;
 
    ----------------------------------------------------------------------------------------
+   --  Tables and metamethods
+   ----------------------------------------------------------------------------------------
+
+   function Extra_Argument (M : Machine) return Natural is
+      F : constant Frame := M.Frames (M.Depth);
+   begin
+      Lemma_Frame (M, M.Depth);
+      return Natural (Instruction_At (M.Program.all, F.Prototype, F.PC + 1).Wide);
+   end Extra_Argument;
+
+   procedure Call_Metamethod
+     (M         : in out Machine;
+      Budget    : in out Memory_Budget;
+      Handler   : Value;
+      Arguments : Value_List;
+      Action    : Pending_Action;
+      Target    : Natural;
+      Expected  : Boolean)
+   is
+      F       : constant Frame := M.Frames (M.Depth);
+      Last    : constant Stack_Size := M.Stack'Last;
+      Success : Boolean;
+   begin
+      Lemma_Frame (M, M.Depth);
+      Reserve (M.Stack, M.Heap, Budget, F.Top + Arguments'Length + Extra_Stack, Success);
+      Lemma_Frames_Larger (M.Frames.all, M.Depth, Last, M.Stack'Last, M.Program.all);
+      if not Success then
+         Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
+         return;
+      end if;
+      Lemma_Heap_Live (M.Heap, Handler);
+      Store_Value (M.Stack.all, M.Heap, F.Top, Handler);
+      Store_Values (M.Stack.all, M.Heap, F.Top + 1, Arguments);
+      Set_Top_Frame
+        (M.Frames.all, M.Depth,
+         (F with delta PC => F.PC + 1, Action => Action, Target => Target,
+                       Expected => Expected),
+         M.Stack'Last, M.Program.all);
+      Call_At (M, Budget, F.Top, Arguments'Length, (if Action = No_Action then 0 else 1));
+   end Call_Metamethod;
+
+   procedure Get_Index
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Object : Value;
+      Key    : Value;
+      Target : Natural)
+   is
+      T       : Value := Object;
+      Result  : Value;
+      Handler : Value;
+   begin
+      for Count in 1 .. Maximum_Tag_Loop loop
+         pragma Loop_Invariant (Is_Canonical (T) and then Is_Live (M, T));
+         if Is_Table (M, T) then
+            Result := Raw_Get (M, T, Key);
+            if Result /= Nil then
+               Set_Register (M, Target, Result);
+               Next (M);
+               return;
+            end if;
+            Handler := Metafield (M, T, Index_Event);
+            if Handler = Nil then
+               Set_Register (M, Target, Nil);
+               Next (M);
+               return;
+            end if;
+         else
+            Handler := Metafield (M, T, Index_Event);
+            if Handler = Nil then
+               Raise_Runtime_Error
+                 (M, Budget, "attempt to index a " & Type_Name (M, T) & " value");
+               return;
+            end if;
+         end if;
+         if Is_Function (M, Handler) then
+            Call_Metamethod (M, Budget, Handler, [T, Key], Store_Result, Target, False);
+            return;
+         end if;
+         T := Handler;
+      end loop;
+      Raise_Runtime_Error (M, Budget, "'__index' chain too long; possible loop");
+   end Get_Index;
+
+   procedure Set_Index
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Object : Value;
+      Key    : Value;
+      Item   : Value)
+   is
+      T       : Value := Object;
+      Handler : Value;
+      Status  : Pyro.Tables.Set_Status;
+   begin
+      for Count in 1 .. Maximum_Tag_Loop loop
+         pragma Loop_Invariant (Is_Canonical (T) and then Is_Live (M, T));
+         if Is_Table (M, T) then
+            Handler :=
+              (if Raw_Get (M, T, Key) /= Nil then Nil else Metafield (M, T, New_Index_Event));
+            if Handler = Nil then
+               Raw_Set (M, Budget, T, Key, Item, Status);
+               case Status is
+                  when Pyro.Tables.Done =>
+                     Next (M);
+                  when Pyro.Tables.Invalid_Key =>
+                     --  [puc ltable.c:luaH_newkey]
+                     Raise_Runtime_Error
+                       (M, Budget, (if Key.Kind = Nil_Value then "table index is nil"
+                                    else "table index is NaN"));
+                  when Pyro.Tables.Out_Of_Memory =>
+                     Raise_Memory_Error (M);
+               end case;
+               return;
+            end if;
+         else
+            Handler := Metafield (M, T, New_Index_Event);
+            if Handler = Nil then
+               Raise_Runtime_Error
+                 (M, Budget, "attempt to index a " & Type_Name (M, T) & " value");
+               return;
+            end if;
+         end if;
+         if Is_Function (M, Handler) then
+            Call_Metamethod (M, Budget, Handler, [T, Key, Item], No_Action, 0, False);
+            return;
+         end if;
+         T := Handler;
+      end loop;
+      Raise_Runtime_Error (M, Budget, "'__newindex' chain too long; possible loop");
+   end Set_Index;
+
+   procedure Make_Table
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Target : Natural)
+   is
+      Handle : Object_Handle;
+      Before : constant Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
+   begin
+      --  [differs] Tables are not presized: they grow as keys arrive.
+      Pyro.Heap.New_Table (M.Heap, Budget, Handle);
+      Lemma_Roots_Grow (Before, M);
+      if Handle = No_Object then
+         Raise_Memory_Error (M);
+         return;
+      end if;
+      Lemma_Heap_Live (M.Heap, Object_Value_Of (Handle));
+      Set_Register (M, Target, Object_Value_Of (Handle));
+      Next (M, 1);
+   end Make_Table;
+
+   procedure Store_List
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Table  : Natural;
+      Count  : Integer;
+      First  : Integer_64;
+      Skip   : Natural)
+   is
+      Place  : constant Positive := Register_Place (M, Table);
+      T      : constant Value := Register (M, Table);
+      Size   : Natural;
+      Item   : Value;
+      Status : Pyro.Tables.Set_Status;
+   begin
+      Size :=
+        (if Count >= 0 then Count elsif M.Top > Place then M.Top - Place - 1 else 0);
+      Size := Natural'Min (Size, M.Stack'Last - Place);
+      if not Is_Table (M, T) then
+         Next (M, Skip);
+         return;
+      end if;
+      for Index in 1 .. Size loop
+         pragma Loop_Invariant (Is_Valid (M) and then Running (M));
+         pragma Loop_Invariant (Is_Table (M, T));
+         pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
+         pragma Loop_Invariant (View (M) = View (M)'Loop_Entry);
+         exit when Place + Index > M.Stack'Last;
+         Lemma_Value (Objects (M), M.Stack.all, Place + Index);
+         Item := M.Stack (Place + Index);
+         Lemma_Live_Heap (M.Heap, Item);
+         Raw_Set (M, Budget, T, Integer_Value_Of (First + Integer_64 (Index)), Item, Status);
+         if Status = Pyro.Tables.Out_Of_Memory then
+            Raise_Memory_Error (M);
+            return;
+         end if;
+      end loop;
+      Next (M, Skip);
+   end Store_List;
+
+   ----------------------------------------------------------------------------------------
    --  Loading and running
    ----------------------------------------------------------------------------------------
 
@@ -1859,6 +2252,14 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Lemma_Heap_Live (M.Heap, Object_Value_Of (Handle));
       Store_Value (M.Registry.all, M.Heap, Globals_Place, Object_Value_Of (Handle));
       Before := Objects (M);
+      Pyro.Heap.New_Table (M.Heap, Budget, Handle);
+      Lemma_Roots_Grow (Before, M);
+      if Handle = No_Object then
+         return;
+      end if;
+      Lemma_Heap_Live (M.Heap, Object_Value_Of (Handle));
+      Store_Value (M.Registry.all, M.Heap, Functions_Place, Object_Value_Of (Handle));
+      Before := Objects (M);
       Pyro.Heap.New_String (M.Heap, Budget, To_Bytes ("not enough memory"), Handle);
       Lemma_Roots_Grow (Before, M);
       if Handle = No_Object then
@@ -1866,6 +2267,19 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       end if;
       Lemma_Heap_Live (M.Heap, Object_Value_Of (Handle));
       Store_Value (M.Registry.all, M.Heap, Memory_Place, Object_Value_Of (Handle));
+      for Item in Event loop
+         pragma Loop_Invariant (Pyro.Heap.Is_Valid (M.Heap));
+         pragma Loop_Invariant (Roots_Live (M));
+         pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
+         Before := Objects (M);
+         Pyro.Heap.New_String (M.Heap, Budget, To_Bytes (Event_Name (Item)), Handle);
+         Lemma_Roots_Grow (Before, M);
+         if Handle = No_Object then
+            return;
+         end if;
+         Lemma_Heap_Live (M.Heap, Object_Value_Of (Handle));
+         Store_Value (M.Registry.all, M.Heap, Event_Place (Item), Object_Value_Of (Handle));
+      end loop;
 
       --  The main function, its first upvalue _ENV the globals.
       Main := Count;
@@ -1919,6 +2333,64 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Success := M.State = Ready;
    end Load;
 
+   --  The host function with number Id: the one the registry keeps, or a new one, kept.
+   --  Success is False when Budget cannot pay.
+   procedure Function_Value
+     (Heap     : in out Pyro.Heap.Heap;
+      Registry : Root_Array;
+      Budget   : in out Memory_Budget;
+      Id       : Host_Id;
+      Result   : out Value;
+      Success  : out Boolean)
+   with
+     Global => null,
+     Pre    =>
+       Pyro.Heap.Is_Valid (Heap)
+       and then Registry'First = 1
+       and then Registry'Last = Registry_Size
+       and then Values_Live (Pyro.Heap.Kinds (Heap), Registry),
+     Post   =>
+       Pyro.Heap.Is_Valid (Heap)
+       and then Pyro.Heap.Keeps_Objects (Pyro.Heap.Kinds (Heap)'Old, Pyro.Heap.Kinds (Heap))
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then Is_Canonical (Result)
+       and then Pyro.Heap.Live_In (Pyro.Heap.Kinds (Heap), Result)
+       and then (if Success
+                 then Result.Kind = Object_Value
+                      and then Pyro.Heap.Kind_Of (Heap, Result.Object) = Host_Function_Object)
+   is
+      Functions : constant Value := Registry (Functions_Place);
+      Key       : constant Value := Integer_Value_Of (Integer_64 (Id));
+      Handle    : Object_Handle;
+      Status    : Pyro.Tables.Set_Status;
+   begin
+      Result := Nil;
+      Success := False;
+      Lemma_Value (Pyro.Heap.Kinds (Heap), Registry, Functions_Place);
+      if Functions.Kind /= Object_Value
+        or else Pyro.Heap.Kind_Of (Heap, Functions.Object) /= Table_Object
+      then
+         return;
+      end if;
+      Result := Pyro.Heap.Table_Get (Heap, Functions.Object, Key);
+      Lemma_Heap_Live (Heap, Result);
+      if Result.Kind = Object_Value
+        and then Pyro.Heap.Kind_Of (Heap, Result.Object) = Host_Function_Object
+      then
+         Success := True;
+         return;
+      end if;
+      Result := Nil;
+      Pyro.Heap.New_Object (Heap, Budget, Host_Function_Object, Natural (Id), 0, Handle);
+      if Handle = No_Object then
+         return;
+      end if;
+      Pyro.Heap.Table_Set (Heap, Budget, Functions.Object, Key, Object_Value_Of (Handle), Status);
+      Result := Object_Value_Of (Handle);
+      Lemma_Heap_Live (Heap, Result);
+      Success := Status = Pyro.Tables.Done;
+   end Function_Value;
+
    procedure Register
      (M       : in out Machine;
       Budget  : in out Memory_Budget;
@@ -1926,19 +2398,19 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Id      : Host_Id;
       Success : out Boolean)
    is
-      Handle  : Object_Handle;
+      Item    : Value;
       Key     : Object_Handle;
       Status  : Pyro.Tables.Set_Status;
       Globals : constant Value := M.Registry (Globals_Place);
       Before  : Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
    begin
-      Success := False;
       Lemma_Value (Objects (M), M.Registry.all, Globals_Place);
-      Pyro.Heap.New_Object (M.Heap, Budget, Host_Function_Object, Natural (Id), 0, Handle);
+      Function_Value (M.Heap, M.Registry.all, Budget, Id, Item, Success);
       Lemma_Roots_Grow (Before, M);
-      if Handle = No_Object then
+      if not Success then
          return;
       end if;
+      Success := False;
       Before := Objects (M);
       Pyro.Heap.New_String (M.Heap, Budget, To_Bytes (Name), Key);
       Lemma_Roots_Grow (Before, M);
@@ -1948,11 +2420,11 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Lemma_Value (Objects (M), M.Registry.all, Globals_Place);
       if Globals.Kind = Object_Value
         and then Pyro.Heap.Kind_Of (M.Heap, Globals.Object) = Table_Object
-        and then Pyro.Heap.Kind_Of (M.Heap, Handle) = Host_Function_Object
+        and then Item.Kind = Object_Value
+        and then Pyro.Heap.Kind_Of (M.Heap, Item.Object) = Host_Function_Object
       then
          Pyro.Heap.Table_Set
-           (M.Heap, Budget, Globals.Object, Object_Value_Of (Key), Object_Value_Of (Handle),
-            Status);
+           (M.Heap, Budget, Globals.Object, Object_Value_Of (Key), Item, Status);
          Success := Status = Pyro.Tables.Done;
       end if;
    end Register;
@@ -2043,7 +2515,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          Throw_Message (M, Budget, "stack overflow");
          return;
       end if;
-      Store_List (M.Stack.all, M.Heap, F.Func, Values);
+      Store_Values (M.Stack.all, M.Heap, F.Func, Values);
       Finish_Return (M, F.Func, Values'Length);
    end Return_Values;
 
@@ -2091,7 +2563,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       end if;
       Lemma_Heap_Live (M.Heap, Callee);
       Store_Value (M.Stack.all, M.Heap, F.Top, Callee);
-      Store_List (M.Stack.all, M.Heap, F.Top + 1, Arguments);
+      Store_Values (M.Stack.all, M.Heap, F.Top + 1, Arguments);
       Lemma_Frame (M, M.Depth);
       Set_Top_Frame
         (M.Frames.all, M.Depth,
@@ -2119,6 +2591,20 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          Success := True;
       end if;
    end New_String;
+
+   procedure New_Function
+     (M       : in out Machine;
+      Budget  : in out Memory_Budget;
+      Id      : Host_Id;
+      Result  : out Value;
+      Success : out Boolean)
+   is
+      Before : constant Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
+   begin
+      Function_Value (M.Heap, M.Registry.all, Budget, Id, Result, Success);
+      Lemma_Roots_Grow (Before, M);
+      Lemma_Live_Heap (M.Heap, Result);
+   end New_Function;
 
    procedure Clear (M : in out Machine; Budget : in out Memory_Budget) is
    begin

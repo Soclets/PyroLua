@@ -1,0 +1,285 @@
+1 function_body vararg
+  1 block
+    2 local_statement
+      2 name_list
+        2 local_name "t"
+      2 expression_list
+        2 table_constructor
+    3 call_statement
+      3 call_expression
+        3 name_expression "print" global
+        3 call_expression
+          3 name_expression "pcall" global
+          3 function_expression
+            3 function_body
+              3 name_list
+              3 block
+                3 assignment
+                  3 expression_list
+                    3 assignment_target
+                      3 index_expression
+                        3 name_expression "t" upvalue@1
+                        3 nil_literal
+                  3 expression_list
+                    3 integer_literal 1
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 call_expression
+          4 name_expression "pcall" global
+          4 function_expression
+            4 function_body
+              4 name_list
+              4 block
+                4 assignment
+                  4 expression_list
+                    4 assignment_target
+                      4 index_expression
+                        4 name_expression "t" upvalue@1
+                        4 binary_operation divide
+                          4 integer_literal 0
+                          4 integer_literal 0
+                  4 expression_list
+                    4 integer_literal 1
+    5 local_statement
+      5 name_list
+        5 local_name "loop"
+      5 expression_list
+        5 table_constructor
+    6 call_statement
+      6 call_expression
+        6 name_expression "setmetatable" global
+        6 name_expression "loop" local@42
+        6 table_constructor
+          6 named_field name-key
+            6 string_literal "__index"
+            6 name_expression "loop" local@42
+    7 call_statement
+      7 call_expression
+        7 name_expression "print" global
+        7 call_expression
+          7 name_expression "pcall" global
+          7 function_expression
+            7 function_body
+              7 name_list
+              7 block
+                7 return_statement
+                  7 expression_list
+                    7 index_expression name-key
+                      7 name_expression "loop" upvalue@42
+                      7 string_literal "missing"
+    8 local_statement
+      8 name_list
+        8 local_name "newloop"
+      8 expression_list
+        8 table_constructor
+    9 call_statement
+      9 call_expression
+        9 name_expression "setmetatable" global
+        9 name_expression "newloop" local@69
+        9 table_constructor
+          9 named_field name-key
+            9 string_literal "__newindex"
+            9 name_expression "newloop" local@69
+    10 call_statement
+      10 call_expression
+        10 name_expression "print" global
+        10 call_expression
+          10 name_expression "pcall" global
+          10 function_expression
+            10 function_body
+              10 name_list
+              10 block
+                10 assignment
+                  10 expression_list
+                    10 assignment_target name-key
+                      10 index_expression name-key
+                        10 name_expression "newloop" upvalue@69
+                        10 string_literal "missing"
+                  10 expression_list
+                    10 integer_literal 1
+    11 call_statement
+      11 call_expression
+        11 name_expression "print" global
+        11 call_expression
+          11 name_expression "pcall" global
+          11 function_expression
+            11 function_body
+              11 name_list
+              11 block
+                11 return_statement
+                  11 expression_list
+                    11 unary_operation length
+                      11 nil_literal
+    12 call_statement
+      12 call_expression
+        12 name_expression "print" global
+        12 call_expression
+          12 name_expression "pcall" global
+          12 function_expression
+            12 function_body
+              12 name_list
+              12 block
+                12 return_statement
+                  12 expression_list
+                    12 binary_operation add
+                      12 table_constructor
+                      12 integer_literal 1
+    13 call_statement
+      13 call_expression
+        13 name_expression "print" global
+        13 call_expression
+          13 name_expression "pcall" global
+          13 function_expression
+            13 function_body
+              13 name_list
+              13 block
+                13 return_statement
+                  13 expression_list
+                    13 binary_operation less
+                      13 table_constructor
+                      13 table_constructor
+    14 call_statement
+      14 call_expression
+        14 name_expression "print" global
+        14 call_expression
+          14 name_expression "pcall" global
+          14 function_expression
+            14 function_body
+              14 name_list
+              14 block
+                14 return_statement
+                  14 expression_list
+                    14 binary_operation less
+                      14 table_constructor
+                      14 integer_literal 1
+    15 call_statement
+      15 call_expression
+        15 name_expression "print" global
+        15 call_expression
+          15 name_expression "pcall" global
+          15 name_expression "setmetatable" global
+          15 integer_literal 1
+          15 table_constructor
+    16 call_statement
+      16 call_expression
+        16 name_expression "print" global
+        16 call_expression
+          16 name_expression "pcall" global
+          16 name_expression "setmetatable" global
+          16 table_constructor
+          16 integer_literal 1
+    17 call_statement
+      17 call_expression
+        17 name_expression "print" global
+        17 call_expression
+          17 name_expression "pcall" global
+          17 name_expression "setmetatable" global
+          17 table_constructor
+    18 call_statement
+      18 call_expression
+        18 name_expression "print" global
+        18 call_expression
+          18 name_expression "pcall" global
+          18 name_expression "rawget" global
+          18 integer_literal 1
+    19 call_statement
+      19 call_expression
+        19 name_expression "print" global
+        19 call_expression
+          19 name_expression "pcall" global
+          19 name_expression "rawlen" global
+          19 integer_literal 1
+    20 call_statement
+      20 call_expression
+        20 name_expression "print" global
+        20 call_expression
+          20 name_expression "pcall" global
+          20 name_expression "rawset" global
+          20 table_constructor
+          20 nil_literal
+          20 integer_literal 1
+    21 call_statement
+      21 call_expression
+        21 name_expression "print" global
+        21 call_expression
+          21 name_expression "pcall" global
+          21 name_expression "next" global
+          21 integer_literal 1
+    22 call_statement
+      22 call_expression
+        22 name_expression "print" global
+        22 call_expression
+          22 name_expression "pcall" global
+          22 name_expression "getmetatable" global
+    23 call_statement
+      23 call_expression
+        23 name_expression "print" global
+        23 call_expression
+          23 name_expression "pcall" global
+          23 function_expression
+            23 function_body
+              23 name_list
+              23 block
+                23 local_statement
+                  23 name_list
+                    23 local_name "mt"
+                  23 expression_list
+                    23 table_constructor
+                      23 named_field name-key
+                        23 string_literal "__index"
+                        23 function_expression
+                          23 function_body
+                            23 name_list
+                            23 block
+                              23 call_statement
+                                23 call_expression
+                                  23 name_expression "error" global
+                                  23 string_literal "from index"
+                23 return_statement
+                  23 expression_list
+                    23 index_expression name-key
+                      23 call_expression
+                        23 name_expression "setmetatable" global
+                        23 table_constructor
+                        23 name_expression "mt" local@216
+                      23 string_literal "x"
+    24 call_statement
+      24 call_expression
+        24 name_expression "print" global
+        24 call_expression
+          24 name_expression "pcall" global
+          24 name_expression "tostring" global
+          24 call_expression
+            24 name_expression "setmetatable" global
+            24 table_constructor
+            24 table_constructor
+              24 named_field name-key
+                24 string_literal "__tostring"
+                24 function_expression
+                  24 function_body
+                    24 name_list
+                    24 block
+                      24 return_statement
+                        24 expression_list
+                          24 integer_literal 1
+    25 call_statement
+      25 call_expression
+        25 name_expression "print" global
+        25 index_expression name-key
+          25 call_expression
+            25 name_expression "setmetatable" global
+            25 table_constructor
+            25 table_constructor
+              25 named_field name-key
+                25 string_literal "__index"
+                25 function_expression
+                  25 function_body
+                    25 name_list
+                    25 block
+                      25 call_statement
+                        25 call_expression
+                          25 name_expression "error" global
+                          25 string_literal "boom"
+          25 string_literal "x"
+exit 0

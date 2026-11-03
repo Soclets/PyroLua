@@ -1,0 +1,821 @@
+1 function_body vararg
+  1 block
+    2 local_statement
+      2 name_list
+        2 local_name "base"
+      2 expression_list
+        2 table_constructor
+          2 named_field name-key
+            2 string_literal "greeting"
+            2 string_literal "hello"
+    3 local_statement
+      3 name_list
+        3 local_name "mid"
+      3 expression_list
+        3 call_expression
+          3 name_expression "setmetatable" global
+          3 table_constructor
+          3 table_constructor
+            3 named_field name-key
+              3 string_literal "__index"
+              3 name_expression "base" local@1
+    4 local_statement
+      4 name_list
+        4 local_name "top"
+      4 expression_list
+        4 call_expression
+          4 name_expression "setmetatable" global
+          4 table_constructor
+          4 table_constructor
+            4 named_field name-key
+              4 string_literal "__index"
+              4 name_expression "mid" local@9
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 index_expression name-key
+          5 name_expression "top" local@20
+          5 string_literal "greeting"
+        5 call_expression
+          5 name_expression "rawget" global
+          5 name_expression "top" local@20
+          5 string_literal "greeting"
+        5 index_expression name-key
+          5 name_expression "top" local@20
+          5 string_literal "missing"
+    6 local_statement
+      6 name_list
+        6 local_name "computed"
+      6 expression_list
+        6 call_expression
+          6 name_expression "setmetatable" global
+          6 table_constructor
+          6 table_constructor
+            6 named_field name-key
+              6 string_literal "__index"
+              6 function_expression
+                6 function_body
+                  6 name_list
+                    6 local_name "t"
+                    6 local_name "k"
+                  6 block
+                    6 return_statement
+                      6 expression_list
+                        6 binary_operation multiply
+                          6 name_expression "k" local@50
+                          6 integer_literal 2
+    7 call_statement
+      7 call_expression
+        7 name_expression "print" global
+        7 index_expression
+          7 name_expression "computed" local@44
+          7 integer_literal 21
+        7 call_expression
+          7 name_expression "rawget" global
+          7 name_expression "computed" local@44
+          7 integer_literal 21
+    8 local_statement
+      8 name_list
+        8 local_name "log"
+      8 expression_list
+        8 table_constructor
+    9 local_statement
+      9 name_list
+        9 local_name "guarded"
+      9 expression_list
+        9 call_expression
+          9 name_expression "setmetatable" global
+          9 table_constructor
+          9 table_constructor
+            9 named_field name-key
+              9 string_literal "__newindex"
+              9 function_expression
+                9 function_body
+                  9 name_list
+                    9 local_name "t"
+                    9 local_name "k"
+                    9 local_name "v"
+                  9 block
+                    9 call_statement
+                      9 call_expression
+                        9 name_expression "rawset" global
+                        9 name_expression "t" local@85
+                        9 name_expression "k" local@86
+                        9 binary_operation multiply
+                          9 name_expression "v" local@87
+                          9 integer_literal 10
+    10 assignment
+      10 expression_list
+        10 assignment_target name-key
+          10 index_expression name-key
+            10 name_expression "guarded" local@80
+            10 string_literal "a"
+      10 expression_list
+        10 integer_literal 1
+    11 call_statement
+      11 call_expression
+        11 name_expression "print" global
+        11 index_expression name-key
+          11 name_expression "guarded" local@80
+          11 string_literal "a"
+        11 call_expression
+          11 name_expression "rawget" global
+          11 name_expression "guarded" local@80
+          11 string_literal "a"
+    12 local_statement
+      12 name_list
+        12 local_name "store"
+      12 expression_list
+        12 table_constructor
+    13 local_statement
+      13 name_list
+        13 local_name "proxy"
+      13 expression_list
+        13 call_expression
+          13 name_expression "setmetatable" global
+          13 table_constructor
+          13 table_constructor
+            13 named_field name-key
+              13 string_literal "__newindex"
+              13 name_expression "store" local@123
+    14 assignment
+      14 expression_list
+        14 assignment_target name-key
+          14 index_expression name-key
+            14 name_expression "proxy" local@128
+            14 string_literal "x"
+      14 expression_list
+        14 integer_literal 5
+    15 call_statement
+      15 call_expression
+        15 name_expression "print" global
+        15 call_expression
+          15 name_expression "rawget" global
+          15 name_expression "proxy" local@128
+          15 string_literal "x"
+        15 index_expression name-key
+          15 name_expression "store" local@123
+          15 string_literal "x"
+    16 local_statement
+      16 name_list
+        16 local_name "existing"
+      16 expression_list
+        16 call_expression
+          16 name_expression "setmetatable" global
+          16 table_constructor
+            16 named_field name-key
+              16 string_literal "y"
+              16 integer_literal 1
+          16 table_constructor
+            16 named_field name-key
+              16 string_literal "__newindex"
+              16 function_expression
+                16 function_body
+                  16 name_list
+                  16 block
+                    16 call_statement
+                      16 call_expression
+                        16 name_expression "print" global
+                        16 string_literal "not called"
+    17 assignment
+      17 expression_list
+        17 assignment_target name-key
+          17 index_expression name-key
+            17 name_expression "existing" local@157
+            17 string_literal "y"
+      17 expression_list
+        17 integer_literal 2
+    18 call_statement
+      18 call_expression
+        18 name_expression "print" global
+        18 index_expression name-key
+          18 name_expression "existing" local@157
+          18 string_literal "y"
+    19 local_statement
+      19 name_list
+        19 local_name "V"
+      19 expression_list
+        19 table_constructor
+    20 assignment
+      20 expression_list
+        20 assignment_target name-key
+          20 index_expression name-key
+            20 name_expression "V" local@192
+            20 string_literal "__index"
+      20 expression_list
+        20 name_expression "V" local@192
+    21 local_function
+      21 local_name "n_of"
+      21 function_body
+        21 name_list
+          21 local_name "x"
+        21 block
+          21 if_statement
+            21 if_clause
+              21 binary_operation equal
+                21 call_expression
+                  21 name_expression "type" global
+                  21 name_expression "x" local@206
+                21 string_literal "table"
+              21 block
+                21 return_statement
+                  21 expression_list
+                    21 index_expression name-key
+                      21 name_expression "x" local@206
+                      21 string_literal "n"
+          21 return_statement
+            21 expression_list
+              21 name_expression "x" local@206
+    22 assignment
+      22 expression_list
+        22 assignment_target name-key
+          22 index_expression name-key
+            22 name_expression "V" local@192
+            22 string_literal "__add"
+      22 expression_list
+        22 function_expression
+          22 function_body
+            22 name_list
+              22 local_name "a"
+              22 local_name "b"
+            22 block
+              22 return_statement
+                22 expression_list
+                  22 string_literal "add"
+                  22 call_expression
+                    22 name_expression "n_of" upvalue@205
+                    22 name_expression "a" local@232
+                  22 call_expression
+                    22 name_expression "n_of" upvalue@205
+                    22 name_expression "b" local@233
+    23 assignment
+      23 expression_list
+        23 assignment_target name-key
+          23 index_expression name-key
+            23 name_expression "V" local@192
+            23 string_literal "__sub"
+      23 expression_list
+        23 function_expression
+          23 function_body
+            23 name_list
+              23 local_name "a"
+              23 local_name "b"
+            23 block
+              23 return_statement
+                23 expression_list
+                  23 string_literal "sub"
+    24 assignment
+      24 expression_list
+        24 assignment_target name-key
+          24 index_expression name-key
+            24 name_expression "V" local@192
+            24 string_literal "__mul"
+      24 expression_list
+        24 function_expression
+          24 function_body
+            24 name_list
+              24 local_name "a"
+              24 local_name "b"
+            24 block
+              24 return_statement
+                24 expression_list
+                  24 string_literal "mul"
+    25 assignment
+      25 expression_list
+        25 assignment_target name-key
+          25 index_expression name-key
+            25 name_expression "V" local@192
+            25 string_literal "__div"
+      25 expression_list
+        25 function_expression
+          25 function_body
+            25 name_list
+              25 local_name "a"
+              25 local_name "b"
+            25 block
+              25 return_statement
+                25 expression_list
+                  25 string_literal "div"
+    26 assignment
+      26 expression_list
+        26 assignment_target name-key
+          26 index_expression name-key
+            26 name_expression "V" local@192
+            26 string_literal "__mod"
+      26 expression_list
+        26 function_expression
+          26 function_body
+            26 name_list
+              26 local_name "a"
+              26 local_name "b"
+            26 block
+              26 return_statement
+                26 expression_list
+                  26 string_literal "mod"
+    27 assignment
+      27 expression_list
+        27 assignment_target name-key
+          27 index_expression name-key
+            27 name_expression "V" local@192
+            27 string_literal "__pow"
+      27 expression_list
+        27 function_expression
+          27 function_body
+            27 name_list
+              27 local_name "a"
+              27 local_name "b"
+            27 block
+              27 return_statement
+                27 expression_list
+                  27 string_literal "pow"
+    28 assignment
+      28 expression_list
+        28 assignment_target name-key
+          28 index_expression name-key
+            28 name_expression "V" local@192
+            28 string_literal "__idiv"
+      28 expression_list
+        28 function_expression
+          28 function_body
+            28 name_list
+              28 local_name "a"
+              28 local_name "b"
+            28 block
+              28 return_statement
+                28 expression_list
+                  28 string_literal "idiv"
+    29 assignment
+      29 expression_list
+        29 assignment_target name-key
+          29 index_expression name-key
+            29 name_expression "V" local@192
+            29 string_literal "__band"
+      29 expression_list
+        29 function_expression
+          29 function_body
+            29 name_list
+              29 local_name "a"
+              29 local_name "b"
+            29 block
+              29 return_statement
+                29 expression_list
+                  29 string_literal "band"
+    30 assignment
+      30 expression_list
+        30 assignment_target name-key
+          30 index_expression name-key
+            30 name_expression "V" local@192
+            30 string_literal "__bor"
+      30 expression_list
+        30 function_expression
+          30 function_body
+            30 name_list
+              30 local_name "a"
+              30 local_name "b"
+            30 block
+              30 return_statement
+                30 expression_list
+                  30 string_literal "bor"
+    31 assignment
+      31 expression_list
+        31 assignment_target name-key
+          31 index_expression name-key
+            31 name_expression "V" local@192
+            31 string_literal "__bxor"
+      31 expression_list
+        31 function_expression
+          31 function_body
+            31 name_list
+              31 local_name "a"
+              31 local_name "b"
+            31 block
+              31 return_statement
+                31 expression_list
+                  31 string_literal "bxor"
+    32 assignment
+      32 expression_list
+        32 assignment_target name-key
+          32 index_expression name-key
+            32 name_expression "V" local@192
+            32 string_literal "__shl"
+      32 expression_list
+        32 function_expression
+          32 function_body
+            32 name_list
+              32 local_name "a"
+              32 local_name "b"
+            32 block
+              32 return_statement
+                32 expression_list
+                  32 string_literal "shl"
+    33 assignment
+      33 expression_list
+        33 assignment_target name-key
+          33 index_expression name-key
+            33 name_expression "V" local@192
+            33 string_literal "__shr"
+      33 expression_list
+        33 function_expression
+          33 function_body
+            33 name_list
+              33 local_name "a"
+              33 local_name "b"
+            33 block
+              33 return_statement
+                33 expression_list
+                  33 string_literal "shr"
+    34 assignment
+      34 expression_list
+        34 assignment_target name-key
+          34 index_expression name-key
+            34 name_expression "V" local@192
+            34 string_literal "__unm"
+      34 expression_list
+        34 function_expression
+          34 function_body
+            34 name_list
+              34 local_name "a"
+            34 block
+              34 return_statement
+                34 expression_list
+                  34 string_literal "unm"
+                  34 index_expression name-key
+                    34 name_expression "a" local@430
+                    34 string_literal "n"
+    35 assignment
+      35 expression_list
+        35 assignment_target name-key
+          35 index_expression name-key
+            35 name_expression "V" local@192
+            35 string_literal "__bnot"
+      35 expression_list
+        35 function_expression
+          35 function_body
+            35 name_list
+              35 local_name "a"
+            35 block
+              35 return_statement
+                35 expression_list
+                  35 string_literal "bnot"
+    36 assignment
+      36 expression_list
+        36 assignment_target name-key
+          36 index_expression name-key
+            36 name_expression "V" local@192
+            36 string_literal "__len"
+      36 expression_list
+        36 function_expression
+          36 function_body
+            36 name_list
+              36 local_name "a"
+            36 block
+              36 return_statement
+                36 expression_list
+                  36 integer_literal 42
+    37 assignment
+      37 expression_list
+        37 assignment_target name-key
+          37 index_expression name-key
+            37 name_expression "V" local@192
+            37 string_literal "__eq"
+      37 expression_list
+        37 function_expression
+          37 function_body
+            37 name_list
+              37 local_name "a"
+              37 local_name "b"
+            37 block
+              37 return_statement
+                37 expression_list
+                  37 binary_operation equal
+                    37 call_expression
+                      37 name_expression "n_of" upvalue@205
+                      37 name_expression "a" local@478
+                    37 call_expression
+                      37 name_expression "n_of" upvalue@205
+                      37 name_expression "b" local@479
+    38 assignment
+      38 expression_list
+        38 assignment_target name-key
+          38 index_expression name-key
+            38 name_expression "V" local@192
+            38 string_literal "__lt"
+      38 expression_list
+        38 function_expression
+          38 function_body
+            38 name_list
+              38 local_name "a"
+              38 local_name "b"
+            38 block
+              38 return_statement
+                38 expression_list
+                  38 binary_operation less
+                    38 call_expression
+                      38 name_expression "n_of" upvalue@205
+                      38 name_expression "a" local@500
+                    38 call_expression
+                      38 name_expression "n_of" upvalue@205
+                      38 name_expression "b" local@501
+    39 assignment
+      39 expression_list
+        39 assignment_target name-key
+          39 index_expression name-key
+            39 name_expression "V" local@192
+            39 string_literal "__le"
+      39 expression_list
+        39 function_expression
+          39 function_body
+            39 name_list
+              39 local_name "a"
+              39 local_name "b"
+            39 block
+              39 return_statement
+                39 expression_list
+                  39 binary_operation less_equal
+                    39 call_expression
+                      39 name_expression "n_of" upvalue@205
+                      39 name_expression "a" local@522
+                    39 call_expression
+                      39 name_expression "n_of" upvalue@205
+                      39 name_expression "b" local@523
+    40 assignment
+      40 expression_list
+        40 assignment_target name-key
+          40 index_expression name-key
+            40 name_expression "V" local@192
+            40 string_literal "__call"
+      40 expression_list
+        40 function_expression
+          40 function_body
+            40 name_list
+              40 local_name "self"
+              40 local_name "x"
+              40 local_name "y"
+            40 block
+              40 return_statement
+                40 expression_list
+                  40 string_literal "called"
+                  40 index_expression name-key
+                    40 name_expression "self" local@544
+                    40 string_literal "n"
+                  40 name_expression "x" local@545
+                  40 name_expression "y" local@546
+    41 local_function
+      41 local_name "new"
+      41 function_body
+        41 name_list
+          41 local_name "n"
+        41 block
+          41 return_statement
+            41 expression_list
+              41 call_expression
+                41 name_expression "setmetatable" global
+                41 table_constructor
+                  41 named_field name-key
+                    41 string_literal "n"
+                    41 name_expression "n" local@562
+                41 name_expression "V" upvalue@192
+    42 local_statement
+      42 name_list
+        42 local_name "one"
+        42 local_name "two"
+      42 expression_list
+        42 call_expression
+          42 name_expression "new" local@561
+          42 integer_literal 1
+        42 call_expression
+          42 name_expression "new" local@561
+          42 integer_literal 2
+    43 call_statement
+      43 call_expression
+        43 name_expression "print" global
+        43 binary_operation add
+          43 name_expression "one" local@576
+          43 name_expression "two" local@577
+        43 binary_operation add
+          43 name_expression "one" local@576
+          43 integer_literal 5
+        43 binary_operation add
+          43 integer_literal 5
+          43 name_expression "one" local@576
+        43 binary_operation subtract
+          43 name_expression "one" local@576
+          43 integer_literal 1
+        43 binary_operation multiply
+          43 integer_literal 2
+          43 name_expression "one" local@576
+        43 binary_operation divide
+          43 name_expression "one" local@576
+          43 name_expression "two" local@577
+        43 binary_operation modulo
+          43 name_expression "one" local@576
+          43 integer_literal 3
+        43 binary_operation power
+          43 name_expression "one" local@576
+          43 integer_literal 2
+    44 call_statement
+      44 call_expression
+        44 name_expression "print" global
+        44 binary_operation floor_divide
+          44 name_expression "one" local@576
+          44 name_expression "two" local@577
+        44 binary_operation bitwise_and
+          44 name_expression "one" local@576
+          44 integer_literal 1
+        44 binary_operation bitwise_or
+          44 integer_literal 1
+          44 name_expression "one" local@576
+        44 binary_operation bitwise_exclusive_or
+          44 name_expression "one" local@576
+          44 name_expression "one" local@576
+        44 binary_operation shift_left
+          44 name_expression "one" local@576
+          44 integer_literal 1
+        44 binary_operation shift_right
+          44 integer_literal 1
+          44 name_expression "one" local@576
+        44 unary_operation negate
+          44 name_expression "one" local@576
+        44 unary_operation bitwise_not
+          44 name_expression "one" local@576
+        44 unary_operation length
+          44 name_expression "one" local@576
+    45 call_statement
+      45 call_expression
+        45 name_expression "print" global
+        45 binary_operation equal
+          45 name_expression "one" local@576
+          45 name_expression "two" local@577
+        45 binary_operation equal
+          45 name_expression "one" local@576
+          45 call_expression
+            45 name_expression "new" local@561
+            45 integer_literal 1
+        45 binary_operation not_equal
+          45 name_expression "one" local@576
+          45 call_expression
+            45 name_expression "new" local@561
+            45 integer_literal 1
+        45 binary_operation less
+          45 name_expression "one" local@576
+          45 name_expression "two" local@577
+        45 binary_operation less
+          45 name_expression "two" local@577
+          45 name_expression "one" local@576
+        45 binary_operation less_equal
+          45 name_expression "one" local@576
+          45 name_expression "two" local@577
+    46 call_statement
+      46 call_expression
+        46 name_expression "print" global
+        46 binary_operation greater
+          46 name_expression "one" local@576
+          46 name_expression "two" local@577
+        46 binary_operation greater_equal
+          46 name_expression "one" local@576
+          46 name_expression "two" local@577
+        46 binary_operation less
+          46 float_literal 0x3FF8000000000000
+          46 name_expression "one" local@576
+        46 call_expression
+          46 name_expression "one" local@576
+          46 integer_literal 7
+          46 integer_literal 8
+    47 call_statement
+      47 call_expression
+        47 name_expression "print" global
+        47 binary_operation equal
+          47 call_expression
+            47 name_expression "getmetatable" global
+            47 name_expression "one" local@576
+          47 name_expression "V" local@192
+        47 call_expression
+          47 name_expression "getmetatable" global
+          47 string_literal "x"
+        47 call_expression
+          47 name_expression "getmetatable" global
+          47 integer_literal 1
+    48 local_statement
+      48 name_list
+        48 local_name "protected"
+      48 expression_list
+        48 call_expression
+          48 name_expression "setmetatable" global
+          48 table_constructor
+          48 table_constructor
+            48 named_field name-key
+              48 string_literal "__metatable"
+              48 string_literal "locked"
+    49 call_statement
+      49 call_expression
+        49 name_expression "print" global
+        49 call_expression
+          49 name_expression "getmetatable" global
+          49 name_expression "protected" local@696
+    50 call_statement
+      50 call_expression
+        50 name_expression "print" global
+        50 call_expression
+          50 name_expression "pcall" global
+          50 name_expression "setmetatable" global
+          50 name_expression "protected" local@696
+          50 table_constructor
+    51 call_statement
+      51 call_expression
+        51 name_expression "print" global
+        51 call_expression
+          51 name_expression "rawequal" global
+          51 name_expression "one" local@576
+          51 name_expression "one" local@576
+        51 call_expression
+          51 name_expression "rawequal" global
+          51 name_expression "one" local@576
+          51 call_expression
+            51 name_expression "new" local@561
+            51 integer_literal 1
+        51 call_expression
+          51 name_expression "rawlen" global
+          51 table_constructor
+            51 integer_literal 1
+            51 integer_literal 2
+            51 integer_literal 3
+        51 call_expression
+          51 name_expression "rawlen" global
+          51 string_literal "four"
+    52 call_statement
+      52 call_expression
+        52 name_expression "print" global
+        52 call_expression
+          52 name_expression "rawequal" global
+          52 integer_literal 1
+          52 float_literal 0x3FF0000000000000
+        52 call_expression
+          52 name_expression "rawequal" global
+          52 string_literal "a"
+          52 string_literal "a"
+        52 call_expression
+          52 name_expression "rawequal" global
+          52 binary_operation divide
+            52 integer_literal 0
+            52 integer_literal 0
+          52 binary_operation divide
+            52 integer_literal 0
+            52 integer_literal 0
+    53 local_statement
+      53 name_list
+        53 local_name "named"
+      53 expression_list
+        53 call_expression
+          53 name_expression "setmetatable" global
+          53 table_constructor
+          53 table_constructor
+            53 named_field name-key
+              53 string_literal "__name"
+              53 string_literal "MyType"
+    54 call_statement
+      54 call_expression
+        54 name_expression "print" global
+        54 call_expression
+          54 name_expression "pcall" global
+          54 name_expression "setmetatable" global
+          54 name_expression "named" local@762
+    55 local_statement
+      55 name_list
+        55 local_name "shown"
+      55 expression_list
+        55 call_expression
+          55 name_expression "setmetatable" global
+          55 table_constructor
+          55 table_constructor
+            55 named_field name-key
+              55 string_literal "__tostring"
+              55 function_expression
+                55 function_body
+                  55 name_list
+                  55 block
+                    55 return_statement
+                      55 expression_list
+                        55 string_literal "shown!"
+    56 call_statement
+      56 call_expression
+        56 name_expression "print" global
+        56 name_expression "shown" local@780
+        56 call_expression
+          56 name_expression "tostring" global
+          56 name_expression "shown" local@780
+    57 call_statement
+      57 call_expression
+        57 name_expression "print" global
+        57 binary_operation not_equal
+          57 call_expression
+            57 name_expression "setmetatable" global
+            57 table_constructor
+            57 nil_literal
+          57 nil_literal
+        57 call_expression
+          57 name_expression "getmetatable" global
+          57 call_expression
+            57 name_expression "setmetatable" global
+            57 table_constructor
+            57 nil_literal
+exit 0

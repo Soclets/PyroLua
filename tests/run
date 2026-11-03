@@ -45,7 +45,7 @@ LUA = REFERENCE / "lua"
 RUNTIME = TESTS / "corpus" / "runtime"
 
 # Run by reference Lua before each runtime script: leaves only the host functions pyrolua
-# provides in _ENV (and arg, which lua.c reads before it runs the script), and empties the
+# provides in _ENV (and arg, which lua.c reads before it runs the script), and removes the
 # string metatable (string methods and string arithmetic), so a script cannot depend on the
 # standard library by accident.
 REFERENCE_PRELUDE = (
@@ -53,8 +53,7 @@ REFERENCE_PRELUDE = (
     "error = true, type = true, select = true, tostring = true, rawget = true, rawset = true, "
     "rawequal = true, rawlen = true, next = true, pairs = true, ipairs = true, assert = true, "
     "arg = true} "
-    "local strings = getmetatable('') "
-    "for key in next, strings do strings[key] = nil end "
+    "debug.setmetatable('', nil) "
     "local globals = _G "
     "for key in next, globals do if not keep[key] then globals[key] = nil end end")
 

@@ -5,16 +5,11 @@
 with Pyro.Floats;
 with Pyro.Virtual_Machine.Arithmetic;
 with Pyro.Virtual_Machine.Comparisons;
+with Pyro.Virtual_Machine.Indexing;
 
 package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
 
    use Pyro.Bytecode;
-   use type Pyro.Tables.Set_Status;
-
-   --  Whether T can be indexed without metamethods: it is a table.
-   function Is_Table (M : Machine; T : Value) return Boolean
-   is (Type_Name (M, T) = "table")
-   with Pre => Is_Valid (M) and then Is_Loaded (M) and then Is_Live (M, T);
 
    procedure Step (M : in out Machine; Budget : in out Memory_Budget) is
       I : constant Instruction := Current (M);
@@ -61,37 +56,8 @@ package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
          when Set_Upvalue =>
             Set_Upvalue (M, B, Register (M, A));
             Next (M);
-         when Get_Table_Upvalue =>
-            declare
-               T : constant Value := Upvalue (M, B);
-            begin
-               if not Is_Table (M, T) then
-                  Raise_Runtime_Error
-                    (M, Budget, "attempt to index a " & Type_Name (M, T) & " value");
-                  return;
-               end if;
-               Set_Register (M, A, Raw_Get (M, T, Constant_At (M, C)));
-               Next (M);
-            end;
-         when Set_Table_Upvalue =>
-            declare
-               T      : constant Value := Upvalue (M, A);
-               Item   : constant Value :=
-                 (if I.K then Constant_At (M, C) else Register (M, C));
-               Status : Pyro.Tables.Set_Status;
-            begin
-               if not Is_Table (M, T) then
-                  Raise_Runtime_Error
-                    (M, Budget, "attempt to index a " & Type_Name (M, T) & " value");
-                  return;
-               end if;
-               Raw_Set (M, Budget, T, Constant_At (M, B), Item, Status);
-               if Status = Pyro.Tables.Out_Of_Memory then
-                  Raise_Memory_Error (M);
-                  return;
-               end if;
-               Next (M);
-            end;
+         when Pyro.Virtual_Machine.Indexing.Indexing_Instruction =>
+            Pyro.Virtual_Machine.Indexing.Execute (M, Budget, I);
          when Add_Integer .. Shift_Right =>
             Pyro.Virtual_Machine.Arithmetic.Execute_Binary (M, Budget, I);
          when Metamethod_Binary .. Metamethod_Binary_Constant =>

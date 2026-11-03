@@ -24,6 +24,12 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
        then Binary_Operation'Val (Natural (Event) - Natural (First_Binary_Event))
        else Add_Operation);
 
+   --  The event of metamethod event number Number (TM_ADD .. TM_SHR).
+   function Binary_Event (Number : Byte) return Event
+   is (if Number in First_Binary_Event .. Last_Binary_Event
+       then Event'Val (Event'Pos (Add_Event) + Natural (Number) - Natural (First_Binary_Event))
+       else Add_Event);
+
    --  The operation of arithmetic instruction Code.
    function Operation_Of (Code : Opcode) return Binary_Operation
    is (case Code is
@@ -233,8 +239,10 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
    procedure Execute_Metamethod
      (M : in out Machine; Budget : in out Memory_Budget; I : Pyro.Bytecode.Instruction)
    is
-      Left  : Value;
-      Right : Value;
+      Left    : Value;
+      Right   : Value;
+      Swapped : Value;
+      Handler : Value;
    begin
       Lemma_View (M);
       Left := Register (M, Natural (I.A));
@@ -247,7 +255,19 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
             Right := Constant_At (M, Natural (I.B));
       end case;
       if I.K then
-         Binary_Error (M, Budget, Event_Operation (I.C), Right, Left);
+         --  [puc ltm.c:luaT_trybinassocTM] The constant was the first operand.
+         Swapped := Left;
+         Left := Right;
+         Right := Swapped;
+      end if;
+      --  [puc ltm.c:luaT_trybinTM] The first operand's metamethod, else the second's.
+      Handler := Metafield (M, Left, Binary_Event (I.C));
+      if Handler = Nil then
+         Handler := Metafield (M, Right, Binary_Event (I.C));
+      end if;
+      if Handler /= Nil then
+         Call_Metamethod
+           (M, Budget, Handler, [Left, Right], Store_Result, Previous_Target (M), False);
       else
          Binary_Error (M, Budget, Event_Operation (I.C), Left, Right);
       end if;
@@ -274,6 +294,10 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
                  (M, A,
                   Float_Value_Of (Pyro.Floats.Arithmetic (Pyro.Floats.Negate, Operand.Bits, 0)));
                Next (M);
+            elsif Metafield (M, Operand, Negate_Event) /= Nil then
+               Call_Metamethod
+                 (M, Budget, Metafield (M, Operand, Negate_Event), [Operand, Operand],
+                  Store_Result, A, False);
             else
                Raise_Runtime_Error
                  (M, Budget, "attempt to perform arithmetic on a " & Type_Name (M, Operand)
@@ -284,6 +308,10 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
             if Fits then
                Set_Register (M, A, Integer_Value_Of (Pyro.Integer_Arithmetic.Bitwise_Not (X)));
                Next (M);
+            elsif Metafield (M, Operand, Bitwise_Not_Event) /= Nil then
+               Call_Metamethod
+                 (M, Budget, Metafield (M, Operand, Bitwise_Not_Event), [Operand, Operand],
+                  Store_Result, A, False);
             elsif Is_Number (Operand) then
                Raise_Runtime_Error (M, Budget, "number has no integer representation");
             else

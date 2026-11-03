@@ -102,24 +102,6 @@ package body Pyro.Virtual_Machine.Comparisons with SPARK_Mode => On is
                Left.Bits, Right.Bits))
    with Pre => Is_Number (Left) and then Is_Number (Right);
 
-   --  [puc lvm.c:luaV_equalobj] Left and Right are equal without metamethods: numbers by
-   --  value, everything else by identity (strings are interned).
-   function Raw_Equal (Left, Right : Value) return Boolean is
-      Converted : Integer_64;
-      Exact     : Boolean;
-   begin
-      if Left.Kind = Float_Value and then Right.Kind = Float_Value then
-         return Pyro.Floats.Compare (Pyro.Floats.Equal, Left.Bits, Right.Bits);
-      elsif Left.Kind = Float_Value and then Right.Kind = Integer_Value then
-         Pyro.Floats.To_Integer (Left.Bits, Converted, Exact);
-         return Exact and then Converted = Integer_Of (Right);
-      elsif Left.Kind = Integer_Value and then Right.Kind = Float_Value then
-         Pyro.Floats.To_Integer (Right.Bits, Converted, Exact);
-         return Exact and then Converted = Integer_Of (Left);
-      end if;
-      return Left = Right;
-   end Raw_Equal;
-
    --  [puc ldebug.c:luaG_ordererror] Left and Right cannot be compared.
    procedure Order_Error
      (M : in out Machine; Budget : in out Memory_Budget; Left, Right : Value)
@@ -172,11 +154,25 @@ package body Pyro.Virtual_Machine.Comparisons with SPARK_Mode => On is
       Right      : Value;
       Condition  : Boolean := False;
       Comparable : Boolean := True;
+      Handler    : Value;
    begin
       Lemma_View (M);
       case Test_Opcode (I.Operation) is
          when Equal =>
-            Condition := Raw_Equal (Register (M, A), Register (M, B));
+            Left := Register (M, A);
+            Right := Register (M, B);
+            Condition := Raw_Equal (Left, Right);
+            if not Condition and then Is_Table (M, Left) and then Is_Table (M, Right) then
+               --  [puc lvm.c:luaV_equalobj] The first table's __eq, else the second's.
+               Handler := Metafield (M, Left, Equal_Event);
+               if Handler = Nil then
+                  Handler := Metafield (M, Right, Equal_Event);
+               end if;
+               if Handler /= Nil then
+                  Call_Metamethod (M, Budget, Handler, [Left, Right], Test_Result, 0, I.K);
+                  return;
+               end if;
+            end if;
          when Equal_Constant =>
             Condition := Raw_Equal (Register (M, A), Constant_At (M, B));
          when Equal_Integer =>
@@ -213,7 +209,24 @@ package body Pyro.Virtual_Machine.Comparisons with SPARK_Mode => On is
             end if;
       end case;
       if not Comparable then
-         Order_Error (M, Budget, Left, Right);
+         --  [puc ltm.c:luaT_callorderTM] The first operand's metamethod, else the second's.
+         Handler :=
+           Metafield
+             (M, Left,
+              (if I.Operation in Less_Equal | Less_Equal_Integer | Greater_Equal_Integer
+               then Less_Equal_Event else Less_Than_Event));
+         if Handler = Nil then
+            Handler :=
+              Metafield
+                (M, Right,
+                 (if I.Operation in Less_Equal | Less_Equal_Integer | Greater_Equal_Integer
+                  then Less_Equal_Event else Less_Than_Event));
+         end if;
+         if Handler /= Nil then
+            Call_Metamethod (M, Budget, Handler, [Left, Right], Test_Result, 0, I.K);
+         else
+            Order_Error (M, Budget, Left, Right);
+         end if;
       elsif Condition = I.K then
          Next (M);
       else

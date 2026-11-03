@@ -1,0 +1,614 @@
+2 keyword local
+2 name t
+2 =
+2 {
+2 integer 10
+2 ,
+2 integer 20
+2 ,
+2 integer 30
+2 ,
+2 name x
+2 =
+2 integer 1
+2 ,
+2 [
+2 string "y"
+2 ]
+2 =
+2 integer 2
+2 ,
+2 [
+2 float 3.0 0x4008000000000000
+2 ]
+2 =
+2 string "three"
+2 ,
+2 [
+2 -
+2 integer 1
+2 ]
+2 =
+2 string "minus"
+2 }
+3 name print
+3 (
+3 name t
+3 [
+3 integer 1
+3 ]
+3 ,
+3 name t
+3 [
+3 integer 2
+3 ]
+3 ,
+3 name t
+3 [
+3 integer 3
+3 ]
+3 ,
+3 name t
+3 .
+3 name x
+3 ,
+3 name t
+3 .
+3 name y
+3 ,
+3 name t
+3 [
+3 -
+3 integer 1
+3 ]
+3 ,
+3 #
+3 name t
+3 ,
+3 name t
+3 [
+3 integer 4
+3 ]
+3 ,
+3 name t
+3 .
+3 name z
+3 )
+4 name t
+4 [
+4 integer 4
+4 ]
+4 =
+4 integer 40
+4 ;
+4 name t
+4 .
+4 name z
+4 =
+4 string "zed"
+4 ;
+4 name t
+4 [
+4 float 2.0 0x4000000000000000
+4 ]
+4 =
+4 string "two"
+5 name print
+5 (
+5 name t
+5 [
+5 integer 4
+5 ]
+5 ,
+5 name t
+5 .
+5 name z
+5 ,
+5 name t
+5 [
+5 integer 2
+5 ]
+5 ,
+5 #
+5 name t
+5 )
+6 keyword local
+6 name empty
+6 =
+6 {
+6 }
+7 name print
+7 (
+7 #
+7 name empty
+7 ,
+7 name empty
+7 [
+7 integer 1
+7 ]
+7 ,
+7 name empty
+7 .
+7 name x
+7 )
+8 keyword local
+8 keyword function
+8 name three
+8 (
+8 )
+8 keyword return
+8 integer 1
+8 ,
+8 integer 2
+8 ,
+8 integer 3
+8 keyword end
+9 keyword local
+9 keyword function
+9 name none
+9 (
+9 )
+9 keyword end
+10 keyword local
+10 name a
+10 =
+10 {
+10 name three
+10 (
+10 )
+10 }
+11 keyword local
+11 name b
+11 =
+11 {
+11 name three
+11 (
+11 )
+11 ,
+11 name three
+11 (
+11 )
+11 }
+12 keyword local
+12 name c
+12 =
+12 {
+12 name none
+12 (
+12 )
+12 ,
+12 name none
+12 (
+12 )
+12 }
+13 keyword local
+13 name d
+13 =
+13 {
+13 (
+13 name three
+13 (
+13 )
+13 )
+13 }
+14 name print
+14 (
+14 #
+14 name a
+14 ,
+14 #
+14 name b
+14 ,
+14 #
+14 name c
+14 ,
+14 #
+14 name d
+14 ,
+14 name b
+14 [
+14 integer 4
+14 ]
+14 ,
+14 name d
+14 [
+14 integer 2
+14 ]
+14 )
+15 keyword local
+15 name big
+15 =
+15 {
+16 integer 1
+16 ,
+16 integer 2
+16 ,
+16 integer 3
+16 ,
+16 integer 4
+16 ,
+16 integer 5
+16 ,
+16 integer 6
+16 ,
+16 integer 7
+16 ,
+16 integer 8
+16 ,
+16 integer 9
+16 ,
+16 integer 10
+16 ,
+16 integer 11
+16 ,
+16 integer 12
+16 ,
+16 integer 13
+16 ,
+16 integer 14
+16 ,
+16 integer 15
+16 ,
+16 integer 16
+16 ,
+16 integer 17
+16 ,
+16 integer 18
+16 ,
+16 integer 19
+16 ,
+16 integer 20
+16 ,
+17 integer 21
+17 ,
+17 integer 22
+17 ,
+17 integer 23
+17 ,
+17 integer 24
+17 ,
+17 integer 25
+17 ,
+17 integer 26
+17 ,
+17 integer 27
+17 ,
+17 integer 28
+17 ,
+17 integer 29
+17 ,
+17 integer 30
+17 ,
+17 integer 31
+17 ,
+17 integer 32
+17 ,
+17 integer 33
+17 ,
+17 integer 34
+17 ,
+17 integer 35
+17 ,
+17 integer 36
+17 ,
+17 integer 37
+17 ,
+17 integer 38
+17 ,
+17 integer 39
+17 ,
+17 integer 40
+17 ,
+18 integer 41
+18 ,
+18 integer 42
+18 ,
+18 integer 43
+18 ,
+18 integer 44
+18 ,
+18 integer 45
+18 ,
+18 integer 46
+18 ,
+18 integer 47
+18 ,
+18 integer 48
+18 ,
+18 integer 49
+18 ,
+18 integer 50
+18 ,
+18 integer 51
+18 ,
+18 integer 52
+18 ,
+18 integer 53
+18 ,
+18 integer 54
+18 ,
+18 integer 55
+18 ,
+18 integer 56
+18 ,
+18 integer 57
+18 ,
+18 integer 58
+18 ,
+18 integer 59
+18 ,
+18 integer 60
+18 ,
+19 }
+20 name print
+20 (
+20 #
+20 name big
+20 ,
+20 name big
+20 [
+20 integer 1
+20 ]
+20 ,
+20 name big
+20 [
+20 integer 50
+20 ]
+20 ,
+20 name big
+20 [
+20 integer 51
+20 ]
+20 ,
+20 name big
+20 [
+20 integer 60
+20 ]
+20 )
+21 keyword local
+21 name nested
+21 =
+21 {
+21 name inner
+21 =
+21 {
+21 name deep
+21 =
+21 {
+21 name value
+21 =
+21 string "found"
+21 }
+21 }
+21 }
+22 name print
+22 (
+22 name nested
+22 .
+22 name inner
+22 .
+22 name deep
+22 .
+22 name value
+22 )
+23 keyword local
+23 keyword function
+23 name pack
+23 (
+23 ...
+23 )
+23 keyword return
+23 {
+23 ...
+23 }
+23 keyword end
+24 keyword local
+24 name p
+24 =
+24 name pack
+24 (
+24 keyword nil
+24 ,
+24 integer 2
+24 ,
+24 keyword nil
+24 )
+25 name print
+25 (
+25 name p
+25 [
+25 integer 1
+25 ]
+25 ,
+25 name p
+25 [
+25 integer 2
+25 ]
+25 ,
+25 name p
+25 [
+25 integer 3
+25 ]
+25 )
+26 keyword local
+26 name holes
+26 =
+26 {
+26 integer 1
+26 ,
+26 integer 2
+26 ,
+26 keyword nil
+26 ,
+26 integer 4
+26 }
+27 name print
+27 (
+27 #
+27 name holes
+27 )
+28 keyword local
+28 name key
+28 =
+28 {
+28 }
+29 keyword local
+29 name by_table
+29 =
+29 {
+29 [
+29 name key
+29 ]
+29 =
+29 string "table key"
+29 ,
+29 [
+29 name print
+29 ]
+29 =
+29 string "function key"
+29 ,
+29 [
+29 keyword true
+29 ]
+29 =
+29 string "true key"
+29 }
+30 name print
+30 (
+30 name by_table
+30 [
+30 name key
+30 ]
+30 ,
+30 name by_table
+30 [
+30 name print
+30 ]
+30 ,
+30 name by_table
+30 [
+30 keyword true
+30 ]
+30 ,
+30 name by_table
+30 [
+30 keyword false
+30 ]
+30 )
+31 keyword local
+31 name s
+31 =
+31 string "text"
+32 keyword local
+32 name obj
+32 =
+32 {
+32 name name
+32 =
+32 string "object"
+32 }
+33 keyword function
+33 name obj
+33 .
+33 name get
+33 (
+33 name self
+33 )
+33 keyword return
+33 name self
+33 .
+33 name name
+33 keyword end
+34 keyword function
+34 name obj
+34 :
+34 name shout
+34 (
+34 )
+34 keyword return
+34 name self
+34 .
+34 name name
+34 ,
+34 string "!"
+34 keyword end
+35 name print
+35 (
+35 name obj
+35 :
+35 name get
+35 (
+35 )
+35 ,
+35 name obj
+35 :
+35 name shout
+35 (
+35 )
+35 )
+36 keyword local
+36 name i
+36 =
+36 integer 1
+37 keyword local
+37 name list
+37 =
+37 {
+37 }
+38 keyword while
+38 name i
+38 <=
+38 integer 100
+38 keyword do
+38 name list
+38 [
+38 name i
+38 ]
+38 =
+38 name i
+38 *
+38 name i
+38 ;
+38 name i
+38 =
+38 name i
+38 +
+38 integer 1
+38 keyword end
+39 name print
+39 (
+39 #
+39 name list
+39 ,
+39 name list
+39 [
+39 integer 10
+39 ]
+39 ,
+39 name list
+39 [
+39 integer 100
+39 ]
+39 )
+40 name list
+40 [
+40 #
+40 name list
+40 +
+40 integer 1
+40 ]
+40 =
+40 string "last"
+41 name print
+41 (
+41 #
+41 name list
+41 ,
+41 name list
+41 [
+41 integer 101
+41 ]
+41 )
+42 <eof>
+exit 0

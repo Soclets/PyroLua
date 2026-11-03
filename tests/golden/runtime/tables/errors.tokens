@@ -1,0 +1,324 @@
+2 keyword local
+2 name t
+2 =
+2 {
+2 }
+3 name print
+3 (
+3 name pcall
+3 (
+3 keyword function
+3 (
+3 )
+3 name t
+3 [
+3 keyword nil
+3 ]
+3 =
+3 integer 1
+3 keyword end
+3 )
+3 )
+4 name print
+4 (
+4 name pcall
+4 (
+4 keyword function
+4 (
+4 )
+4 name t
+4 [
+4 integer 0
+4 /
+4 integer 0
+4 ]
+4 =
+4 integer 1
+4 keyword end
+4 )
+4 )
+5 keyword local
+5 name loop
+5 =
+5 {
+5 }
+6 name setmetatable
+6 (
+6 name loop
+6 ,
+6 {
+6 name __index
+6 =
+6 name loop
+6 }
+6 )
+7 name print
+7 (
+7 name pcall
+7 (
+7 keyword function
+7 (
+7 )
+7 keyword return
+7 name loop
+7 .
+7 name missing
+7 keyword end
+7 )
+7 )
+8 keyword local
+8 name newloop
+8 =
+8 {
+8 }
+9 name setmetatable
+9 (
+9 name newloop
+9 ,
+9 {
+9 name __newindex
+9 =
+9 name newloop
+9 }
+9 )
+10 name print
+10 (
+10 name pcall
+10 (
+10 keyword function
+10 (
+10 )
+10 name newloop
+10 .
+10 name missing
+10 =
+10 integer 1
+10 keyword end
+10 )
+10 )
+11 name print
+11 (
+11 name pcall
+11 (
+11 keyword function
+11 (
+11 )
+11 keyword return
+11 #
+11 keyword nil
+11 keyword end
+11 )
+11 )
+12 name print
+12 (
+12 name pcall
+12 (
+12 keyword function
+12 (
+12 )
+12 keyword return
+12 {
+12 }
+12 +
+12 integer 1
+12 keyword end
+12 )
+12 )
+13 name print
+13 (
+13 name pcall
+13 (
+13 keyword function
+13 (
+13 )
+13 keyword return
+13 {
+13 }
+13 <
+13 {
+13 }
+13 keyword end
+13 )
+13 )
+14 name print
+14 (
+14 name pcall
+14 (
+14 keyword function
+14 (
+14 )
+14 keyword return
+14 {
+14 }
+14 <
+14 integer 1
+14 keyword end
+14 )
+14 )
+15 name print
+15 (
+15 name pcall
+15 (
+15 name setmetatable
+15 ,
+15 integer 1
+15 ,
+15 {
+15 }
+15 )
+15 )
+16 name print
+16 (
+16 name pcall
+16 (
+16 name setmetatable
+16 ,
+16 {
+16 }
+16 ,
+16 integer 1
+16 )
+16 )
+17 name print
+17 (
+17 name pcall
+17 (
+17 name setmetatable
+17 ,
+17 {
+17 }
+17 )
+17 )
+18 name print
+18 (
+18 name pcall
+18 (
+18 name rawget
+18 ,
+18 integer 1
+18 )
+18 )
+19 name print
+19 (
+19 name pcall
+19 (
+19 name rawlen
+19 ,
+19 integer 1
+19 )
+19 )
+20 name print
+20 (
+20 name pcall
+20 (
+20 name rawset
+20 ,
+20 {
+20 }
+20 ,
+20 keyword nil
+20 ,
+20 integer 1
+20 )
+20 )
+21 name print
+21 (
+21 name pcall
+21 (
+21 name next
+21 ,
+21 integer 1
+21 )
+21 )
+22 name print
+22 (
+22 name pcall
+22 (
+22 name getmetatable
+22 )
+22 )
+23 name print
+23 (
+23 name pcall
+23 (
+23 keyword function
+23 (
+23 )
+23 keyword local
+23 name mt
+23 =
+23 {
+23 name __index
+23 =
+23 keyword function
+23 (
+23 )
+23 name error
+23 (
+23 string "from index"
+23 )
+23 keyword end
+23 }
+23 ;
+23 keyword return
+23 name setmetatable
+23 (
+23 {
+23 }
+23 ,
+23 name mt
+23 )
+23 .
+23 name x
+23 keyword end
+23 )
+23 )
+24 name print
+24 (
+24 name pcall
+24 (
+24 name tostring
+24 ,
+24 name setmetatable
+24 (
+24 {
+24 }
+24 ,
+24 {
+24 name __tostring
+24 =
+24 keyword function
+24 (
+24 )
+24 keyword return
+24 integer 1
+24 keyword end
+24 }
+24 )
+24 )
+24 )
+25 name print
+25 (
+25 name setmetatable
+25 (
+25 {
+25 }
+25 ,
+25 {
+25 name __index
+25 =
+25 keyword function
+25 (
+25 )
+25 name error
+25 (
+25 string "boom"
+25 )
+25 keyword end
+25 }
+25 )
+25 .
+25 name x
+25 )
+26 <eof>
+exit 0

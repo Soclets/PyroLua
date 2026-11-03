@@ -1,0 +1,329 @@
+
+main <tests/corpus/runtime/tables/errors.lua:0,0> (144 instructions at #13)
+0+ params, 10 slots, 1 upvalue, 3 locals, 15 constants, 11 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	new_table	0 0 0	; 0
+	3	[2]	extra_argument	0
+	4	[3]	get_table_upvalue	1 0 0	; _ENV "print"
+	5	[3]	get_table_upvalue	2 0 1	; _ENV "pcall"
+	6	[3]	closure  	3 0	; #1
+	7	[3]	call     	2 2 0	; 1 in all out
+	8	[3]	call     	1 0 1	; all in 0 out
+	9	[4]	get_table_upvalue	1 0 0	; _ENV "print"
+	10	[4]	get_table_upvalue	2 0 1	; _ENV "pcall"
+	11	[4]	closure  	3 1	; #2
+	12	[4]	call     	2 2 0	; 1 in all out
+	13	[4]	call     	1 0 1	; all in 0 out
+	14	[5]	new_table	1 0 0	; 0
+	15	[5]	extra_argument	0
+	16	[6]	get_table_upvalue	2 0 2	; _ENV "setmetatable"
+	17	[6]	move     	3 1
+	18	[6]	new_table	4 1 0	; 0
+	19	[6]	extra_argument	0
+	20	[6]	set_field	4 3 1	; "__index"
+	21	[6]	call     	2 3 1	; 2 in 0 out
+	22	[7]	get_table_upvalue	2 0 0	; _ENV "print"
+	23	[7]	get_table_upvalue	3 0 1	; _ENV "pcall"
+	24	[7]	closure  	4 2	; #3
+	25	[7]	call     	3 2 0	; 1 in all out
+	26	[7]	call     	2 0 1	; all in 0 out
+	27	[8]	new_table	2 0 0	; 0
+	28	[8]	extra_argument	0
+	29	[9]	get_table_upvalue	3 0 2	; _ENV "setmetatable"
+	30	[9]	move     	4 2
+	31	[9]	new_table	5 1 0	; 0
+	32	[9]	extra_argument	0
+	33	[9]	set_field	5 4 2	; "__newindex"
+	34	[9]	call     	3 3 1	; 2 in 0 out
+	35	[10]	get_table_upvalue	3 0 0	; _ENV "print"
+	36	[10]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	37	[10]	closure  	5 3	; #4
+	38	[10]	call     	4 2 0	; 1 in all out
+	39	[10]	call     	3 0 1	; all in 0 out
+	40	[11]	get_table_upvalue	3 0 0	; _ENV "print"
+	41	[11]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	42	[11]	closure  	5 4	; #5
+	43	[11]	call     	4 2 0	; 1 in all out
+	44	[11]	call     	3 0 1	; all in 0 out
+	45	[12]	get_table_upvalue	3 0 0	; _ENV "print"
+	46	[12]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	47	[12]	closure  	5 5	; #6
+	48	[12]	call     	4 2 0	; 1 in all out
+	49	[12]	call     	3 0 1	; all in 0 out
+	50	[13]	get_table_upvalue	3 0 0	; _ENV "print"
+	51	[13]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	52	[13]	closure  	5 6	; #7
+	53	[13]	call     	4 2 0	; 1 in all out
+	54	[13]	call     	3 0 1	; all in 0 out
+	55	[14]	get_table_upvalue	3 0 0	; _ENV "print"
+	56	[14]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	57	[14]	closure  	5 7	; #8
+	58	[14]	call     	4 2 0	; 1 in all out
+	59	[14]	call     	3 0 1	; all in 0 out
+	60	[15]	get_table_upvalue	3 0 0	; _ENV "print"
+	61	[15]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	62	[15]	get_table_upvalue	5 0 2	; _ENV "setmetatable"
+	63	[15]	load_integer	6 1
+	64	[15]	new_table	7 0 0	; 0
+	65	[15]	extra_argument	0
+	66	[15]	call     	4 4 0	; 3 in all out
+	67	[15]	call     	3 0 1	; all in 0 out
+	68	[16]	get_table_upvalue	3 0 0	; _ENV "print"
+	69	[16]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	70	[16]	get_table_upvalue	5 0 2	; _ENV "setmetatable"
+	71	[16]	new_table	6 0 0	; 0
+	72	[16]	extra_argument	0
+	73	[16]	load_integer	7 1
+	74	[16]	call     	4 4 0	; 3 in all out
+	75	[16]	call     	3 0 1	; all in 0 out
+	76	[17]	get_table_upvalue	3 0 0	; _ENV "print"
+	77	[17]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	78	[17]	get_table_upvalue	5 0 2	; _ENV "setmetatable"
+	79	[17]	new_table	6 0 0	; 0
+	80	[17]	extra_argument	0
+	81	[17]	call     	4 3 0	; 2 in all out
+	82	[17]	call     	3 0 1	; all in 0 out
+	83	[18]	get_table_upvalue	3 0 0	; _ENV "print"
+	84	[18]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	85	[18]	get_table_upvalue	5 0 5	; _ENV "rawget"
+	86	[18]	load_integer	6 1
+	87	[18]	call     	4 3 0	; 2 in all out
+	88	[18]	call     	3 0 1	; all in 0 out
+	89	[19]	get_table_upvalue	3 0 0	; _ENV "print"
+	90	[19]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	91	[19]	get_table_upvalue	5 0 6	; _ENV "rawlen"
+	92	[19]	load_integer	6 1
+	93	[19]	call     	4 3 0	; 2 in all out
+	94	[19]	call     	3 0 1	; all in 0 out
+	95	[20]	get_table_upvalue	3 0 0	; _ENV "print"
+	96	[20]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	97	[20]	get_table_upvalue	5 0 7	; _ENV "rawset"
+	98	[20]	new_table	6 0 0	; 0
+	99	[20]	extra_argument	0
+	100	[20]	load_nil 	7 0	; 1 out
+	101	[20]	load_integer	8 1
+	102	[20]	call     	4 5 0	; 4 in all out
+	103	[20]	call     	3 0 1	; all in 0 out
+	104	[21]	get_table_upvalue	3 0 0	; _ENV "print"
+	105	[21]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	106	[21]	get_table_upvalue	5 0 8	; _ENV "next"
+	107	[21]	load_integer	6 1
+	108	[21]	call     	4 3 0	; 2 in all out
+	109	[21]	call     	3 0 1	; all in 0 out
+	110	[22]	get_table_upvalue	3 0 0	; _ENV "print"
+	111	[22]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	112	[22]	get_table_upvalue	5 0 9	; _ENV "getmetatable"
+	113	[22]	call     	4 2 0	; 1 in all out
+	114	[22]	call     	3 0 1	; all in 0 out
+	115	[23]	get_table_upvalue	3 0 0	; _ENV "print"
+	116	[23]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	117	[23]	closure  	5 8	; #10
+	118	[23]	call     	4 2 0	; 1 in all out
+	119	[23]	call     	3 0 1	; all in 0 out
+	120	[24]	get_table_upvalue	3 0 0	; _ENV "print"
+	121	[24]	get_table_upvalue	4 0 1	; _ENV "pcall"
+	122	[24]	get_table_upvalue	5 0 10	; _ENV "tostring"
+	123	[24]	get_table_upvalue	6 0 11	; _ENV "setmetatable"
+	124	[24]	new_table	7 0 0	; 0
+	125	[24]	extra_argument	0
+	126	[24]	new_table	8 1 0	; 0
+	127	[24]	extra_argument	0
+	128	[24]	closure  	9 9	; #11
+	129	[24]	set_field	8 12 9	; "__tostring"
+	130	[24]	call     	6 3 0	; 2 in all out
+	131	[24]	call     	4 0 0	; all in all out
+	132	[24]	call     	3 0 1	; all in 0 out
+	133	[25]	get_table_upvalue	3 0 0	; _ENV "print"
+	134	[25]	get_table_upvalue	4 0 11	; _ENV "setmetatable"
+	135	[25]	new_table	5 0 0	; 0
+	136	[25]	extra_argument	0
+	137	[25]	new_table	6 1 0	; 0
+	138	[25]	extra_argument	0
+	139	[25]	closure  	7 10	; #12
+	140	[25]	set_field	6 13 7	; "__index"
+	141	[25]	call     	4 3 2	; 2 in 1 out
+	142	[25]	get_field	4 4 14	; "x"
+	143	[25]	call     	3 2 1	; 1 in 0 out
+	144	[25]	return_values	3 1 1k	; 0 out
+constants (15) for #13:
+	0	S	"print"
+	1	S	"pcall"
+	2	S	"setmetatable"
+	3	S	"__index"
+	4	S	"__newindex"
+	5	S	"rawget"
+	6	S	"rawlen"
+	7	S	"rawset"
+	8	S	"next"
+	9	S	"getmetatable"
+	10	S	"tostring"
+	11	S	"setmetatable"
+	12	S	"__tostring"
+	13	S	"__index"
+	14	S	"x"
+locals (3) for #13:
+	0	t	4	145
+	1	loop	16	145
+	2	newloop	29	145
+upvalues (1) for #13:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/tables/errors.lua:3,3> (4 instructions at #1)
+0 params, 2 slots, 1 upvalue, 0 locals, 1 constant, 0 functions
+	1	[3]	get_upvalue	0 0	; t
+	2	[3]	load_nil 	1 0	; 1 out
+	3	[3]	set_table	0 1 0k	; 1
+	4	[3]	return_none	
+constants (1) for #1:
+	0	I	1
+locals (0) for #1:
+upvalues (1) for #1:
+	0	t	1	0
+
+function <tests/corpus/runtime/tables/errors.lua:4,4> (6 instructions at #2)
+0 params, 2 slots, 1 upvalue, 0 locals, 2 constants, 0 functions
+	1	[4]	load_integer	0 0
+	2	[4]	divide_constant	1 0 0	; 0
+	3	[4]	metamethod_binary_constant	0 0 11 0	; __div 0
+	4	[4]	get_upvalue	0 0	; t
+	5	[4]	set_table	0 1 1k	; 1
+	6	[4]	return_none	
+constants (2) for #2:
+	0	I	0
+	1	I	1
+locals (0) for #2:
+upvalues (1) for #2:
+	0	t	1	0
+
+function <tests/corpus/runtime/tables/errors.lua:7,7> (3 instructions at #3)
+0 params, 2 slots, 1 upvalue, 0 locals, 1 constant, 0 functions
+	1	[7]	get_table_upvalue	0 0 0	; loop "missing"
+	2	[7]	return_one	0
+	3	[7]	return_none	
+constants (1) for #3:
+	0	S	"missing"
+locals (0) for #3:
+upvalues (1) for #3:
+	0	loop	1	1
+
+function <tests/corpus/runtime/tables/errors.lua:10,10> (2 instructions at #4)
+0 params, 2 slots, 1 upvalue, 0 locals, 2 constants, 0 functions
+	1	[10]	set_table_upvalue	0 0 1k	; newloop "missing" 1
+	2	[10]	return_none	
+constants (2) for #4:
+	0	S	"missing"
+	1	I	1
+locals (0) for #4:
+upvalues (1) for #4:
+	0	newloop	1	2
+
+function <tests/corpus/runtime/tables/errors.lua:11,11> (4 instructions at #5)
+0 params, 2 slots, 0 upvalues, 0 locals, 0 constants, 0 functions
+	1	[11]	load_nil 	0 0	; 1 out
+	2	[11]	length   	0 0
+	3	[11]	return_one	0
+	4	[11]	return_none	
+constants (0) for #5:
+locals (0) for #5:
+upvalues (0) for #5:
+
+function <tests/corpus/runtime/tables/errors.lua:12,12> (6 instructions at #6)
+0 params, 2 slots, 0 upvalues, 0 locals, 0 constants, 0 functions
+	1	[12]	new_table	0 0 0	; 0
+	2	[12]	extra_argument	0
+	3	[12]	add_integer	0 0 1
+	4	[12]	metamethod_binary_integer	0 1 6 0	; __add
+	5	[12]	return_one	0
+	6	[12]	return_none	
+constants (0) for #6:
+locals (0) for #6:
+upvalues (0) for #6:
+
+function <tests/corpus/runtime/tables/errors.lua:13,13> (10 instructions at #7)
+0 params, 2 slots, 0 upvalues, 0 locals, 0 constants, 0 functions
+	1	[13]	new_table	0 0 0	; 0
+	2	[13]	extra_argument	0
+	3	[13]	new_table	1 0 0	; 0
+	4	[13]	extra_argument	0
+	5	[13]	less_than	0 1 1
+	6	[13]	jump     	1	; to 8
+	7	[13]	load_false_skip	0
+	8	[13]	load_true	0
+	9	[13]	return_one	0
+	10	[13]	return_none	
+constants (0) for #7:
+locals (0) for #7:
+upvalues (0) for #7:
+
+function <tests/corpus/runtime/tables/errors.lua:14,14> (8 instructions at #8)
+0 params, 2 slots, 0 upvalues, 0 locals, 0 constants, 0 functions
+	1	[14]	new_table	0 0 0	; 0
+	2	[14]	extra_argument	0
+	3	[14]	less_than_integer	0 1 1
+	4	[14]	jump     	1	; to 6
+	5	[14]	load_false_skip	0
+	6	[14]	load_true	0
+	7	[14]	return_one	0
+	8	[14]	return_none	
+constants (0) for #8:
+locals (0) for #8:
+upvalues (0) for #8:
+
+function <tests/corpus/runtime/tables/errors.lua:23,23> (12 instructions at #10)
+0 params, 4 slots, 1 upvalue, 1 local, 3 constants, 1 function
+	1	[23]	new_table	0 1 0	; 0
+	2	[23]	extra_argument	0
+	3	[23]	closure  	1 0	; #9
+	4	[23]	set_field	0 0 1	; "__index"
+	5	[23]	get_table_upvalue	1 0 1	; _ENV "setmetatable"
+	6	[23]	new_table	2 0 0	; 0
+	7	[23]	extra_argument	0
+	8	[23]	move     	3 0
+	9	[23]	call     	1 3 2	; 2 in 1 out
+	10	[23]	get_field	1 1 2	; "x"
+	11	[23]	return_one	1
+	12	[23]	return_none	
+constants (3) for #10:
+	0	S	"__index"
+	1	S	"setmetatable"
+	2	S	"x"
+locals (1) for #10:
+	0	mt	5	13
+upvalues (1) for #10:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/tables/errors.lua:23,23> (4 instructions at #9)
+0 params, 2 slots, 1 upvalue, 0 locals, 2 constants, 0 functions
+	1	[23]	get_table_upvalue	0 0 0	; _ENV "error"
+	2	[23]	load_constant	1 1	; "from index"
+	3	[23]	call     	0 2 1	; 1 in 0 out
+	4	[23]	return_none	
+constants (2) for #9:
+	0	S	"error"
+	1	S	"from index"
+locals (0) for #9:
+upvalues (1) for #9:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/tables/errors.lua:24,24> (3 instructions at #11)
+0 params, 2 slots, 0 upvalues, 0 locals, 0 constants, 0 functions
+	1	[24]	load_integer	0 1
+	2	[24]	return_one	0
+	3	[24]	return_none	
+constants (0) for #11:
+locals (0) for #11:
+upvalues (0) for #11:
+
+function <tests/corpus/runtime/tables/errors.lua:25,25> (4 instructions at #12)
+0 params, 2 slots, 1 upvalue, 0 locals, 2 constants, 0 functions
+	1	[25]	get_table_upvalue	0 0 0	; _ENV "error"
+	2	[25]	load_constant	1 1	; "boom"
+	3	[25]	call     	0 2 1	; 1 in 0 out
+	4	[25]	return_none	
+constants (2) for #12:
+	0	S	"error"
+	1	S	"boom"
+locals (0) for #12:
+upvalues (1) for #12:
+	0	_ENV	0	0
+exit 0

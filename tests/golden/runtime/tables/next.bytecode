@@ -1,0 +1,264 @@
+
+main <tests/corpus/runtime/tables/next.lua:0,0> (129 instructions at #4)
+0+ params, 22 slots, 1 upvalue, 16 locals, 16 constants, 3 functions
+	1	[1]	vararg_prepare	0
+	2	[21]	closure  	0 0	; #1
+	3	[22]	new_table	1 3 3	; 3
+	4	[22]	extra_argument	0
+	5	[22]	load_integer	2 1
+	6	[22]	load_integer	3 2
+	7	[22]	load_integer	4 3
+	8	[22]	set_field	1 0 1k	; "a" "x"
+	9	[22]	set_field	1 2 3k	; "b" "y"
+	10	[22]	set_field	1 4 5k	; "c" "z"
+	11	[22]	set_integer	1 10 6k	; "ten"
+	12	[22]	set_list 	1 3 0
+	13	[23]	move     	2 0
+	14	[23]	move     	3 1
+	15	[23]	call     	2 2 3	; 1 in 2 out
+	16	[24]	load_integer	4 1
+	17	[25]	less_equal	4 3 0
+	18	[25]	jump     	8	; to 27
+	19	[25]	get_table_upvalue	5 0 7	; _ENV "print"
+	20	[25]	get_table	6 2 4
+	21	[25]	get_table	7 2 4
+	22	[25]	get_table	7 1 7
+	23	[25]	call     	5 3 1	; 2 in 0 out
+	24	[25]	add_integer	4 4 1
+	25	[25]	metamethod_binary_integer	4 1 6 0	; __add
+	26	[25]	jump     	-10	; to 17
+	27	[26]	get_table_upvalue	5 0 7	; _ENV "print"
+	28	[26]	get_table_upvalue	6 0 8	; _ENV "next"
+	29	[26]	new_table	7 0 0	; 0
+	30	[26]	extra_argument	0
+	31	[26]	call     	6 2 2	; 1 in 1 out
+	32	[26]	get_table_upvalue	7 0 8	; _ENV "next"
+	33	[26]	new_table	8 0 0	; 0
+	34	[26]	extra_argument	0
+	35	[26]	load_nil 	9 0	; 1 out
+	36	[26]	call     	7 3 0	; 2 in all out
+	37	[26]	call     	5 0 1	; all in 0 out
+	38	[27]	get_table_upvalue	5 0 9	; _ENV "pairs"
+	39	[27]	move     	6 1
+	40	[27]	call     	5 2 4	; 1 in 3 out
+	41	[28]	get_table_upvalue	8 0 7	; _ENV "print"
+	42	[28]	get_table_upvalue	9 0 8	; _ENV "next"
+	43	[28]	equal    	5 9 1
+	44	[28]	jump     	1	; to 46
+	45	[28]	load_false_skip	9
+	46	[28]	load_true	9
+	47	[28]	equal    	6 1 1
+	48	[28]	jump     	1	; to 50
+	49	[28]	load_false_skip	10
+	50	[28]	load_true	10
+	51	[28]	move     	11 7
+	52	[28]	call     	8 4 1	; 3 in 0 out
+	53	[29]	get_table_upvalue	8 0 10	; _ENV "setmetatable"
+	54	[29]	new_table	9 0 0	; 0
+	55	[29]	extra_argument	0
+	56	[29]	new_table	10 1 0	; 0
+	57	[29]	extra_argument	0
+	58	[29]	closure  	11 1	; #2
+	59	[29]	set_field	10 11 11	; "__pairs"
+	60	[29]	call     	8 3 2	; 2 in 1 out
+	61	[30]	get_table_upvalue	9 0 9	; _ENV "pairs"
+	62	[30]	move     	10 8
+	63	[30]	call     	9 2 4	; 1 in 3 out
+	64	[31]	get_table_upvalue	12 0 7	; _ENV "print"
+	65	[31]	move     	13 9
+	66	[31]	equal    	10 8 1
+	67	[31]	jump     	1	; to 69
+	68	[31]	load_false_skip	14
+	69	[31]	load_true	14
+	70	[31]	move     	15 11
+	71	[31]	call     	12 4 1	; 3 in 0 out
+	72	[32]	get_table_upvalue	12 0 12	; _ENV "ipairs"
+	73	[32]	new_table	13 0 2	; 2
+	74	[32]	extra_argument	0
+	75	[32]	load_integer	14 5
+	76	[32]	load_integer	15 6
+	77	[32]	set_list 	13 2 0
+	78	[32]	call     	12 2 4	; 1 in 3 out
+	79	[33]	get_table_upvalue	15 0 7	; _ENV "print"
+	80	[33]	get_integer	16 13 1
+	81	[33]	move     	17 14
+	82	[33]	move     	18 12
+	83	[33]	move     	19 13
+	84	[33]	load_integer	20 0
+	85	[33]	call     	18 3 0	; 2 in all out
+	86	[33]	call     	15 0 1	; all in 0 out
+	87	[34]	get_table_upvalue	15 0 7	; _ENV "print"
+	88	[34]	move     	16 12
+	89	[34]	move     	17 13
+	90	[34]	load_integer	18 1
+	91	[34]	call     	16 3 0	; 2 in all out
+	92	[34]	call     	15 0 1	; all in 0 out
+	93	[35]	get_table_upvalue	15 0 7	; _ENV "print"
+	94	[35]	move     	16 12
+	95	[35]	move     	17 13
+	96	[35]	load_integer	18 2
+	97	[35]	call     	16 3 0	; 2 in all out
+	98	[35]	call     	15 0 1	; all in 0 out
+	99	[36]	get_table_upvalue	15 0 10	; _ENV "setmetatable"
+	100	[36]	new_table	16 0 0	; 0
+	101	[36]	extra_argument	0
+	102	[36]	new_table	17 1 0	; 0
+	103	[36]	extra_argument	0
+	104	[36]	closure  	18 2	; #3
+	105	[36]	set_field	17 13 18	; "__index"
+	106	[36]	call     	15 3 2	; 2 in 1 out
+	107	[37]	get_table_upvalue	16 0 7	; _ENV "print"
+	108	[37]	move     	17 12
+	109	[37]	move     	18 15
+	110	[37]	load_integer	19 0
+	111	[37]	call     	17 3 2	; 2 in 1 out
+	112	[37]	move     	18 12
+	113	[37]	move     	19 15
+	114	[37]	load_integer	20 2
+	115	[37]	call     	18 3 2	; 2 in 1 out
+	116	[37]	move     	19 12
+	117	[37]	move     	20 15
+	118	[37]	load_integer	21 3
+	119	[37]	call     	19 3 0	; 2 in all out
+	120	[37]	call     	16 0 1	; all in 0 out
+	121	[38]	get_table_upvalue	16 0 7	; _ENV "print"
+	122	[38]	get_table_upvalue	17 0 14	; _ENV "pcall"
+	123	[38]	get_table_upvalue	18 0 8	; _ENV "next"
+	124	[38]	new_table	19 0 0	; 0
+	125	[38]	extra_argument	0
+	126	[38]	load_constant	20 15	; "missing"
+	127	[38]	call     	17 4 0	; 3 in all out
+	128	[38]	call     	16 0 1	; all in 0 out
+	129	[38]	return_values	16 1 1	; 0 out
+constants (16) for #4:
+	0	S	"a"
+	1	S	"x"
+	2	S	"b"
+	3	S	"y"
+	4	S	"c"
+	5	S	"z"
+	6	S	"ten"
+	7	S	"print"
+	8	S	"next"
+	9	S	"pairs"
+	10	S	"setmetatable"
+	11	S	"__pairs"
+	12	S	"ipairs"
+	13	S	"__index"
+	14	S	"pcall"
+	15	S	"missing"
+locals (16) for #4:
+	0	sorted_keys	3	130
+	1	t	13	130
+	2	keys	16	130
+	3	n	16	130
+	4	i	17	130
+	5	f	41	130
+	6	s	41	130
+	7	init	41	130
+	8	custom	61	130
+	9	cf	64	130
+	10	cs	64	130
+	11	ci	64	130
+	12	g	79	130
+	13	gs	79	130
+	14	gi	79	130
+	15	indexed	107	130
+upvalues (1) for #4:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/tables/next.lua:2,21> (49 instructions at #1)
+1 param, 10 slots, 1 upvalue, 7 locals, 3 constants, 0 functions
+	1	[3]	new_table	1 0 0	; 0
+	2	[3]	extra_argument	0
+	3	[3]	load_integer	2 0
+	4	[4]	get_table_upvalue	3 0 0	; _ENV "next"
+	5	[4]	move     	4 0
+	6	[4]	call     	3 2 2	; 1 in 1 out
+	7	[5]	equal_constant	3 1 1	; nil
+	8	[5]	jump     	9	; to 18
+	9	[6]	add_integer	2 2 1
+	10	[6]	metamethod_binary_integer	2 1 6 0	; __add
+	11	[7]	set_table	1 2 3
+	12	[8]	get_table_upvalue	4 0 0	; _ENV "next"
+	13	[8]	move     	5 0
+	14	[8]	move     	6 3
+	15	[8]	call     	4 3 2	; 2 in 1 out
+	16	[8]	move     	3 4
+	17	[8]	jump     	-11	; to 7
+	18	[10]	load_integer	4 2
+	19	[11]	less_equal	4 2 0
+	20	[11]	jump     	25	; to 46
+	21	[12]	move     	5 4
+	22	[12]	get_table	6 1 4
+	23	[13]	greater_than_integer	5 1 0
+	24	[13]	jump     	17	; to 42
+	25	[13]	get_table_upvalue	7 0 2	; _ENV "tostring"
+	26	[13]	add_integer	8 5 -1
+	27	[13]	metamethod_binary_integer	5 1 7 0	; __sub
+	28	[13]	get_table	8 1 8
+	29	[13]	call     	7 2 2	; 1 in 1 out
+	30	[13]	get_table_upvalue	8 0 2	; _ENV "tostring"
+	31	[13]	move     	9 6
+	32	[13]	call     	8 2 2	; 1 in 1 out
+	33	[13]	less_than	8 7 0
+	34	[13]	jump     	7	; to 42
+	35	[14]	add_integer	7 5 -1
+	36	[14]	metamethod_binary_integer	5 1 7 0	; __sub
+	37	[14]	get_table	7 1 7
+	38	[14]	set_table	1 5 7
+	39	[15]	add_integer	5 5 -1
+	40	[15]	metamethod_binary_integer	5 1 7 0	; __sub
+	41	[15]	jump     	-19	; to 23
+	42	[17]	set_table	1 5 6
+	43	[18]	add_integer	4 4 1
+	44	[18]	metamethod_binary_integer	4 1 6 0	; __add
+	45	[18]	jump     	-27	; to 19
+	46	[20]	move     	5 1
+	47	[20]	move     	6 2
+	48	[20]	return_values	5 3 0	; 2 out
+	49	[21]	return_none	
+constants (3) for #1:
+	0	S	"next"
+	1	N	nil
+	2	S	"tostring"
+locals (7) for #1:
+	0	t	1	50
+	1	keys	4	50
+	2	n	4	50
+	3	k	7	50
+	4	i	19	50
+	5	j	23	45
+	6	key	23	45
+upvalues (1) for #1:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/tables/next.lua:29,29> (5 instructions at #2)
+1 param, 4 slots, 0 upvalues, 1 local, 2 constants, 0 functions
+	1	[29]	load_constant	1 0	; "iter"
+	2	[29]	move     	2 0
+	3	[29]	load_constant	3 1	; "start"
+	4	[29]	return_values	1 4 0	; 3 out
+	5	[29]	return_none	
+constants (2) for #2:
+	0	S	"iter"
+	1	S	"start"
+locals (1) for #2:
+	0	self	1	6
+upvalues (0) for #2:
+
+function <tests/corpus/runtime/tables/next.lua:36,36> (6 instructions at #3)
+2 params, 3 slots, 0 upvalues, 2 locals, 1 constant, 0 functions
+	1	[36]	less_than_integer	1 4 0
+	2	[36]	jump     	3	; to 6
+	3	[36]	multiply_constant	2 1 0	; 100
+	4	[36]	metamethod_binary_constant	1 0 8 0	; __mul 100
+	5	[36]	return_one	2
+	6	[36]	return_none	
+constants (1) for #3:
+	0	I	100
+locals (2) for #3:
+	0	_	1	7
+	1	k	1	7
+upvalues (0) for #3:
+exit 0

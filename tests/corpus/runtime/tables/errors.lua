@@ -1,0 +1,25 @@
+-- Errors from tables and metatables.
+local t = {}
+print(pcall(function () t[nil] = 1 end))
+print(pcall(function () t[0/0] = 1 end))
+local loop = {}
+setmetatable(loop, {__index = loop})
+print(pcall(function () return loop.missing end))
+local newloop = {}
+setmetatable(newloop, {__newindex = newloop})
+print(pcall(function () newloop.missing = 1 end))
+print(pcall(function () return #nil end))
+print(pcall(function () return {} + 1 end))
+print(pcall(function () return {} < {} end))
+print(pcall(function () return {} < 1 end))
+print(pcall(setmetatable, 1, {}))
+print(pcall(setmetatable, {}, 1))
+print(pcall(setmetatable, {}))
+print(pcall(rawget, 1))
+print(pcall(rawlen, 1))
+print(pcall(rawset, {}, nil, 1))
+print(pcall(next, 1))
+print(pcall(getmetatable))
+print(pcall(function () local mt = {__index = function () error("from index") end}; return setmetatable({}, mt).x end))
+print(pcall(tostring, setmetatable({}, {__tostring = function () return 1 end})))
+print(setmetatable({}, {__index = function () error("boom") end}).x)

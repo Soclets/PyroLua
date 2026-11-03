@@ -271,6 +271,144 @@ package Pyro.Virtual_Machine with SPARK_Mode => On, Always_Terminates is
    --  What host functions need from the machine
    ----------------------------------------------------------------------------------------
 
+   --  [puc ltm.h:TMS] The metamethod events, and the other fields of metatables the host
+   --  functions read.
+   type Event is
+     (Index_Event, New_Index_Event, Mode_Event, Length_Event, Equal_Event, Add_Event,
+      Subtract_Event, Multiply_Event, Modulo_Event, Power_Event, Divide_Event,
+      Floor_Divide_Event, And_Event, Or_Event, Exclusive_Or_Event, Shift_Left_Event,
+      Shift_Right_Event, Negate_Event, Bitwise_Not_Event, Less_Than_Event, Less_Equal_Event,
+      Concatenate_Event, Call_Event, Close_Event, Metatable_Field, Name_Field, Pairs_Field,
+      To_String_Field);
+
+   --  The name of a metatable's field for Item ("__index", ...).
+   function Event_Name (Item : Event) return String
+   is (case Item is
+         when Index_Event        => "__index",
+         when New_Index_Event    => "__newindex",
+         when Mode_Event         => "__mode",
+         when Length_Event       => "__len",
+         when Equal_Event        => "__eq",
+         when Add_Event          => "__add",
+         when Subtract_Event     => "__sub",
+         when Multiply_Event     => "__mul",
+         when Modulo_Event       => "__mod",
+         when Power_Event        => "__pow",
+         when Divide_Event       => "__div",
+         when Floor_Divide_Event => "__idiv",
+         when And_Event          => "__band",
+         when Or_Event           => "__bor",
+         when Exclusive_Or_Event => "__bxor",
+         when Shift_Left_Event   => "__shl",
+         when Shift_Right_Event  => "__shr",
+         when Negate_Event       => "__unm",
+         when Bitwise_Not_Event  => "__bnot",
+         when Less_Than_Event    => "__lt",
+         when Less_Equal_Event   => "__le",
+         when Concatenate_Event  => "__concat",
+         when Call_Event         => "__call",
+         when Close_Event        => "__close",
+         when Metatable_Field    => "__metatable",
+         when Name_Field         => "__name",
+         when Pairs_Field        => "__pairs",
+         when To_String_Field    => "__tostring");
+
+   --  Item is a table.
+   function Is_Table (M : Machine; Item : Value) return Boolean
+   with Global => null;
+
+   --  Item is a closure or a host function.
+   function Is_Function (M : Machine; Item : Value) return Boolean
+   with Global => null;
+
+   --  The metatable of Item: a table's, or nil (only tables have metatables for now).
+   function Metatable (M : Machine; Item : Value) return Value
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Loaded (M),
+     Post   => Is_Canonical (Metatable'Result) and then Is_Live (M, Metatable'Result);
+
+   --  [puc ltm.c:luaT_gettmbyobj] Field Field of Item's metatable, raw (nil when none).
+   function Metafield (M : Machine; Item : Value; Field : Event) return Value
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Loaded (M),
+     Post   => Is_Canonical (Metafield'Result) and then Is_Live (M, Metafield'Result);
+
+   --  Makes table T's metatable Table (a table, or nil for none).
+   procedure Set_Metatable (M : in out Machine; T : Value; Table : Value)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Is_Loaded (M)
+       and then Is_Table (M, T)
+       and then Is_Canonical (Table)
+       and then Is_Live (M, Table),
+     Post   =>
+       Is_Valid (M)
+       and then Is_Loaded (M)
+       and then Is_Waiting (M) = Is_Waiting (M)'Old;
+
+   --  [puc lvm.c:luaV_rawequalobj] Left and Right are equal without metamethods: numbers by
+   --  value, everything else by identity (strings are interned).
+   function Raw_Equal (Left, Right : Value) return Boolean
+   with Global => null;
+
+   --  Table T's value for Key, without metamethods.
+   function Raw_Index (M : Machine; T : Value; Key : Value) return Value
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Loaded (M) and then Is_Canonical (Key),
+     Post   => Is_Canonical (Raw_Index'Result) and then Is_Live (M, Raw_Index'Result);
+
+   --  Binds Key to Item in table T, without metamethods; Status says why it could not.
+   procedure Raw_Store
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      T      : Value;
+      Key    : Value;
+      Item   : Value;
+      Status : out Pyro.Tables.Set_Status)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Is_Loaded (M)
+       and then Is_Table (M, T)
+       and then Is_Canonical (Key)
+       and then Is_Live (M, Key)
+       and then Is_Canonical (Item)
+       and then Is_Live (M, Item),
+     Post   =>
+       Is_Valid (M)
+       and then Is_Loaded (M)
+       and then Is_Waiting (M) = Is_Waiting (M)'Old
+       and then Limit (Budget) = Limit (Budget)'Old;
+
+   --  [puc ltable.c:luaH_next] The key after Key in table T and its value (nil Key for the
+   --  first).
+   procedure Next_Pair
+     (M         : Machine;
+      T         : Value;
+      Key       : Value;
+      Next_Key  : out Value;
+      Next_Item : out Value;
+      Status    : out Pyro.Tables.Next_Status)
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Loaded (M) and then Is_Table (M, T)
+               and then Is_Canonical (Key),
+     Post   =>
+       Is_Canonical (Next_Key)
+       and then Is_Live (M, Next_Key)
+       and then Is_Canonical (Next_Item)
+       and then Is_Live (M, Next_Item);
+
+   --  [puc lapi.c:lua_rawlen] The length of a string, a border of a table, 0 otherwise.
+   function Raw_Length (M : Machine; Item : Value) return Integer_64
+   with Global => null, Pre => Is_Valid (M) and then Is_Loaded (M);
+
    --  [lua §6.1:type] The type name of Item.
    function Type_Name (M : Machine; Item : Value) return String
    with
@@ -295,6 +433,24 @@ package Pyro.Virtual_Machine with SPARK_Mode => On, Always_Terminates is
    with
      Global => null,
      Pre    => Is_Valid (M) and then Is_Waiting (M) and then Text'Length <= 2 ** 20,
+     Post   =>
+       Is_Valid (M)
+       and then Is_Waiting (M)
+       and then Is_Canonical (Result)
+       and then Is_Live (M, Result)
+       and then Limit (Budget) = Limit (Budget)'Old;
+
+   --  The host function with number Id (always the same value). Success is False when Budget
+   --  cannot pay.
+   procedure New_Function
+     (M       : in out Machine;
+      Budget  : in out Memory_Budget;
+      Id      : Host_Id;
+      Result  : out Value;
+      Success : out Boolean)
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Waiting (M),
      Post   =>
        Is_Valid (M)
        and then Is_Waiting (M)
@@ -332,12 +488,18 @@ private
    --  What a frame is: a Lua function's, or a host function's.
    type Frame_Kind is (Lua_Frame, Host_Frame);
 
+   --  What a Lua frame does when the metamethod it called returns: nothing, store the result
+   --  in register Target, or skip the jump after the comparison it ran unless the result's
+   --  truth is Expected.
+   type Pending_Action is (No_Action, Store_Result, Test_Result);
+
    --  [puc lstate.h:CallInfo] A call in progress. The function is at Func in the stack; a Lua
    --  function's registers follow it up to Top (excluded), a host function's arguments up to
    --  its Top. Results is how many results the caller wants (-1: all of them), which go to
    --  Origin, where the function was called. A vararg function's Func moves above its
    --  arguments, Extra of which it keeps below Func. A host function that asked for a call
-   --  waits with Context (its continuation) and Protect.
+   --  waits with Context (its continuation) and Protect. A Lua frame that called a metamethod
+   --  waits with Action, Target and Expected.
    type Frame is record
       Kind      : Frame_Kind := Lua_Frame;
       Origin    : Positive := 1;
@@ -350,6 +512,9 @@ private
       Host      : Host_Id := 1;
       Context   : Natural := 0;
       Protect   : Boolean := False;
+      Action    : Pending_Action := No_Action;
+      Target    : Natural := 0;
+      Expected  : Boolean := False;
    end record;
 
    --  [limit LUAI_MAXCCALLS] The deepest nesting of calls, Lua and host.
@@ -510,6 +675,40 @@ private
             when Pyro.Bytecode.Equal_Integer .. Pyro.Bytecode.Greater_Equal_Integer
                | Pyro.Bytecode.Test =>
               Is_Register (V, Integer (I.A)) and then V.PC + 2 < V.Code,
+            when Pyro.Bytecode.Get_Table =>
+              Is_Register (V, Integer (I.A))
+              and then Is_Register (V, Integer (I.B))
+              and then Is_Register (V, Integer (I.C)),
+            when Pyro.Bytecode.Get_Integer =>
+              Is_Register (V, Integer (I.A)) and then Is_Register (V, Integer (I.B)),
+            when Pyro.Bytecode.Get_Field =>
+              Is_Register (V, Integer (I.A))
+              and then Is_Register (V, Integer (I.B))
+              and then Natural (I.C) < V.Constants,
+            when Pyro.Bytecode.Set_Table =>
+              Is_Register (V, Integer (I.A))
+              and then Is_Register (V, Integer (I.B))
+              and then (if I.K then Natural (I.C) < V.Constants
+                        else Is_Register (V, Integer (I.C))),
+            when Pyro.Bytecode.Set_Integer =>
+              Is_Register (V, Integer (I.A))
+              and then (if I.K then Natural (I.C) < V.Constants
+                        else Is_Register (V, Integer (I.C))),
+            when Pyro.Bytecode.Set_Field =>
+              Is_Register (V, Integer (I.A))
+              and then Natural (I.B) < V.Constants
+              and then (if I.K then Natural (I.C) < V.Constants
+                        else Is_Register (V, Integer (I.C))),
+            when Pyro.Bytecode.New_Table =>
+              Is_Register (V, Integer (I.A)) and then V.PC + 2 < V.Code,
+            when Pyro.Bytecode.Self =>
+              Is_Register (V, Integer (I.A) + 1)
+              and then Is_Register (V, Integer (I.B))
+              and then (if I.K then Natural (I.C) < V.Constants
+                        else Is_Register (V, Integer (I.C))),
+            when Pyro.Bytecode.Set_List =>
+              Is_Register (V, Integer (I.A))
+              and then (if I.K then V.PC + 2 < V.Code),
             when Pyro.Bytecode.Set_Table_Upvalue =>
               Natural (I.A) < V.Upvalues
               and then Natural (I.B) < V.Constants
@@ -581,6 +780,119 @@ private
      Global => null,
      Pre    => Is_Valid (M) and then Is_String (M, Left) and then Is_String (M, Right),
      Post   => String_Order'Result in -1 .. 1;
+
+   --  The Ax operand of the EXTRAARG instruction after the running one.
+   function Extra_Argument (M : Machine) return Natural
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Running (M) and then View (M).PC + 1 < View (M).Code;
+
+   --  [puc ltm.c:luaT_callTMres] Calls metamethod Handler with Arguments, the running frame
+   --  moving on to its next instruction and doing Action when it returns: storing the result
+   --  in register Target, or skipping the jump that follows unless the result's truth is
+   --  Expected. Results is 1, or 0 for no action.
+   procedure Call_Metamethod
+     (M         : in out Machine;
+      Budget    : in out Memory_Budget;
+      Handler   : Value;
+      Arguments : Value_List;
+      Action    : Pending_Action;
+      Target    : Natural;
+      Expected  : Boolean)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Running (M)
+       and then Is_Canonical (Handler)
+       and then Is_Live (M, Handler)
+       and then Arguments'Length in 1 .. 3
+       and then All_Live (M, Arguments)
+       and then View (M).PC + 1 < View (M).Code
+       and then (if Action = Store_Result then Target < View (M).Registers)
+       and then (if Action = Test_Result then View (M).PC + 2 < View (M).Code),
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
+
+   --  [puc lvm.c:luaV_finishget] Register Target of the running frame gets Object[Key],
+   --  through __index metamethods; the running frame moves on to its next instruction.
+   procedure Get_Index
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Object : Value;
+      Key    : Value;
+      Target : Natural)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Running (M)
+       and then Is_Canonical (Object)
+       and then Is_Live (M, Object)
+       and then Is_Canonical (Key)
+       and then Is_Live (M, Key)
+       and then Target < View (M).Registers
+       and then View (M).PC + 1 < View (M).Code,
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
+
+   --  [puc lvm.c:luaV_finishset] Object[Key] = Item, through __newindex metamethods; the
+   --  running frame moves on to its next instruction.
+   procedure Set_Index
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Object : Value;
+      Key    : Value;
+      Item   : Value)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Running (M)
+       and then Is_Canonical (Object)
+       and then Is_Live (M, Object)
+       and then Is_Canonical (Key)
+       and then Is_Live (M, Key)
+       and then Is_Canonical (Item)
+       and then Is_Live (M, Item)
+       and then View (M).PC + 1 < View (M).Code,
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
+
+   --  [puc lvm.c:OP_NEWTABLE] Register Target gets a new table; the running frame moves past
+   --  the EXTRAARG after its instruction. The sizes the instruction gives are not used: the
+   --  table grows as keys arrive (docs/DESIGN.md, Metamethods).
+   procedure Make_Table
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Target : Natural)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Running (M)
+       and then Target < View (M).Registers
+       and then View (M).PC + 2 < View (M).Code,
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
+
+   --  [puc lvm.c:OP_SETLIST] The table in register Table gets Count values (-1: up to the
+   --  top) from the registers after it, at keys First + 1 ..; the running frame moves on by
+   --  1 + Skip instructions.
+   procedure Store_List
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Table  : Natural;
+      Count  : Integer;
+      First  : Integer_64;
+      Skip   : Natural)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Running (M)
+       and then Table < View (M).Registers
+       and then Count in -1 .. 255
+       and then First in 0 .. 2 ** 40
+       and then Skip <= 1
+       and then View (M).PC + 1 + Skip < View (M).Code,
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  Register Number of the running frame.
    function Register (M : Machine; Number : Natural) return Value
