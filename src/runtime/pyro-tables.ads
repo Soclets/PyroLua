@@ -156,10 +156,12 @@ package Pyro.Tables with SPARK_Mode => On, Always_Terminates is
      Global => null,
      Pre    => Is_Valid (T) and then Is_Canonical (Key),
      Post   =>
-       (if Status = Found
-        then Value_Maps.Has_Key (Model (T), Next_Key)
-             and then Value_Maps.Get (Model (T), Next_Key) = Next_Item
-        else Next_Key = Nil and then Next_Item = Nil);
+       Is_Canonical (Next_Key)
+       and then Is_Canonical (Next_Item)
+       and then (if Status = Found
+                 then Value_Maps.Has_Key (Model (T), Next_Key)
+                      and then Value_Maps.Get (Model (T), Next_Key) = Next_Item
+                 else Next_Key = Nil and then Next_Item = Nil);
 
    --  [puc ltable.c:luaH_getn] A border of the table: 0 when t[1] is nil, or N with t[N] not
    --  nil and t[N + 1] nil. Found as PUC Lua finds it, so it is the border PUC Lua gives in
@@ -269,7 +271,9 @@ private
       Seed   : Pyro.Strings.Seed;
       Items  : Value_Array_Access := null;
       Nodes  : Node_Array_Access := null;
-      --  Used and dead nodes: when to rehash. Only a trigger: nothing depends on its accuracy.
+      --  Used and dead nodes: when to rehash. A new key goes to the hash part only while it is
+      --  below three quarters of the nodes, so it finds a free one. The proofs do not rely on
+      --  it: a full hash part makes Set report Out_Of_Memory, never break the table.
       Filled : Natural := 0;
    end record;
 

@@ -366,6 +366,57 @@ package body Pyro.Tables with SPARK_Mode => On is
    --  Lookups
    ----------------------------------------------------------------------------------------
 
+   --  [proof] The probe sequence of Key met an empty node at Step without meeting Key before:
+   --  no node holds Key, since every node holding it would have been met before Step.
+   procedure Lemma_Absent_At_Empty
+     (N : Node_Array; S : Pyro.Strings.Seed; Key : Value; Start, Step : Natural)
+   with
+     Ghost,
+     Global => null,
+     Pre    =>
+       Nodes_Findable (N, S)
+       and then N'Length > 0
+       and then Start = Home (N'Length, Key_Hash (S, Key))
+       and then Step < N'Length
+       and then N (Step_At (N'Length, Start, Step)).State = Empty_Node
+       and then (for all Earlier in 0 .. Step - 1 =>
+                   N (Step_At (N'Length, Start, Earlier)).State /= Empty_Node
+                   and then N (Step_At (N'Length, Start, Earlier)).Key /= Key),
+     Post   => (for all I in N'Range => N (I).State = Empty_Node or else N (I).Key /= Key)
+   is
+   begin
+      for I in N'Range loop
+         if N (I).State /= Empty_Node and then N (I).Key = Key then
+            Lemma_Passed (N, I, Step);
+            pragma Assert (False);
+         end if;
+         pragma Loop_Invariant
+           (for all J in N'First .. I => N (J).State = Empty_Node or else N (J).Key /= Key);
+      end loop;
+   end Lemma_Absent_At_Empty;
+
+   --  [proof] The probe sequence of Key met every node without meeting Key: no node holds it.
+   procedure Lemma_Absent_Everywhere (N : Node_Array; Key : Value; Start : Natural)
+   with
+     Ghost,
+     Global => null,
+     Pre    =>
+       N'First = 0
+       and then N'Length in 1 .. Maximum_Capacity
+       and then Start < N'Length
+       and then (for all Earlier in 0 .. N'Length - 1 =>
+                   N (Step_At (N'Length, Start, Earlier)).State /= Empty_Node
+                   and then N (Step_At (N'Length, Start, Earlier)).Key /= Key),
+     Post   => (for all I in N'Range => N (I).State = Empty_Node or else N (I).Key /= Key)
+   is
+   begin
+      for I in N'Range loop
+         pragma Assert (Step_At (N'Length, Start, Distance (N'Length, Start, I)) = I);
+         pragma Loop_Invariant
+           (for all J in N'First .. I => N (J).State = Empty_Node or else N (J).Key /= Key);
+      end loop;
+   end Lemma_Absent_Everywhere;
+
    --  The node holding Key (used or dead), or -1.
    function Find (N : Node_Array; S : Pyro.Strings.Seed; Key : Value) return Integer
    with
@@ -388,15 +439,7 @@ package body Pyro.Tables with SPARK_Mode => On is
       for Step in 0 .. N'Length - 1 loop
          Position := Step_At (N'Length, Start, Step);
          if N (Position).State = Empty_Node then
-            --  Every node holding Key would have been met before this one.
-            for I in N'Range loop
-               if N (I).State /= Empty_Node and then N (I).Key = Key then
-                  Lemma_Passed (N, I, Step);
-                  pragma Assert (False);
-               end if;
-               pragma Loop_Invariant
-                 (for all J in N'First .. I => N (J).State = Empty_Node or else N (J).Key /= Key);
-            end loop;
+            Lemma_Absent_At_Empty (N, S, Key, Start, Step);
             return -1;
          elsif N (Position).Key = Key then
             return Position;
@@ -406,12 +449,7 @@ package body Pyro.Tables with SPARK_Mode => On is
               N (Step_At (N'Length, Start, Earlier)).State /= Empty_Node
               and then N (Step_At (N'Length, Start, Earlier)).Key /= Key);
       end loop;
-      --  Every node was met.
-      for I in N'Range loop
-         pragma Assert (Step_At (N'Length, Start, Distance (N'Length, Start, I)) = I);
-         pragma Loop_Invariant
-           (for all J in N'First .. I => N (J).State = Empty_Node or else N (J).Key /= Key);
-      end loop;
+      Lemma_Absent_Everywhere (N, Key, Start);
       return -1;
    end Find;
 
@@ -908,8 +946,9 @@ package body Pyro.Tables with SPARK_Mode => On is
       T.Seed := Key;
    end Set_Seed;
 
-   --  The nodes a hash part needs for Keys keys, below three quarters of them: none for no
-   --  key, otherwise a power of two of at least 4.
+   --  The nodes a hash part needs for Keys keys, below half of them, so that it takes a
+   --  quarter more before Has_Room asks for a rehash: none for no key, otherwise a power of
+   --  two of at least 4.
    function Capacity_For (Keys : Natural) return Natural
    with
      Global => null,
@@ -921,7 +960,7 @@ package body Pyro.Tables with SPARK_Mode => On is
       if Keys = 0 then
          return 0;
       end if;
-      while Result <= Maximum_Capacity / 2 and then Result / 4 * 3 <= Keys loop
+      while Result <= Maximum_Capacity / 2 and then Result / 2 <= Keys loop
          pragma Loop_Variant (Increases => Result);
          pragma Loop_Invariant (Result in 4 .. Maximum_Capacity / 2);
          Result := Result * 2;
@@ -1248,7 +1287,14 @@ package body Pyro.Tables with SPARK_Mode => On is
       Free_Nodes (T.Nodes);
       T.Items := Items;
       T.Nodes := Nodes;
+      --  The keys copied to the hash part fill nodes.
       T.Filled := 0;
+      for J in T.Nodes'Range loop
+         pragma Loop_Invariant (T.Filled <= J);
+         if T.Nodes (J).State /= Empty_Node then
+            T.Filled := T.Filled + 1;
+         end if;
+      end loop;
    end Resize_Parts;
 
    procedure Resize
@@ -1579,6 +1625,7 @@ package body Pyro.Tables with SPARK_Mode => On is
       end if;
       for Index in First_Index .. T.Items'Last loop
          if T.Items (Index) /= Nil then
+            Lemma_Item (T.Items.all, T.Nodes.all, T.Seed, Index);
             Next_Key := Integer_Value_Of (Integer_64 (Index));
             Next_Item := T.Items (Index);
             Status := Found;
@@ -1587,6 +1634,7 @@ package body Pyro.Tables with SPARK_Mode => On is
       end loop;
       for J in First_Node .. T.Nodes'Last loop
          if T.Nodes (J).State = Used_Node then
+            Lemma_Node (T.Items.all, T.Nodes.all, T.Seed, J);
             Next_Key := T.Nodes (J).Key;
             Next_Item := T.Nodes (J).Item;
             Status := Found;
