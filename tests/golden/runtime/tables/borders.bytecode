@@ -1,0 +1,607 @@
+
+main <tests/corpus/runtime/tables/borders.lua:0,0> (515 instructions at #4)
+0+ params, 55 slots, 1 upvalue, 17 locals, 12 constants, 3 functions
+	1	[1]	vararg_prepare	0
+	2	[4]	get_table_upvalue	0 0 0	; _ENV "print"
+	3	[4]	new_table	1 0 3	; 3
+	4	[4]	extra_argument	0
+	5	[4]	load_integer	2 1
+	6	[4]	load_nil 	3 0	; 1 out
+	7	[4]	load_integer	4 3
+	8	[4]	set_list 	1 3 0
+	9	[4]	length   	1 1
+	10	[4]	new_table	2 0 3	; 3
+	11	[4]	extra_argument	0
+	12	[4]	load_nil 	3 1	; 2 out
+	13	[4]	load_integer	5 3
+	14	[4]	set_list 	2 3 0
+	15	[4]	length   	2 2
+	16	[4]	new_table	3 0 3	; 3
+	17	[4]	extra_argument	0
+	18	[4]	load_integer	4 1
+	19	[4]	load_integer	5 2
+	20	[4]	load_nil 	6 0	; 1 out
+	21	[4]	set_list 	3 3 0
+	22	[4]	length   	3 3
+	23	[4]	new_table	4 0 1	; 1
+	24	[4]	extra_argument	0
+	25	[4]	load_nil 	5 0	; 1 out
+	26	[4]	set_list 	4 1 0
+	27	[4]	length   	4 4
+	28	[4]	new_table	5 0 0	; 0
+	29	[4]	extra_argument	0
+	30	[4]	length   	5 5
+	31	[4]	call     	0 6 1	; 5 in 0 out
+	32	[5]	get_table_upvalue	0 0 0	; _ENV "print"
+	33	[5]	new_table	1 1 3	; 3
+	34	[5]	extra_argument	0
+	35	[5]	load_integer	2 1
+	36	[5]	load_nil 	3 0	; 1 out
+	37	[5]	load_integer	4 3
+	38	[5]	set_field	1 1 2k	; "n" 3
+	39	[5]	set_list 	1 3 0
+	40	[5]	length   	1 1
+	41	[5]	new_table	2 2 0	; 0
+	42	[5]	extra_argument	0
+	43	[5]	set_field	2 3 4k	; "x" 1
+	44	[5]	set_field	2 5 6k	; "y" 2
+	45	[5]	length   	2 2
+	46	[5]	new_table	3 1 2	; 2
+	47	[5]	extra_argument	0
+	48	[5]	load_nil 	4 0	; 1 out
+	49	[5]	load_integer	5 2
+	50	[5]	set_field	3 3 4k	; "x" 1
+	51	[5]	set_list 	3 2 0
+	52	[5]	length   	3 3
+	53	[5]	call     	0 4 1	; 3 in 0 out
+	54	[11]	closure  	0 0	; #1
+	55	[12]	get_table_upvalue	1 0 0	; _ENV "print"
+	56	[12]	move     	2 0
+	57	[12]	load_integer	3 1
+	58	[12]	load_nil 	4 0	; 1 out
+	59	[12]	load_integer	5 3
+	60	[12]	call     	2 4 0	; 3 in all out
+	61	[12]	call     	1 0 1	; all in 0 out
+	62	[13]	get_table_upvalue	1 0 0	; _ENV "print"
+	63	[13]	move     	2 0
+	64	[13]	load_nil 	3 2	; 3 out
+	65	[13]	load_integer	6 4
+	66	[13]	call     	2 5 0	; 4 in all out
+	67	[13]	call     	1 0 1	; all in 0 out
+	68	[14]	get_table_upvalue	1 0 0	; _ENV "print"
+	69	[14]	move     	2 0
+	70	[14]	load_integer	3 1
+	71	[14]	load_integer	4 2
+	72	[14]	load_nil 	5 0	; 1 out
+	73	[14]	call     	2 4 0	; 3 in all out
+	74	[14]	call     	1 0 1	; all in 0 out
+	75	[15]	get_table_upvalue	1 0 0	; _ENV "print"
+	76	[15]	move     	2 0
+	77	[15]	load_nil 	3 0	; 1 out
+	78	[15]	call     	2 2 0	; 1 in all out
+	79	[15]	call     	1 0 1	; all in 0 out
+	80	[16]	get_table_upvalue	1 0 0	; _ENV "print"
+	81	[16]	move     	2 0
+	82	[16]	call     	2 1 0	; 0 in all out
+	83	[16]	call     	1 0 1	; all in 0 out
+	84	[19]	closure  	1 1	; #2
+	85	[20]	move     	2 1
+	86	[20]	load_nil 	3 0	; 1 out
+	87	[20]	load_constant	4 7	; "b"
+	88	[20]	load_nil 	5 0	; 1 out
+	89	[20]	call     	2 4 2	; 3 in 1 out
+	90	[21]	get_table_upvalue	3 0 0	; _ENV "print"
+	91	[21]	length   	4 2
+	92	[21]	get_field	5 2 8	; "n"
+	93	[21]	get_integer	6 2 2
+	94	[21]	call     	3 4 1	; 3 in 0 out
+	95	[24]	closure  	3 2	; #3
+	96	[25]	get_table_upvalue	4 0 0	; _ENV "print"
+	97	[25]	new_table	5 0 0	; 0
+	98	[25]	extra_argument	0
+	99	[25]	move     	6 3
+	100	[25]	call     	6 1 0	; 0 in all out
+	101	[25]	set_list 	5 0 0
+	102	[25]	length   	5 5
+	103	[25]	new_table	6 0 1	; 1
+	104	[25]	extra_argument	0
+	105	[25]	move     	7 3
+	106	[25]	call     	7 1 2	; 0 in 1 out
+	107	[25]	move     	8 3
+	108	[25]	call     	8 1 0	; 0 in all out
+	109	[25]	set_list 	6 0 0
+	110	[25]	length   	6 6
+	111	[25]	new_table	7 0 1	; 1
+	112	[25]	extra_argument	0
+	113	[25]	load_integer	8 0
+	114	[25]	move     	9 3
+	115	[25]	call     	9 1 0	; 0 in all out
+	116	[25]	set_list 	7 0 0
+	117	[25]	length   	7 7
+	118	[25]	call     	4 4 1	; 3 in 0 out
+	119	[28]	new_table	4 0 44	; 300
+	120	[28]	extra_argument	1
+	121	[28]	load_integer	5 1
+	122	[28]	load_integer	6 2
+	123	[28]	load_integer	7 3
+	124	[28]	load_integer	8 4
+	125	[28]	load_integer	9 5
+	126	[28]	load_integer	10 6
+	127	[28]	load_nil 	11 0	; 1 out
+	128	[28]	load_integer	12 8
+	129	[28]	load_integer	13 9
+	130	[28]	load_integer	14 10
+	131	[28]	load_integer	15 11
+	132	[28]	load_integer	16 12
+	133	[28]	load_integer	17 13
+	134	[28]	load_nil 	18 0	; 1 out
+	135	[28]	load_integer	19 15
+	136	[28]	load_integer	20 16
+	137	[28]	load_integer	21 17
+	138	[28]	load_integer	22 18
+	139	[28]	load_integer	23 19
+	140	[28]	load_integer	24 20
+	141	[29]	load_nil 	25 0	; 1 out
+	142	[29]	load_integer	26 22
+	143	[29]	load_integer	27 23
+	144	[29]	load_integer	28 24
+	145	[29]	load_integer	29 25
+	146	[29]	load_integer	30 26
+	147	[29]	load_integer	31 27
+	148	[29]	load_nil 	32 0	; 1 out
+	149	[29]	load_integer	33 29
+	150	[29]	load_integer	34 30
+	151	[29]	load_integer	35 31
+	152	[29]	load_integer	36 32
+	153	[29]	load_integer	37 33
+	154	[29]	load_integer	38 34
+	155	[29]	load_nil 	39 0	; 1 out
+	156	[29]	load_integer	40 36
+	157	[29]	load_integer	41 37
+	158	[29]	load_integer	42 38
+	159	[29]	load_integer	43 39
+	160	[29]	load_integer	44 40
+	161	[29]	load_integer	45 41
+	162	[30]	load_nil 	46 0	; 1 out
+	163	[30]	load_integer	47 43
+	164	[30]	load_integer	48 44
+	165	[30]	load_integer	49 45
+	166	[30]	load_integer	50 46
+	167	[30]	load_integer	51 47
+	168	[30]	load_integer	52 48
+	169	[30]	load_nil 	53 0	; 1 out
+	170	[30]	load_integer	54 50
+	171	[30]	set_list 	4 50 0
+	172	[30]	load_integer	5 51
+	173	[30]	load_integer	6 52
+	174	[30]	load_integer	7 53
+	175	[30]	load_integer	8 54
+	176	[30]	load_integer	9 55
+	177	[30]	load_nil 	10 0	; 1 out
+	178	[30]	load_integer	11 57
+	179	[30]	load_integer	12 58
+	180	[30]	load_integer	13 59
+	181	[30]	load_integer	14 60
+	182	[30]	load_integer	15 61
+	183	[30]	load_integer	16 62
+	184	[31]	load_nil 	17 0	; 1 out
+	185	[31]	load_integer	18 64
+	186	[31]	load_integer	19 65
+	187	[31]	load_integer	20 66
+	188	[31]	load_integer	21 67
+	189	[31]	load_integer	22 68
+	190	[31]	load_integer	23 69
+	191	[31]	load_nil 	24 0	; 1 out
+	192	[31]	load_integer	25 71
+	193	[31]	load_integer	26 72
+	194	[31]	load_integer	27 73
+	195	[31]	load_integer	28 74
+	196	[31]	load_integer	29 75
+	197	[31]	load_integer	30 76
+	198	[31]	load_nil 	31 0	; 1 out
+	199	[31]	load_integer	32 78
+	200	[31]	load_integer	33 79
+	201	[31]	load_integer	34 80
+	202	[31]	load_integer	35 81
+	203	[31]	load_integer	36 82
+	204	[31]	load_integer	37 83
+	205	[32]	load_nil 	38 0	; 1 out
+	206	[32]	load_integer	39 85
+	207	[32]	load_integer	40 86
+	208	[32]	load_integer	41 87
+	209	[32]	load_integer	42 88
+	210	[32]	load_integer	43 89
+	211	[32]	load_integer	44 90
+	212	[32]	load_nil 	45 0	; 1 out
+	213	[32]	load_integer	46 92
+	214	[32]	load_integer	47 93
+	215	[32]	load_integer	48 94
+	216	[32]	load_integer	49 95
+	217	[32]	load_integer	50 96
+	218	[32]	load_integer	51 97
+	219	[32]	load_nil 	52 0	; 1 out
+	220	[32]	load_integer	53 99
+	221	[32]	load_integer	54 100
+	222	[32]	set_list 	4 50 50
+	223	[32]	load_integer	5 101
+	224	[32]	load_integer	6 102
+	225	[32]	load_integer	7 103
+	226	[33]	load_integer	8 104
+	227	[33]	load_nil 	9 0	; 1 out
+	228	[33]	load_integer	10 106
+	229	[33]	load_integer	11 107
+	230	[33]	load_integer	12 108
+	231	[33]	load_integer	13 109
+	232	[33]	load_integer	14 110
+	233	[33]	load_integer	15 111
+	234	[33]	load_nil 	16 0	; 1 out
+	235	[33]	load_integer	17 113
+	236	[33]	load_integer	18 114
+	237	[33]	load_integer	19 115
+	238	[33]	load_integer	20 116
+	239	[33]	load_integer	21 117
+	240	[33]	load_integer	22 118
+	241	[33]	load_nil 	23 0	; 1 out
+	242	[33]	load_integer	24 120
+	243	[33]	load_integer	25 121
+	244	[34]	load_integer	26 122
+	245	[34]	load_integer	27 123
+	246	[34]	load_integer	28 124
+	247	[34]	load_integer	29 125
+	248	[34]	load_nil 	30 0	; 1 out
+	249	[34]	load_integer	31 127
+	250	[34]	load_integer	32 128
+	251	[34]	load_integer	33 129
+	252	[34]	load_integer	34 130
+	253	[34]	load_integer	35 131
+	254	[34]	load_integer	36 132
+	255	[34]	load_nil 	37 0	; 1 out
+	256	[34]	load_integer	38 134
+	257	[34]	load_integer	39 135
+	258	[34]	load_integer	40 136
+	259	[34]	load_integer	41 137
+	260	[34]	load_integer	42 138
+	261	[34]	load_integer	43 139
+	262	[35]	load_nil 	44 0	; 1 out
+	263	[35]	load_integer	45 141
+	264	[35]	load_integer	46 142
+	265	[35]	load_integer	47 143
+	266	[35]	load_integer	48 144
+	267	[35]	load_integer	49 145
+	268	[35]	load_integer	50 146
+	269	[35]	load_nil 	51 0	; 1 out
+	270	[35]	load_integer	52 148
+	271	[35]	load_integer	53 149
+	272	[35]	load_integer	54 150
+	273	[35]	set_list 	4 50 100
+	274	[35]	load_integer	5 151
+	275	[35]	load_integer	6 152
+	276	[35]	load_integer	7 153
+	277	[35]	load_nil 	8 0	; 1 out
+	278	[35]	load_integer	9 155
+	279	[35]	load_integer	10 156
+	280	[35]	load_integer	11 157
+	281	[36]	load_integer	12 158
+	282	[36]	load_integer	13 159
+	283	[36]	load_integer	14 160
+	284	[36]	load_nil 	15 0	; 1 out
+	285	[36]	load_integer	16 162
+	286	[36]	load_integer	17 163
+	287	[36]	load_integer	18 164
+	288	[36]	load_integer	19 165
+	289	[36]	load_integer	20 166
+	290	[36]	load_integer	21 167
+	291	[36]	load_nil 	22 0	; 1 out
+	292	[36]	load_integer	23 169
+	293	[36]	load_integer	24 170
+	294	[36]	load_integer	25 171
+	295	[36]	load_integer	26 172
+	296	[36]	load_integer	27 173
+	297	[36]	load_integer	28 174
+	298	[36]	load_nil 	29 0	; 1 out
+	299	[37]	load_integer	30 176
+	300	[37]	load_integer	31 177
+	301	[37]	load_integer	32 178
+	302	[37]	load_integer	33 179
+	303	[37]	load_integer	34 180
+	304	[37]	load_integer	35 181
+	305	[37]	load_nil 	36 0	; 1 out
+	306	[37]	load_integer	37 183
+	307	[37]	load_integer	38 184
+	308	[37]	load_integer	39 185
+	309	[37]	load_integer	40 186
+	310	[37]	load_integer	41 187
+	311	[37]	load_integer	42 188
+	312	[37]	load_nil 	43 0	; 1 out
+	313	[37]	load_integer	44 190
+	314	[37]	load_integer	45 191
+	315	[37]	load_integer	46 192
+	316	[37]	load_integer	47 193
+	317	[38]	load_integer	48 194
+	318	[38]	load_integer	49 195
+	319	[38]	load_nil 	50 0	; 1 out
+	320	[38]	load_integer	51 197
+	321	[38]	load_integer	52 198
+	322	[38]	load_integer	53 199
+	323	[38]	load_integer	54 200
+	324	[38]	set_list 	4 50 150
+	325	[38]	load_integer	5 201
+	326	[38]	load_integer	6 202
+	327	[38]	load_nil 	7 0	; 1 out
+	328	[38]	load_integer	8 204
+	329	[38]	load_integer	9 205
+	330	[38]	load_integer	10 206
+	331	[38]	load_integer	11 207
+	332	[38]	load_integer	12 208
+	333	[38]	load_integer	13 209
+	334	[38]	load_nil 	14 0	; 1 out
+	335	[38]	load_integer	15 211
+	336	[39]	load_integer	16 212
+	337	[39]	load_integer	17 213
+	338	[39]	load_integer	18 214
+	339	[39]	load_integer	19 215
+	340	[39]	load_integer	20 216
+	341	[39]	load_nil 	21 0	; 1 out
+	342	[39]	load_integer	22 218
+	343	[39]	load_integer	23 219
+	344	[39]	load_integer	24 220
+	345	[39]	load_integer	25 221
+	346	[39]	load_integer	26 222
+	347	[39]	load_integer	27 223
+	348	[39]	load_nil 	28 0	; 1 out
+	349	[39]	load_integer	29 225
+	350	[39]	load_integer	30 226
+	351	[39]	load_integer	31 227
+	352	[39]	load_integer	32 228
+	353	[39]	load_integer	33 229
+	354	[40]	load_integer	34 230
+	355	[40]	load_nil 	35 0	; 1 out
+	356	[40]	load_integer	36 232
+	357	[40]	load_integer	37 233
+	358	[40]	load_integer	38 234
+	359	[40]	load_integer	39 235
+	360	[40]	load_integer	40 236
+	361	[40]	load_integer	41 237
+	362	[40]	load_nil 	42 0	; 1 out
+	363	[40]	load_integer	43 239
+	364	[40]	load_integer	44 240
+	365	[40]	load_integer	45 241
+	366	[40]	load_integer	46 242
+	367	[40]	load_integer	47 243
+	368	[40]	load_integer	48 244
+	369	[40]	load_nil 	49 0	; 1 out
+	370	[40]	load_integer	50 246
+	371	[40]	load_integer	51 247
+	372	[41]	load_integer	52 248
+	373	[41]	load_integer	53 249
+	374	[41]	load_integer	54 250
+	375	[41]	set_list 	4 50 200
+	376	[41]	load_integer	5 251
+	377	[41]	load_nil 	6 0	; 1 out
+	378	[41]	load_integer	7 253
+	379	[41]	load_integer	8 254
+	380	[41]	load_integer	9 255
+	381	[41]	load_integer	10 256
+	382	[41]	load_integer	11 257
+	383	[41]	load_integer	12 258
+	384	[41]	load_nil 	13 0	; 1 out
+	385	[41]	load_integer	14 260
+	386	[41]	load_integer	15 261
+	387	[41]	load_integer	16 262
+	388	[41]	load_integer	17 263
+	389	[41]	load_integer	18 264
+	390	[41]	load_integer	19 265
+	391	[42]	load_nil 	20 0	; 1 out
+	392	[42]	load_integer	21 267
+	393	[42]	load_integer	22 268
+	394	[42]	load_integer	23 269
+	395	[42]	load_integer	24 270
+	396	[42]	load_integer	25 271
+	397	[42]	load_integer	26 272
+	398	[42]	load_nil 	27 0	; 1 out
+	399	[42]	load_integer	28 274
+	400	[42]	load_integer	29 275
+	401	[42]	load_integer	30 276
+	402	[42]	load_integer	31 277
+	403	[42]	load_integer	32 278
+	404	[42]	load_integer	33 279
+	405	[42]	load_nil 	34 0	; 1 out
+	406	[42]	load_integer	35 281
+	407	[42]	load_integer	36 282
+	408	[42]	load_integer	37 283
+	409	[43]	load_integer	38 284
+	410	[43]	load_integer	39 285
+	411	[43]	load_integer	40 286
+	412	[43]	load_nil 	41 0	; 1 out
+	413	[43]	load_integer	42 288
+	414	[43]	load_integer	43 289
+	415	[43]	load_integer	44 290
+	416	[43]	load_integer	45 291
+	417	[43]	load_integer	46 292
+	418	[43]	load_integer	47 293
+	419	[43]	load_nil 	48 0	; 1 out
+	420	[43]	load_integer	49 295
+	421	[43]	load_integer	50 296
+	422	[43]	load_integer	51 297
+	423	[43]	load_integer	52 298
+	424	[43]	load_integer	53 299
+	425	[43]	load_integer	54 300
+	426	[43]	set_list 	4 50 250
+	427	[44]	get_table_upvalue	5 0 0	; _ENV "print"
+	428	[44]	length   	6 4
+	429	[44]	load_integer	7 300
+	430	[44]	get_table	7 4 7
+	431	[44]	load_integer	8 294
+	432	[44]	get_table	8 4 8
+	433	[44]	call     	5 4 1	; 3 in 0 out
+	434	[45]	new_table	5 0 0	; 0
+	435	[45]	extra_argument	0
+	436	[46]	load_integer	6 1
+	437	[46]	load_integer	7 120
+	438	[46]	load_integer	8 1
+	439	[46]	for_prepare	6 4	; exit to 445
+	440	[47]	length   	10 5
+	441	[47]	add_integer	10 10 1
+	442	[47]	metamethod_binary_integer	10 1 6 0	; __add
+	443	[47]	set_table	5 10 9
+	444	[46]	for_loop 	6 5	; to 440
+	445	[49]	get_table_upvalue	6 0 0	; _ENV "print"
+	446	[49]	length   	7 5
+	447	[49]	call     	6 2 1	; 1 in 0 out
+	448	[52]	new_table	6 0 8	; 8
+	449	[52]	extra_argument	0
+	450	[52]	load_integer	7 1
+	451	[52]	load_integer	8 2
+	452	[52]	load_integer	9 3
+	453	[52]	load_nil 	10 0	; 1 out
+	454	[52]	load_integer	11 5
+	455	[52]	load_nil 	12 1	; 2 out
+	456	[52]	load_integer	14 8
+	457	[52]	set_list 	6 8 0
+	458	[53]	get_table_upvalue	7 0 0	; _ENV "print"
+	459	[53]	length   	8 6
+	460	[53]	call     	7 2 1	; 1 in 0 out
+	461	[54]	set_integer	6 9 9k	; 9
+	462	[55]	get_table_upvalue	7 0 0	; _ENV "print"
+	463	[55]	length   	8 6
+	464	[55]	call     	7 2 1	; 1 in 0 out
+	465	[56]	set_integer	6 8 10k	; nil
+	466	[57]	set_integer	6 9 10k	; nil
+	467	[58]	get_table_upvalue	7 0 0	; _ENV "print"
+	468	[58]	length   	8 6
+	469	[58]	call     	7 2 1	; 1 in 0 out
+	470	[59]	set_integer	6 4 11k	; 4
+	471	[60]	get_table_upvalue	7 0 0	; _ENV "print"
+	472	[60]	length   	8 6
+	473	[60]	call     	7 2 1	; 1 in 0 out
+	474	[61]	new_table	7 0 3	; 3
+	475	[61]	extra_argument	0
+	476	[61]	load_integer	8 1
+	477	[61]	load_nil 	9 0	; 1 out
+	478	[61]	load_integer	10 3
+	479	[61]	set_list 	7 3 0
+	480	[62]	load_integer	8 4
+	481	[62]	load_integer	9 20
+	482	[62]	load_integer	10 1
+	483	[62]	for_prepare	8 1	; exit to 486
+	484	[63]	set_table	7 11 11
+	485	[62]	for_loop 	8 2	; to 484
+	486	[65]	get_table_upvalue	8 0 0	; _ENV "print"
+	487	[65]	length   	9 7
+	488	[65]	call     	8 2 1	; 1 in 0 out
+	489	[68]	new_table	8 0 3	; 3
+	490	[68]	extra_argument	0
+	491	[68]	new_table	9 0 3	; 3
+	492	[68]	extra_argument	0
+	493	[68]	load_integer	10 1
+	494	[68]	load_nil 	11 0	; 1 out
+	495	[68]	load_integer	12 3
+	496	[68]	set_list 	9 3 0
+	497	[68]	new_table	10 0 2	; 2
+	498	[68]	extra_argument	0
+	499	[68]	load_nil 	11 1	; 2 out
+	500	[68]	set_list 	10 2 0
+	501	[68]	new_table	11 0 0	; 0
+	502	[68]	extra_argument	0
+	503	[68]	vararg   	12 0	; all out
+	504	[68]	set_list 	11 0 0
+	505	[68]	set_list 	8 3 0
+	506	[69]	get_table_upvalue	9 0 0	; _ENV "print"
+	507	[69]	length   	10 8
+	508	[69]	get_integer	11 8 1
+	509	[69]	length   	11 11
+	510	[69]	get_integer	12 8 2
+	511	[69]	length   	12 12
+	512	[69]	get_integer	13 8 3
+	513	[69]	length   	13 13
+	514	[69]	call     	9 5 1	; 4 in 0 out
+	515	[69]	return_values	9 1 1	; 0 out
+constants (12) for #4:
+	0	S	"print"
+	1	S	"n"
+	2	I	3
+	3	S	"x"
+	4	I	1
+	5	S	"y"
+	6	I	2
+	7	S	"b"
+	8	S	"n"
+	9	I	9
+	10	N	nil
+	11	I	4
+locals (17) for #4:
+	0	count	55	516
+	1	pack	85	516
+	2	packed	90	516
+	3	three	96	516
+	4	long	427	516
+	5	wide	436	516
+	6	(for state)	439	445
+	7	(for state)	439	445
+	8	(for state)	439	445
+	9	i	440	444
+	10	t	458	516
+	11	grown	480	516
+	12	(for state)	483	486
+	13	(for state)	483	486
+	14	(for state)	483	486
+	15	i	484	485
+	16	nested	506	516
+upvalues (1) for #4:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/tables/borders.lua:8,11> (12 instructions at #1)
+0+ params, 5 slots, 1 upvalue, 1 local, 2 constants, 0 functions
+	1	[8]	vararg_prepare	0
+	2	[9]	new_table	0 0 0	; 0
+	3	[9]	extra_argument	0
+	4	[9]	vararg   	1 0	; all out
+	5	[9]	set_list 	0 0 0
+	6	[10]	length   	1 0
+	7	[10]	get_table_upvalue	2 0 0	; _ENV "select"
+	8	[10]	load_constant	3 1	; "#"
+	9	[10]	vararg   	4 0	; all out
+	10	[10]	call     	2 0 0	; all in all out
+	11	[10]	return_values	1 0 1	; all out
+	12	[11]	return_values	1 1 1	; 0 out
+constants (2) for #1:
+	0	S	"select"
+	1	S	"#"
+locals (1) for #1:
+	0	args	6	13
+upvalues (1) for #1:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/tables/borders.lua:17,19> (12 instructions at #2)
+0+ params, 4 slots, 1 upvalue, 0 locals, 3 constants, 0 functions
+	1	[17]	vararg_prepare	0
+	2	[18]	new_table	0 1 0	; 0
+	3	[18]	extra_argument	0
+	4	[18]	get_table_upvalue	1 0 1	; _ENV "select"
+	5	[18]	load_constant	2 2	; "#"
+	6	[18]	vararg   	3 0	; all out
+	7	[18]	call     	1 0 2	; all in 1 out
+	8	[18]	set_field	0 0 1	; "n"
+	9	[18]	vararg   	1 0	; all out
+	10	[18]	set_list 	0 0 0
+	11	[18]	return_values	0 2 1	; 1 out
+	12	[19]	return_values	0 1 1	; 0 out
+constants (3) for #2:
+	0	S	"n"
+	1	S	"select"
+	2	S	"#"
+locals (0) for #2:
+upvalues (1) for #2:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/tables/borders.lua:24,24> (5 instructions at #3)
+0 params, 3 slots, 0 upvalues, 0 locals, 0 constants, 0 functions
+	1	[24]	load_integer	0 1
+	2	[24]	load_nil 	1 0	; 1 out
+	3	[24]	load_integer	2 3
+	4	[24]	return_values	0 4 0	; 3 out
+	5	[24]	return_none	
+constants (0) for #3:
+locals (0) for #3:
+upvalues (0) for #3:
+exit 0

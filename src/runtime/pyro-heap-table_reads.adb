@@ -1,6 +1,6 @@
 --  SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 --
---  Reading tables of the heap: the key after a key, and a border.
+--  Reading tables of the heap: the key after a key, a border, and the parts' sizes.
 
 package body Pyro.Heap.Table_Reads with SPARK_Mode => On is
 
@@ -49,5 +49,16 @@ package body Pyro.Heap.Table_Reads with SPARK_Mode => On is
       Lemma_Table_Slot (H.Chunks (P.Chunk) (P.Offset));
       Length := Pyro.Tables.Length (H.Chunks (P.Chunk) (P.Offset).Table.all);
    end Table_Length;
+
+   procedure Table_Sizes
+     (H : Heap; T : Valid_Handle; Array_Size : out Natural; Hash_Room : out Natural)
+   is
+      P : constant Place := Place_Of (T);
+   begin
+      pragma Assert (Handle_Valid (H, T));
+      Lemma_Table_Slot (H.Chunks (P.Chunk) (P.Offset));
+      Array_Size := Pyro.Tables.Array_Size (H.Chunks (P.Chunk) (P.Offset).Table.all);
+      Hash_Room := Pyro.Tables.Hash_Room (H.Chunks (P.Chunk) (P.Offset).Table.all);
+   end Table_Sizes;
 
 end Pyro.Heap.Table_Reads;

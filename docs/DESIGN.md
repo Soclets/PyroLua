@@ -503,8 +503,11 @@ frame invariant says the register is one of the frame's. `__index` and `__newind
 of tables are followed in place, at most `MAXTAGLOOP` (2000) of them. `__call` puts its
 metamethod below the arguments, as `luaD_tryfuncTM` does.
 
-Table constructors do not presize their tables (tests/known-differences.md): a table's
-parts grow as keys arrive. The VM reads tables (next, length) through
+Table constructors size their tables as PUC Lua's do: NEWTABLE gives the array and hash
+parts the sizes the compiler counted (`luaH_resize`), and SETLIST grows the array part at
+once to hold its last key (`luaH_resizearray`), so `{...}` gets an array part of exactly
+`select ("#", ...)` places, and `#` finds the same border as in PUC Lua even with nils
+inside. The VM reads tables (next, length, the parts' sizes) through
 `Pyro.Heap.Table_Reads`, a child of the heap, so that the heap's own proofs do not grow.
 
 Only tables have metatables for now: the string metatable comes with the string library

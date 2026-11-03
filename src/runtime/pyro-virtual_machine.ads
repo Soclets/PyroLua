@@ -972,13 +972,15 @@ private
        and then View (M).PC + 1 < View (M).Code,
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
-   --  [puc lvm.c:OP_NEWTABLE] Register Target gets a new table; the running frame moves past
-   --  the EXTRAARG after its instruction. The sizes the instruction gives are not used: the
-   --  table grows as keys arrive (docs/DESIGN.md, Metamethods).
+   --  [puc lvm.c:OP_NEWTABLE] Register Target gets a new table, its array part sized for
+   --  Array_Size places and its hash part for Hash_Size keys (luaH_resize); the running frame
+   --  moves past the EXTRAARG after its instruction.
    procedure Make_Table
-     (M      : in out Machine;
-      Budget : in out Memory_Budget;
-      Target : Natural)
+     (M          : in out Machine;
+      Budget     : in out Memory_Budget;
+      Target     : Natural;
+      Array_Size : Natural;
+      Hash_Size  : Natural)
    with
      Global => null,
      Pre    =>
@@ -989,8 +991,8 @@ private
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  [puc lvm.c:OP_SETLIST] The table in register Table gets Count values (-1: up to the
-   --  top) from the registers after it, at keys First + 1 ..; the running frame moves on by
-   --  1 + Skip instructions.
+   --  top) from the registers after it, at keys First + 1 .., its array part grown to hold
+   --  them first (luaH_resizearray); the running frame moves on by 1 + Skip instructions.
    procedure Store_List
      (M      : in out Machine;
       Budget : in out Memory_Budget;

@@ -1,0 +1,636 @@
+1 function_body vararg
+  1 block
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 unary_operation length
+          4 table_constructor
+            4 integer_literal 1
+            4 nil_literal
+            4 integer_literal 3
+        4 unary_operation length
+          4 table_constructor
+            4 nil_literal
+            4 nil_literal
+            4 integer_literal 3
+        4 unary_operation length
+          4 table_constructor
+            4 integer_literal 1
+            4 integer_literal 2
+            4 nil_literal
+        4 unary_operation length
+          4 table_constructor
+            4 nil_literal
+        4 unary_operation length
+          4 table_constructor
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 unary_operation length
+          5 table_constructor
+            5 integer_literal 1
+            5 nil_literal
+            5 integer_literal 3
+            5 named_field name-key
+              5 string_literal "n"
+              5 integer_literal 3
+        5 unary_operation length
+          5 table_constructor
+            5 named_field name-key
+              5 string_literal "x"
+              5 integer_literal 1
+            5 named_field name-key
+              5 string_literal "y"
+              5 integer_literal 2
+        5 unary_operation length
+          5 table_constructor
+            5 nil_literal
+            5 integer_literal 2
+            5 named_field name-key
+              5 string_literal "x"
+              5 integer_literal 1
+    8 local_function
+      8 local_name "count"
+      8 function_body vararg
+        8 name_list
+        9 block
+          9 local_statement
+            9 name_list
+              9 local_name "args"
+            9 expression_list
+              9 table_constructor
+                9 vararg_expression
+          10 return_statement
+            10 expression_list
+              10 unary_operation length
+                10 name_expression "args" local@52
+              10 call_expression
+                10 name_expression "select" global
+                10 string_literal "#"
+                10 vararg_expression
+    12 call_statement
+      12 call_expression
+        12 name_expression "print" global
+        12 call_expression
+          12 name_expression "count" local@50
+          12 integer_literal 1
+          12 nil_literal
+          12 integer_literal 3
+    13 call_statement
+      13 call_expression
+        13 name_expression "print" global
+        13 call_expression
+          13 name_expression "count" local@50
+          13 nil_literal
+          13 nil_literal
+          13 nil_literal
+          13 integer_literal 4
+    14 call_statement
+      14 call_expression
+        14 name_expression "print" global
+        14 call_expression
+          14 name_expression "count" local@50
+          14 integer_literal 1
+          14 integer_literal 2
+          14 nil_literal
+    15 call_statement
+      15 call_expression
+        15 name_expression "print" global
+        15 call_expression
+          15 name_expression "count" local@50
+          15 nil_literal
+    16 call_statement
+      16 call_expression
+        16 name_expression "print" global
+        16 call_expression
+          16 name_expression "count" local@50
+    17 local_function
+      17 local_name "pack"
+      17 function_body vararg
+        17 name_list
+        18 block
+          18 return_statement
+            18 expression_list
+              18 table_constructor
+                18 named_field name-key
+                  18 string_literal "n"
+                  18 call_expression
+                    18 name_expression "select" global
+                    18 string_literal "#"
+                    18 vararg_expression
+                18 vararg_expression
+    20 local_statement
+      20 name_list
+        20 local_name "packed"
+      20 expression_list
+        20 call_expression
+          20 name_expression "pack" local@105
+          20 nil_literal
+          20 string_literal "b"
+          20 nil_literal
+    21 call_statement
+      21 call_expression
+        21 name_expression "print" global
+        21 unary_operation length
+          21 name_expression "packed" local@120
+        21 index_expression name-key
+          21 name_expression "packed" local@120
+          21 string_literal "n"
+        21 index_expression
+          21 name_expression "packed" local@120
+          21 integer_literal 2
+    24 local_function
+      24 local_name "three"
+      24 function_body
+        24 name_list
+        24 block
+          24 return_statement
+            24 expression_list
+              24 integer_literal 1
+              24 nil_literal
+              24 integer_literal 3
+    25 call_statement
+      25 call_expression
+        25 name_expression "print" global
+        25 unary_operation length
+          25 table_constructor
+            25 call_expression
+              25 name_expression "three" local@140
+        25 unary_operation length
+          25 table_constructor
+            25 call_expression
+              25 name_expression "three" local@140
+            25 call_expression
+              25 name_expression "three" local@140
+        25 unary_operation length
+          25 table_constructor
+            25 integer_literal 0
+            25 call_expression
+              25 name_expression "three" local@140
+    28 local_statement
+      28 name_list
+        28 local_name "long"
+      28 expression_list
+        28 table_constructor
+          28 integer_literal 1
+          28 integer_literal 2
+          28 integer_literal 3
+          28 integer_literal 4
+          28 integer_literal 5
+          28 integer_literal 6
+          28 nil_literal
+          28 integer_literal 8
+          28 integer_literal 9
+          28 integer_literal 10
+          28 integer_literal 11
+          28 integer_literal 12
+          28 integer_literal 13
+          28 nil_literal
+          28 integer_literal 15
+          28 integer_literal 16
+          28 integer_literal 17
+          28 integer_literal 18
+          28 integer_literal 19
+          28 integer_literal 20
+          29 nil_literal
+          29 integer_literal 22
+          29 integer_literal 23
+          29 integer_literal 24
+          29 integer_literal 25
+          29 integer_literal 26
+          29 integer_literal 27
+          29 nil_literal
+          29 integer_literal 29
+          29 integer_literal 30
+          29 integer_literal 31
+          29 integer_literal 32
+          29 integer_literal 33
+          29 integer_literal 34
+          29 nil_literal
+          29 integer_literal 36
+          29 integer_literal 37
+          29 integer_literal 38
+          29 integer_literal 39
+          29 integer_literal 40
+          29 integer_literal 41
+          30 nil_literal
+          30 integer_literal 43
+          30 integer_literal 44
+          30 integer_literal 45
+          30 integer_literal 46
+          30 integer_literal 47
+          30 integer_literal 48
+          30 nil_literal
+          30 integer_literal 50
+          30 integer_literal 51
+          30 integer_literal 52
+          30 integer_literal 53
+          30 integer_literal 54
+          30 integer_literal 55
+          30 nil_literal
+          30 integer_literal 57
+          30 integer_literal 58
+          30 integer_literal 59
+          30 integer_literal 60
+          30 integer_literal 61
+          30 integer_literal 62
+          31 nil_literal
+          31 integer_literal 64
+          31 integer_literal 65
+          31 integer_literal 66
+          31 integer_literal 67
+          31 integer_literal 68
+          31 integer_literal 69
+          31 nil_literal
+          31 integer_literal 71
+          31 integer_literal 72
+          31 integer_literal 73
+          31 integer_literal 74
+          31 integer_literal 75
+          31 integer_literal 76
+          31 nil_literal
+          31 integer_literal 78
+          31 integer_literal 79
+          31 integer_literal 80
+          31 integer_literal 81
+          31 integer_literal 82
+          31 integer_literal 83
+          32 nil_literal
+          32 integer_literal 85
+          32 integer_literal 86
+          32 integer_literal 87
+          32 integer_literal 88
+          32 integer_literal 89
+          32 integer_literal 90
+          32 nil_literal
+          32 integer_literal 92
+          32 integer_literal 93
+          32 integer_literal 94
+          32 integer_literal 95
+          32 integer_literal 96
+          32 integer_literal 97
+          32 nil_literal
+          32 integer_literal 99
+          32 integer_literal 100
+          32 integer_literal 101
+          32 integer_literal 102
+          32 integer_literal 103
+          33 integer_literal 104
+          33 nil_literal
+          33 integer_literal 106
+          33 integer_literal 107
+          33 integer_literal 108
+          33 integer_literal 109
+          33 integer_literal 110
+          33 integer_literal 111
+          33 nil_literal
+          33 integer_literal 113
+          33 integer_literal 114
+          33 integer_literal 115
+          33 integer_literal 116
+          33 integer_literal 117
+          33 integer_literal 118
+          33 nil_literal
+          33 integer_literal 120
+          33 integer_literal 121
+          34 integer_literal 122
+          34 integer_literal 123
+          34 integer_literal 124
+          34 integer_literal 125
+          34 nil_literal
+          34 integer_literal 127
+          34 integer_literal 128
+          34 integer_literal 129
+          34 integer_literal 130
+          34 integer_literal 131
+          34 integer_literal 132
+          34 nil_literal
+          34 integer_literal 134
+          34 integer_literal 135
+          34 integer_literal 136
+          34 integer_literal 137
+          34 integer_literal 138
+          34 integer_literal 139
+          35 nil_literal
+          35 integer_literal 141
+          35 integer_literal 142
+          35 integer_literal 143
+          35 integer_literal 144
+          35 integer_literal 145
+          35 integer_literal 146
+          35 nil_literal
+          35 integer_literal 148
+          35 integer_literal 149
+          35 integer_literal 150
+          35 integer_literal 151
+          35 integer_literal 152
+          35 integer_literal 153
+          35 nil_literal
+          35 integer_literal 155
+          35 integer_literal 156
+          35 integer_literal 157
+          36 integer_literal 158
+          36 integer_literal 159
+          36 integer_literal 160
+          36 nil_literal
+          36 integer_literal 162
+          36 integer_literal 163
+          36 integer_literal 164
+          36 integer_literal 165
+          36 integer_literal 166
+          36 integer_literal 167
+          36 nil_literal
+          36 integer_literal 169
+          36 integer_literal 170
+          36 integer_literal 171
+          36 integer_literal 172
+          36 integer_literal 173
+          36 integer_literal 174
+          36 nil_literal
+          37 integer_literal 176
+          37 integer_literal 177
+          37 integer_literal 178
+          37 integer_literal 179
+          37 integer_literal 180
+          37 integer_literal 181
+          37 nil_literal
+          37 integer_literal 183
+          37 integer_literal 184
+          37 integer_literal 185
+          37 integer_literal 186
+          37 integer_literal 187
+          37 integer_literal 188
+          37 nil_literal
+          37 integer_literal 190
+          37 integer_literal 191
+          37 integer_literal 192
+          37 integer_literal 193
+          38 integer_literal 194
+          38 integer_literal 195
+          38 nil_literal
+          38 integer_literal 197
+          38 integer_literal 198
+          38 integer_literal 199
+          38 integer_literal 200
+          38 integer_literal 201
+          38 integer_literal 202
+          38 nil_literal
+          38 integer_literal 204
+          38 integer_literal 205
+          38 integer_literal 206
+          38 integer_literal 207
+          38 integer_literal 208
+          38 integer_literal 209
+          38 nil_literal
+          38 integer_literal 211
+          39 integer_literal 212
+          39 integer_literal 213
+          39 integer_literal 214
+          39 integer_literal 215
+          39 integer_literal 216
+          39 nil_literal
+          39 integer_literal 218
+          39 integer_literal 219
+          39 integer_literal 220
+          39 integer_literal 221
+          39 integer_literal 222
+          39 integer_literal 223
+          39 nil_literal
+          39 integer_literal 225
+          39 integer_literal 226
+          39 integer_literal 227
+          39 integer_literal 228
+          39 integer_literal 229
+          40 integer_literal 230
+          40 nil_literal
+          40 integer_literal 232
+          40 integer_literal 233
+          40 integer_literal 234
+          40 integer_literal 235
+          40 integer_literal 236
+          40 integer_literal 237
+          40 nil_literal
+          40 integer_literal 239
+          40 integer_literal 240
+          40 integer_literal 241
+          40 integer_literal 242
+          40 integer_literal 243
+          40 integer_literal 244
+          40 nil_literal
+          40 integer_literal 246
+          40 integer_literal 247
+          41 integer_literal 248
+          41 integer_literal 249
+          41 integer_literal 250
+          41 integer_literal 251
+          41 nil_literal
+          41 integer_literal 253
+          41 integer_literal 254
+          41 integer_literal 255
+          41 integer_literal 256
+          41 integer_literal 257
+          41 integer_literal 258
+          41 nil_literal
+          41 integer_literal 260
+          41 integer_literal 261
+          41 integer_literal 262
+          41 integer_literal 263
+          41 integer_literal 264
+          41 integer_literal 265
+          42 nil_literal
+          42 integer_literal 267
+          42 integer_literal 268
+          42 integer_literal 269
+          42 integer_literal 270
+          42 integer_literal 271
+          42 integer_literal 272
+          42 nil_literal
+          42 integer_literal 274
+          42 integer_literal 275
+          42 integer_literal 276
+          42 integer_literal 277
+          42 integer_literal 278
+          42 integer_literal 279
+          42 nil_literal
+          42 integer_literal 281
+          42 integer_literal 282
+          42 integer_literal 283
+          43 integer_literal 284
+          43 integer_literal 285
+          43 integer_literal 286
+          43 nil_literal
+          43 integer_literal 288
+          43 integer_literal 289
+          43 integer_literal 290
+          43 integer_literal 291
+          43 integer_literal 292
+          43 integer_literal 293
+          43 nil_literal
+          43 integer_literal 295
+          43 integer_literal 296
+          43 integer_literal 297
+          43 integer_literal 298
+          43 integer_literal 299
+          43 integer_literal 300
+    44 call_statement
+      44 call_expression
+        44 name_expression "print" global
+        44 unary_operation length
+          44 name_expression "long" local@168
+        44 index_expression
+          44 name_expression "long" local@168
+          44 integer_literal 300
+        44 index_expression
+          44 name_expression "long" local@168
+          44 integer_literal 294
+    45 local_statement
+      45 name_list
+        45 local_name "wide"
+      45 expression_list
+        45 table_constructor
+    46 numeric_for
+      46 local_name "i"
+      46 expression_list
+        46 integer_literal 1
+        46 integer_literal 120
+      47 block
+        47 assignment
+          47 expression_list
+            47 assignment_target
+              47 index_expression
+                47 name_expression "wide" local@484
+                47 binary_operation add
+                  47 unary_operation length
+                    47 name_expression "wide" local@484
+                  47 integer_literal 1
+          47 expression_list
+            47 name_expression "i" local@489
+    49 call_statement
+      49 call_expression
+        49 name_expression "print" global
+        49 unary_operation length
+          49 name_expression "wide" local@484
+    52 local_statement
+      52 name_list
+        52 local_name "t"
+      52 expression_list
+        52 table_constructor
+          52 integer_literal 1
+          52 integer_literal 2
+          52 integer_literal 3
+          52 nil_literal
+          52 integer_literal 5
+          52 nil_literal
+          52 nil_literal
+          52 integer_literal 8
+    53 call_statement
+      53 call_expression
+        53 name_expression "print" global
+        53 unary_operation length
+          53 name_expression "t" local@511
+    54 assignment
+      54 expression_list
+        54 assignment_target
+          54 index_expression
+            54 name_expression "t" local@511
+            54 integer_literal 9
+      54 expression_list
+        54 integer_literal 9
+    55 call_statement
+      55 call_expression
+        55 name_expression "print" global
+        55 unary_operation length
+          55 name_expression "t" local@511
+    56 assignment
+      56 expression_list
+        56 assignment_target
+          56 index_expression
+            56 name_expression "t" local@511
+            56 integer_literal 8
+      56 expression_list
+        56 nil_literal
+    57 assignment
+      57 expression_list
+        57 assignment_target
+          57 index_expression
+            57 name_expression "t" local@511
+            57 integer_literal 9
+      57 expression_list
+        57 nil_literal
+    58 call_statement
+      58 call_expression
+        58 name_expression "print" global
+        58 unary_operation length
+          58 name_expression "t" local@511
+    59 assignment
+      59 expression_list
+        59 assignment_target
+          59 index_expression
+            59 name_expression "t" local@511
+            59 integer_literal 4
+      59 expression_list
+        59 integer_literal 4
+    60 call_statement
+      60 call_expression
+        60 name_expression "print" global
+        60 unary_operation length
+          60 name_expression "t" local@511
+    61 local_statement
+      61 name_list
+        61 local_name "grown"
+      61 expression_list
+        61 table_constructor
+          61 integer_literal 1
+          61 nil_literal
+          61 integer_literal 3
+    62 numeric_for
+      62 local_name "i"
+      62 expression_list
+        62 integer_literal 4
+        62 integer_literal 20
+      63 block
+        63 assignment
+          63 expression_list
+            63 assignment_target
+              63 index_expression
+                63 name_expression "grown" local@576
+                63 name_expression "i" local@584
+          63 expression_list
+            63 name_expression "i" local@584
+    65 call_statement
+      65 call_expression
+        65 name_expression "print" global
+        65 unary_operation length
+          65 name_expression "grown" local@576
+    68 local_statement
+      68 name_list
+        68 local_name "nested"
+      68 expression_list
+        68 table_constructor
+          68 table_constructor
+            68 integer_literal 1
+            68 nil_literal
+            68 integer_literal 3
+          68 table_constructor
+            68 nil_literal
+            68 nil_literal
+          68 table_constructor
+            68 vararg_expression
+    69 call_statement
+      69 call_expression
+        69 name_expression "print" global
+        69 unary_operation length
+          69 name_expression "nested" local@603
+        69 unary_operation length
+          69 index_expression
+            69 name_expression "nested" local@603
+            69 integer_literal 1
+        69 unary_operation length
+          69 index_expression
+            69 name_expression "nested" local@603
+            69 integer_literal 2
+        69 unary_operation length
+          69 index_expression
+            69 name_expression "nested" local@603
+            69 integer_literal 3
+exit 0

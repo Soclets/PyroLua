@@ -138,6 +138,15 @@ package Pyro.Tables with SPARK_Mode => On, Always_Terminates is
        and then Model (T) = Model (T)'Old
        and then Entries_From (Entries (T), Entries (T)'Old, Nil, Nil);
 
+   --  The places of the array part, and the keys the hash part has room for as Resize sizes
+   --  it: what luaH_realasize and allocsizenode give, so that Resize can grow one part and
+   --  keep the other.
+   function Array_Size (T : Table) return Natural
+   with Global => null, Post => Array_Size'Result <= Maximum_Array_Size;
+
+   function Hash_Room (T : Table) return Natural
+   with Global => null, Post => Hash_Room'Result <= Maximum_Capacity / 2;
+
    type Next_Status is
      (Found,          --  Next_Key and Next_Item are the next key and its value
       Finished,       --  Key was the last key (or nil, on an empty table)
@@ -279,6 +288,14 @@ private
 
    function Seed (T : Table) return Pyro.Strings.Seed
    is (T.Seed);
+
+   function Array_Size (T : Table) return Natural
+   is (if T.Items = null then 0 else Natural'Min (T.Items'Length, Maximum_Array_Size));
+
+   --  The most keys for which Resize gives the hash part as many nodes as it has.
+   function Hash_Room (T : Table) return Natural
+   is (if T.Nodes = null or else T.Nodes'Length < 4 then 0
+       else Natural'Min (T.Nodes'Length / 2 - 1, Maximum_Capacity / 2));
 
    function Is_Released (T : Table) return Boolean
    is (T.Items = null and then T.Nodes = null);

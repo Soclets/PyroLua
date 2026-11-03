@@ -29,17 +29,6 @@ its constants, locals and upvalues, and after each CLOSURE). `pyrolua --bytecode
 prints a made-up address in the same places, so the listings differ there; `tests/run`
 masks every `0x…` number before comparing them. Everything else in the listing matches.
 
-## Tables are not presized
-
-Source: `src/runtime/pyro-virtual_machine.adb`.
-
-NEWTABLE and SETLIST give the sizes a table constructor needs, and PUC Lua sizes the
-table's array and hash parts with them (`luaH_resize`, `luaH_resizearray`). Pyro ignores
-them: a table's parts grow as keys arrive, sized as PUC Lua's rehash sizes them. Results
-are the same except for `#t` on a table with holes, where Lua allows any border and the two
-may find different ones, and for speed. Sizing tables in the heap made its proofs, which
-sit close to the steps limit, fail; it can come back once they have more room.
-
 ## No stack tracebacks
 
 Accepted by the owner on 2026-11-03.

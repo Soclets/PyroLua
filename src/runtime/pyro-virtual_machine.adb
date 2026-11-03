@@ -6,6 +6,7 @@
 with Ada.Unchecked_Deallocation;
 with Pyro.Color_Sequences;
 with Pyro.Floats;
+with Pyro.Heap.String_Reads;
 with Pyro.Heap.Table_Reads;
 with Pyro.Integer_Arithmetic;
 with Pyro.Numbers;
@@ -702,18 +703,10 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    is (Item.Kind = Object_Value
        and then Pyro.Heap.Kind_Of (M.Heap, Item.Object) = String_Object);
 
-   function String_Text (M : Machine; Item : Value) return String is
-      Length : constant Natural :=
-        Natural'Min (Pyro.Heap.String_Length (M.Heap, Item.Object),
-                     Pyro.Heap.Maximum_String_Length);
-      Result : String (1 .. Length);
-   begin
-      for Position in Result'Range loop
-         Result (Position) :=
-           Pyro.Heap.String_Byte (M.Heap, Item.Object, Byte_Position (Position));
-      end loop;
-      return Result;
-   end String_Text;
+   --  (An unloaded machine holds no string.)
+   function String_Text (M : Machine; Item : Value) return String
+   is (if M.State = Unloaded then ""
+       else Pyro.Heap.String_Reads.String_Text (M.Heap, Item.Object));
 
    procedure To_Number (M : Machine; Item : Value; Result : out Value; Valid : out Boolean) is
       Number : Pyro.Numbers.Numeral_Value;
@@ -2771,6 +2764,17 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       return Basic_Image (Item);
    end Piece;
 
+   --  The length of Piece (M, Item), without reading a string's bytes.
+   function Piece_Length (M : Machine; Item : Value) return Natural
+   is (if Is_String (M, Item)
+       then Natural'Min (Pyro.Heap.String_Length (M.Heap, Item.Object),
+                         Pyro.Strings.Maximum_String_Length)
+       else Natural'Min (Basic_Image (Item)'Length, Pyro.Strings.Maximum_String_Length))
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Canonical (Item) and then Joinable (M, Item),
+     Post   => Piece_Length'Result <= Pyro.Strings.Maximum_String_Length;
+
    --  A new string joining registers From .. To of the running frame, Length bytes in all.
    --  Handle is No_Object when Budget cannot pay.
    procedure Join
@@ -2877,25 +2881,25 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          end if;
          --  As many strings and numbers as there are below the top, joined at once.
          Joined := 2;
-         Length := Piece (M, Left)'Length;
-         if Piece (M, Right)'Length > Pyro.Strings.Maximum_String_Length - Length then
+         Length := Piece_Length (M, Left);
+         if Piece_Length (M, Right) > Pyro.Strings.Maximum_String_Length - Length then
             Raise_Runtime_Error (M, Budget, "string length overflow");
             return;
          end if;
-         Length := Length + Piece (M, Right)'Length;
+         Length := Length + Piece_Length (M, Right);
          while Joined < Total and then Joinable (M, Register (M, Top - Joined - 1)) loop
             pragma Loop_Invariant (Joined in 2 .. Total - 1);
             pragma Loop_Invariant (Length <= Pyro.Strings.Maximum_String_Length);
             pragma Loop_Invariant
               (for all Place in Top - Joined .. Top - 1 => Joinable (M, Register (M, Place)));
             pragma Loop_Variant (Increases => Joined);
-            if Piece (M, Register (M, Top - Joined - 1))'Length
+            if Piece_Length (M, Register (M, Top - Joined - 1))
               > Pyro.Strings.Maximum_String_Length - Length
             then
                Raise_Runtime_Error (M, Budget, "string length overflow");
                return;
             end if;
-            Length := Length + Piece (M, Register (M, Top - Joined - 1))'Length;
+            Length := Length + Piece_Length (M, Register (M, Top - Joined - 1));
             Joined := Joined + 1;
          end loop;
          Join (M, Budget, Top - Joined, Top - 1, Length, Handle);
@@ -3110,14 +3114,16 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    end Set_Index;
 
    procedure Make_Table
-     (M      : in out Machine;
-      Budget : in out Memory_Budget;
-      Target : Natural)
+     (M          : in out Machine;
+      Budget     : in out Memory_Budget;
+      Target     : Natural;
+      Array_Size : Natural;
+      Hash_Size  : Natural)
    is
-      Handle : Object_Handle;
-      Before : constant Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
+      Handle  : Object_Handle;
+      Success : Boolean;
+      Before  : constant Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
    begin
-      --  [differs] Tables are not presized: they grow as keys arrive.
       Pyro.Heap.New_Table (M.Heap, Budget, Handle);
       Lemma_Roots_Grow (Before, M);
       if Handle = No_Object then
@@ -3125,6 +3131,19 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          return;
       end if;
       Lemma_Heap_Live (M.Heap, Object_Value_Of (Handle));
+      --  Sizes past what a table can hold leave it to grow as keys arrive: no constructor
+      --  fills them.
+      if (Array_Size /= 0 or else Hash_Size /= 0)
+        and then Array_Size <= Pyro.Tables.Maximum_Array_Size
+        and then Hash_Size <= Pyro.Tables.Maximum_Capacity / 2
+      then
+         Pyro.Heap.Table_Resize (M.Heap, Budget, Handle, Array_Size, Hash_Size, Success);
+         if not Success then
+            Raise_Memory_Error (M, Budget);
+            return;
+         end if;
+         Lemma_Heap_Live (M.Heap, Object_Value_Of (Handle));
+      end if;
       Set_Register (M, Target, Object_Value_Of (Handle));
       Next (M, 1);
    end Make_Table;
@@ -3137,11 +3156,14 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       First  : Integer_64;
       Skip   : Natural)
    is
-      Place  : constant Positive := Register_Place (M, Table);
-      T      : constant Value := Register (M, Table);
-      Size   : Natural;
-      Item   : Value;
-      Status : Pyro.Tables.Set_Status;
+      Place      : constant Positive := Register_Place (M, Table);
+      T          : constant Value := Register (M, Table);
+      Size       : Natural;
+      Item       : Value;
+      Status     : Pyro.Tables.Set_Status;
+      Array_Size : Natural;
+      Hash_Room  : Natural;
+      Success    : Boolean;
    begin
       Size :=
         (if Count >= 0 then Count elsif M.Top > Place then M.Top - Place - 1 else 0);
@@ -3149,6 +3171,18 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       if not Is_Table (M, T) then
          Next (M, Skip);
          return;
+      end if;
+      --  [puc lvm.c:OP_SETLIST] The array part grows at once to hold the last key.
+      Pyro.Heap.Table_Reads.Table_Sizes (M.Heap, T.Object, Array_Size, Hash_Room);
+      if First + Integer_64 (Size) > Integer_64 (Array_Size)
+        and then First + Integer_64 (Size) <= Pyro.Tables.Maximum_Array_Size
+      then
+         Pyro.Heap.Table_Resize
+           (M.Heap, Budget, T.Object, Natural (First + Integer_64 (Size)), Hash_Room, Success);
+         if not Success then
+            Raise_Memory_Error (M, Budget);
+            return;
+         end if;
       end if;
       for Index in 1 .. Size loop
          pragma Loop_Invariant (Is_Valid (M) and then Running (M));
