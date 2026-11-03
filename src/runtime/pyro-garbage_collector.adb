@@ -2,8 +2,6 @@
 --
 --  [puc lgc.c] The garbage collector: stop-the-world mark and sweep over the heap.
 
-with Pyro.Color_Sequences;
-
 package body Pyro.Garbage_Collector with SPARK_Mode => On is
 
    --  [proof] The tricolour invariant: every child of a black object (in C, with the children
@@ -121,97 +119,6 @@ package body Pyro.Garbage_Collector with SPARK_Mode => On is
       end loop;
    end Lemma_Path_Kept;
 
-   --  Marks every object reachable from Roots, from white objects: shades the roots, then
-   --  blackens gray objects until none is left, shading their children first. Complete is
-   --  False when the gray list ran past one entry per object (it cannot, since an object is
-   --  put on it only when it turns gray) or a gray object was left off it; then some reachable
-   --  object may be white.
-   procedure Mark (H : in out Pyro.Heap.Heap; Roots : Root_Array; Complete : out Boolean)
-   with
-     Global => null,
-     Pre    =>
-       Is_Valid (H)
-       and then (for all R in Roots'Range => Is_Live (H, Roots (R)))
-       and then (for all Handle in 1 .. Slot_Count (H) => Color_Of (H, Handle) = White),
-     Post   =>
-       Is_Valid (H)
-       and then Kinds (H) = Kinds (H)'Old
-       and then Graph (H) = Graph (H)'Old
-       and then (if Complete
-                 then Closed (Colors (H), Graph (H))
-                      and then (for all R in Roots'Range =>
-                                  Roots (R).Kind /= Object_Value
-                                  or else Color_Of (H, Roots (R).Object) /= White))
-   is
-      K0   : constant Kind_Sequences.Sequence := Kinds (H) with Ghost;
-      G0   : constant Graph_Sequences.Sequence := Graph (H) with Ghost;
-      C    : Color_Sequences.Sequence with Ghost;
-      Fuel : Natural := Natural (Slot_Count (H)) + 1;
-      Next : Object_Handle;
-      Item : Value;
-   begin
-      Complete := False;
-      pragma Assert (Black_Closed (Colors (H), G0));
-      for R in Roots'Range loop
-         if Roots (R).Kind = Object_Value then
-            C := Colors (H);
-            Shade (H, Roots (R).Object);
-            Lemma_Grows (C, Colors (H), G0, No_Object);
-         end if;
-         pragma Loop_Invariant (Is_Valid (H) and then Kinds (H) = K0 and then Graph (H) = G0);
-         pragma Loop_Invariant (Black_Closed (Colors (H), G0));
-         pragma Loop_Invariant
-           (for all Earlier in Roots'First .. R =>
-              Roots (Earlier).Kind /= Object_Value
-              or else Color_Of (H, Roots (Earlier).Object) /= White);
-      end loop;
-
-      loop
-         pragma Loop_Invariant (Is_Valid (H) and then Kinds (H) = K0 and then Graph (H) = G0);
-         pragma Loop_Invariant (Black_Closed (Colors (H), G0));
-         pragma Loop_Invariant
-           (for all R in Roots'Range =>
-              Roots (R).Kind /= Object_Value or else Color_Of (H, Roots (R).Object) /= White);
-         pragma Loop_Variant (Decreases => Fuel);
-         Take_Gray (H, Next);
-         exit when Next = No_Object or else Fuel = 0;
-         Fuel := Fuel - 1;
-         for Position in 1 .. Child_Count (H, Next) loop
-            Item := Child_At (H, Next, Position);
-            if Item.Kind = Object_Value then
-               C := Colors (H);
-               Shade (H, Item.Object);
-               Lemma_Grows (C, Colors (H), G0, No_Object);
-            end if;
-            pragma Loop_Invariant (Is_Valid (H) and then Kinds (H) = K0 and then Graph (H) = G0);
-            pragma Loop_Invariant (Black_Closed (Colors (H), G0));
-            pragma Loop_Invariant (Kind_Of (H, Next) /= Free_Object);
-            pragma Loop_Invariant
-              (for all R in Roots'Range =>
-                 Roots (R).Kind /= Object_Value or else Color_Of (H, Roots (R).Object) /= White);
-            pragma Loop_Invariant
-              (for all Earlier in 1 .. Position => Child_Marked (Colors (H), G0, Next, Earlier));
-         end loop;
-         C := Colors (H);
-         Blacken (H, Next);
-         Lemma_Grows (C, Colors (H), G0, Next);
-      end loop;
-      if Fuel = 0 and then Next /= No_Object then
-         return;
-      end if;
-
-      --  The gray list is empty: check that no object is gray.
-      for Handle in 1 .. Slot_Count (H) loop
-         if Color_Of (H, Handle) = Gray then
-            return;
-         end if;
-         pragma Loop_Invariant
-           (for all Earlier in 1 .. Handle => Color_Of (H, Earlier) /= Gray);
-      end loop;
-      pragma Assert (No_Gray (Colors (H)));
-      Complete := True;
-   end Mark;
-
    --  [proof] Freeing the objects C shows white, when the others are closed under children,
    --  keeps what Keeps_Closed says.
    procedure Lemma_Swept
@@ -249,28 +156,120 @@ package body Pyro.Garbage_Collector with SPARK_Mode => On is
       null;
    end Lemma_Unchanged;
 
-   procedure Collect
+   function Marking (H : Pyro.Heap.Heap) return Boolean
+   is (Black_Closed (Colors (H), Graph (H)));
+
+   procedure Start (H : in out Pyro.Heap.Heap) is
+   begin
+      Whiten (H);
+      pragma Assert (Black_Closed (Colors (H), Graph (H)));
+   end Start;
+
+   procedure Mark_Roots (H : in out Pyro.Heap.Heap; Roots : Root_Array) is
+      K0 : constant Kind_Sequences.Sequence := Kinds (H) with Ghost;
+      G0 : constant Graph_Sequences.Sequence := Graph (H) with Ghost;
+      C0 : constant Color_Sequences.Sequence := Colors (H) with Ghost;
+      C  : Color_Sequences.Sequence with Ghost;
+   begin
+      for R in Roots'Range loop
+         if Roots (R).Kind = Object_Value then
+            C := Colors (H);
+            Shade (H, Roots (R).Object);
+            Lemma_Grows (C, Colors (H), G0, No_Object);
+         end if;
+         pragma Loop_Invariant (Is_Valid (H) and then Kinds (H) = K0 and then Graph (H) = G0);
+         pragma Loop_Invariant (Black_Closed (Colors (H), G0));
+         pragma Loop_Invariant (Grown (C0, Colors (H)));
+         pragma Loop_Invariant
+           (for all Earlier in Roots'First .. R =>
+              Roots (Earlier).Kind /= Object_Value
+              or else Color_Of (H, Roots (Earlier).Object) /= White);
+      end loop;
+   end Mark_Roots;
+
+   --  Blackens gray objects until none is left, shading their children first. Complete is
+   --  False when the gray list ran past one entry per object (it cannot, since an object is
+   --  put on it only when it turns gray) or a gray object was left off it; then some object
+   --  that can be reached may be white.
+   procedure Propagate (H : in out Pyro.Heap.Heap; Complete : out Boolean)
+   with
+     Global => null,
+     Pre    => Is_Valid (H) and then Marking (H),
+     Post   =>
+       Is_Valid (H)
+       and then Kinds (H) = Kinds (H)'Old
+       and then Graph (H) = Graph (H)'Old
+       and then Grown (Colors (H)'Old, Colors (H))
+       and then (if Complete then Closed (Colors (H), Graph (H)))
+   is
+      K0   : constant Kind_Sequences.Sequence := Kinds (H) with Ghost;
+      G0   : constant Graph_Sequences.Sequence := Graph (H) with Ghost;
+      C0   : constant Color_Sequences.Sequence := Colors (H) with Ghost;
+      C    : Color_Sequences.Sequence with Ghost;
+      Fuel : Natural := Natural (Slot_Count (H)) + 1;
+      Next : Object_Handle;
+      Item : Value;
+   begin
+      Complete := False;
+      loop
+         pragma Loop_Invariant (Is_Valid (H) and then Kinds (H) = K0 and then Graph (H) = G0);
+         pragma Loop_Invariant (Black_Closed (Colors (H), G0));
+         pragma Loop_Invariant (Grown (C0, Colors (H)));
+         pragma Loop_Variant (Decreases => Fuel);
+         Take_Gray (H, Next);
+         exit when Next = No_Object or else Fuel = 0;
+         Fuel := Fuel - 1;
+         for Position in 1 .. Child_Count (H, Next) loop
+            Item := Child_At (H, Next, Position);
+            if Item.Kind = Object_Value then
+               C := Colors (H);
+               Shade (H, Item.Object);
+               Lemma_Grows (C, Colors (H), G0, No_Object);
+            end if;
+            pragma Loop_Invariant (Is_Valid (H) and then Kinds (H) = K0 and then Graph (H) = G0);
+            pragma Loop_Invariant (Black_Closed (Colors (H), G0));
+            pragma Loop_Invariant (Grown (C0, Colors (H)));
+            pragma Loop_Invariant (Kind_Of (H, Next) /= Free_Object);
+            pragma Loop_Invariant
+              (for all Earlier in 1 .. Position => Child_Marked (Colors (H), G0, Next, Earlier));
+         end loop;
+         C := Colors (H);
+         Blacken (H, Next);
+         Lemma_Grows (C, Colors (H), G0, Next);
+      end loop;
+      if Fuel = 0 and then Next /= No_Object then
+         return;
+      end if;
+
+      --  The gray list is empty: check that no object is gray.
+      for Handle in 1 .. Slot_Count (H) loop
+         if Color_Of (H, Handle) = Gray then
+            return;
+         end if;
+         pragma Loop_Invariant
+           (for all Earlier in 1 .. Handle => Color_Of (H, Earlier) /= Gray);
+      end loop;
+      pragma Assert (No_Gray (Colors (H)));
+      Complete := True;
+   end Propagate;
+
+   procedure Finish
      (H        : in out Pyro.Heap.Heap;
       Budget   : in out Memory_Budget;
-      Roots    : Root_Array;
       Complete : out Boolean)
    is
       K0 : constant Kind_Sequences.Sequence := Kinds (H) with Ghost;
       G0 : constant Graph_Sequences.Sequence := Graph (H) with Ghost;
+      C0 : constant Color_Sequences.Sequence := Colors (H) with Ghost;
       C  : Color_Sequences.Sequence with Ghost;
    begin
       Lemma_Graph_Live (H);
       pragma Assert (Graph_Live (K0, G0));
-      pragma Assert (Roots_Live (K0, Roots));
-      Whiten (H);
-      Mark (H, Roots, Complete);
+      Propagate (H, Complete);
       if Complete then
          C := Colors (H);
          pragma Assert (Closed (C, G0));
-         pragma Assert
-           (for all R in Roots'Range =>
-              Roots (R).Kind /= Object_Value
-              or else Color_Sequences.Get (C, Roots (R).Object) /= White);
+         pragma Assert (Grown (C0, C));
          Sweep (H, Budget);
          pragma Assert
            (for all Handle in 1 .. Slot_Count (H) =>
@@ -282,6 +281,24 @@ package body Pyro.Garbage_Collector with SPARK_Mode => On is
          Whiten (H);
          Lemma_Unchanged (K0, G0);
       end if;
+   end Finish;
+
+   procedure Collect
+     (H        : in out Pyro.Heap.Heap;
+      Budget   : in out Memory_Budget;
+      Roots    : Root_Array;
+      Complete : out Boolean)
+   is
+      K0 : constant Kind_Sequences.Sequence := Kinds (H) with Ghost;
+   begin
+      pragma Assert (Roots_Live (K0, Roots));
+      Start (H);
+      Mark_Roots (H, Roots);
+      pragma Assert
+        (for all R in Roots'Range =>
+           Roots (R).Kind /= Object_Value
+           or else Color_Sequences.Get (Colors (H), Roots (R).Object) /= White);
+      Finish (H, Budget, Complete);
    end Collect;
 
 end Pyro.Garbage_Collector;

@@ -2,6 +2,7 @@
 --
 --  [puc lgc.c] The garbage collector: stop-the-world mark and sweep over the heap.
 
+with Pyro.Color_Sequences;
 with Pyro.Graph_Sequences;
 with Pyro.Handle_Sequences;
 with Pyro.Heap;           use Pyro.Heap;
@@ -86,6 +87,76 @@ package Pyro.Garbage_Collector with SPARK_Mode => On, Always_Terminates is
                 /= Free_Object
        and then Kind_Sequences.Get (K2, Handle_Sequences.Get (P, Handle_Sequences.Last (P)))
                 = Kind_Sequences.Get (K1, Handle_Sequences.Get (P, Handle_Sequences.Last (P)));
+
+   --  A collection in three steps, so that a program shades its roots where they are (one
+   --  array at a time) instead of gathering them: Start, Mark_Roots for each array of roots,
+   --  then Finish.
+
+   --  [proof] A collection is under way: no child of a black object is white (the tricolour
+   --  invariant).
+   function Marking (H : Pyro.Heap.Heap) return Boolean
+   with Ghost, Global => null;
+
+   --  [proof] Every object Before shows not white, After shows not white too.
+   function Grown (Before, After : Color_Sequences.Sequence) return Boolean
+   is (Color_Sequences.Last (After) = Color_Sequences.Last (Before)
+       and then (for all Handle in 1 .. Color_Sequences.Last (Before) =>
+                   (if Color_Sequences.Get (Before, Handle) /= White
+                    then Color_Sequences.Get (After, Handle) /= White)))
+   with Ghost;
+
+   --  Starts a collection: every object white.
+   procedure Start (H : in out Pyro.Heap.Heap)
+   with
+     Global => null,
+     Pre    => Is_Valid (H),
+     Post   =>
+       Is_Valid (H)
+       and then Marking (H)
+       and then Kinds (H) = Kinds (H)'Old
+       and then Graph (H) = Graph (H)'Old
+       and then (for all Handle in 1 .. Slot_Count (H) => Color_Of (H, Handle) = White);
+
+   --  Shades every object Roots refers to: Finish keeps it.
+   procedure Mark_Roots (H : in out Pyro.Heap.Heap; Roots : Root_Array)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (H)
+       and then Marking (H)
+       and then (for all R in Roots'Range => Is_Live (H, Roots (R))),
+     Post   =>
+       Is_Valid (H)
+       and then Marking (H)
+       and then Kinds (H) = Kinds (H)'Old
+       and then Graph (H) = Graph (H)'Old
+       and then Grown (Colors (H)'Old, Colors (H))
+       and then (for all R in Roots'Range =>
+                   Roots (R).Kind /= Object_Value or else Color_Of (H, Roots (R).Object) /= White);
+
+   --  [puc lgc.c:fullgc] Marks what the shaded objects reach (with the gray list, no
+   --  recursion), then frees the rest. Every object not white when it starts is kept, with
+   --  what it holds. Complete is False when marking could not finish, and then nothing is
+   --  freed.
+   procedure Finish
+     (H        : in out Pyro.Heap.Heap;
+      Budget   : in out Memory_Budget;
+      Complete : out Boolean)
+   with
+     Global => null,
+     Pre    => Is_Valid (H) and then Marking (H),
+     Post   =>
+       Is_Valid (H)
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then Slot_Count (H) = Slot_Count (H)'Old
+       and then Keeps_Closed (Kinds (H)'Old, Graph (H)'Old, Kinds (H))
+       and then (for all Handle in 1 .. Slot_Count (H) =>
+                   (if Color_Sequences.Get (Colors (H)'Old, Handle) /= White
+                    then Kind_Of (H, Handle) = Kind_Sequences.Get (Kinds (H)'Old, Handle)))
+       and then (for all Handle in 1 .. Slot_Count (H) =>
+                   (if Kind_Of (H, Handle) /= Free_Object
+                    then Children (H, Handle) = Graph_Sequences.Get (Graph (H)'Old, Handle)))
+       and then (if not Complete then Kinds (H) = Kinds (H)'Old);
 
    --  [puc lgc.c:fullgc] Frees the objects that cannot be reached from Roots: marks what
    --  can (with the gray list, no recursion), then sweeps the rest. Complete is False when

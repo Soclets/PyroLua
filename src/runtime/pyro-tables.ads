@@ -19,6 +19,9 @@ package Pyro.Tables with SPARK_Mode => On, Always_Terminates is
    Maximum_Array_Size : constant := 2 ** 26;
    Maximum_Capacity   : constant := 2 ** 26;
 
+   --  The most values a table holds: its array part, then a key and a value for each node.
+   Maximum_Entry_Count : constant := Maximum_Array_Size + 2 * Maximum_Capacity;
+
    --  Bytes charged for each place of the array part and each node of the hash part.
    Item_Bytes : constant Byte_Count := 16;
    Node_Bytes : constant Byte_Count := 48;
@@ -188,7 +191,7 @@ package Pyro.Tables with SPARK_Mode => On, Always_Terminates is
    --  and value. A place with nothing holds nil. A removed key is still held (until the table
    --  is rehashed), so that the traversal can go on past it.
    function Entry_Count (T : Table) return Natural
-   with Global => null;
+   with Global => null, Post => Entry_Count'Result <= Maximum_Entry_Count;
 
    function Entry_At (T : Table; Position : Positive) return Value
    with Global => null, Pre => Position <= Entry_Count (T);

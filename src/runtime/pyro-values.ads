@@ -15,8 +15,11 @@ package Pyro.Values with SPARK_Mode => On, Always_Terminates is
    No_Object : constant Object_Handle := 0;
    subtype Valid_Handle is Object_Handle range 1 .. Object_Handle'Last;
 
-   --  What a heap slot holds. A free slot holds nothing.
-   type Object_Kind is (Free_Object, String_Object, Table_Object);
+   --  What a heap slot holds. A free slot holds nothing. A closure is a Lua function, an
+   --  upvalue a variable that closures share, and a host function one the host provides.
+   type Object_Kind is
+     (Free_Object, String_Object, Table_Object, Closure_Object, Upvalue_Object,
+      Host_Function_Object);
 
    --  The collector's mark of a heap object: white when not reached (yet), gray when reached
    --  with its children still to visit, black when they have been.

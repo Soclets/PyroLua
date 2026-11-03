@@ -81,14 +81,18 @@ package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
    is (Item.Kind /= Object_Value or else Kind_Of (H, Item.Object) /= Free_Object)
    with Ghost;
 
-   --  [proof] The values object Handle holds, as Children gives them: a table's entries
-   --  (Pyro.Tables.Entries), nothing for other objects.
+   --  The most values an object refers to besides a table's entries (Reference_Count): a
+   --  closure's upvalues, at most lopcodes.h's MAXUPVAL.
+   Maximum_References : constant := 255;
+
+   --  [proof] The values object Handle holds: a table's entries (Pyro.Tables.Entries), then
+   --  its references (Reference_At); nothing for a free slot or a string.
    function Children (H : Heap; Handle : Valid_Handle) return Value_Sequences.Sequence
    with
      Ghost,
      Global => null,
      Post   =>
-       (if Kind_Of (H, Handle) /= Table_Object
+       (if Kind_Of (H, Handle) in Free_Object | String_Object
         then Value_Sequences.Last (Children'Result) = 0);
 
    --  [proof] The children of every slot, by handle: the graph the collector walks.
@@ -192,7 +196,9 @@ package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
        and then Seed (H) = Seed (H)'Old
        and then (if Result /= No_Object
                  then Kind_Of (H, Result) = Table_Object
-                      and then Value_Maps.Is_Empty (Table_Model (H, Result)));
+                      and then Value_Maps.Is_Empty (Table_Model (H, Result))
+                      and then Reference_Count (H, Result) = 1
+                      and then Reference_At (H, Result, 1) = Nil);
 
    --  [proof] The contents of table T (Pyro.Tables.Model).
    function Table_Model (H : Heap; T : Valid_Handle) return Value_Maps.Map
@@ -369,6 +375,93 @@ package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
                     then Children (H, Handle) = Graph_Sequences.Get (Graph (H)'Old, Handle)))
        and then (for all Handle in 1 .. Slot_Count (H) => Color_Of (H, Handle) = White);
 
+   --  The number of values object Handle refers to besides a table's entries: one for a
+   --  table (its metatable, nil for none) and for an upvalue (its value once closed), a
+   --  closure's upvalues, none for strings and host functions.
+   function Reference_Count (H : Heap; Handle : Valid_Handle) return Natural
+   with Global => null, Post => Reference_Count'Result <= Maximum_References;
+
+   --  Reference Position of object Handle.
+   function Reference_At (H : Heap; Handle : Valid_Handle; Position : Positive) return Value
+   with Global => null, Pre => Position <= Reference_Count (H, Handle);
+
+   --  [proof] In a valid heap, a reference is canonical and refers to an object the heap holds.
+   procedure Lemma_Reference_Live (H : Heap; Handle : Valid_Handle; Position : Positive)
+   with
+     Ghost,
+     Global => null,
+     Pre    => Is_Valid (H) and then Position <= Reference_Count (H, Handle),
+     Post   =>
+       Is_Canonical (Reference_At (H, Handle, Position))
+       and then Is_Live (H, Reference_At (H, Handle, Position));
+
+   --  Makes reference Position of object Handle Item, which must refer to an object the heap
+   --  holds.
+   procedure Set_Reference
+     (H : in out Heap; Handle : Valid_Handle; Position : Positive; Item : Value)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (H)
+       and then Kind_Of (H, Handle) /= Free_Object
+       and then Position <= Reference_Count (H, Handle)
+       and then Is_Canonical (Item)
+       and then Is_Live (H, Item),
+     Post   =>
+       Is_Valid (H)
+       and then Kinds (H) = Kinds (H)'Old
+       and then Slot_Count (H) = Slot_Count (H)'Old
+       and then Seed (H) = Seed (H)'Old
+       and then Reference_Count (H, Handle) = Reference_Count (H, Handle)'Old
+       and then Tag_Of (H, Handle) = Tag_Of (H, Handle)'Old
+       and then Reference_At (H, Handle, Position) = Item;
+
+   --  The number the VM keeps in object Handle: a closure's prototype, an open upvalue's place
+   --  in the stack, a host function's number.
+   function Tag_Of (H : Heap; Handle : Valid_Handle) return Natural
+   with Global => null;
+
+   --  Makes the number of object Handle Tag.
+   procedure Set_Tag (H : in out Heap; Handle : Valid_Handle; Tag : Natural)
+   with
+     Global => null,
+     Pre    => Is_Valid (H) and then Kind_Of (H, Handle) /= Free_Object,
+     Post   =>
+       Is_Valid (H)
+       and then Kinds (H) = Kinds (H)'Old
+       and then Slot_Count (H) = Slot_Count (H)'Old
+       and then Seed (H) = Seed (H)'Old
+       and then Reference_Count (H, Handle) = Reference_Count (H, Handle)'Old
+       and then Tag_Of (H, Handle) = Tag;
+
+   --  A new closure, upvalue or host function with number Tag and References references, all
+   --  nil. No_Object (and the heap keeps its objects) when Budget cannot pay for it or every
+   --  handle is in use.
+   procedure New_Object
+     (H          : in out Heap;
+      Budget     : in out Memory_Budget;
+      Kind       : Object_Kind;
+      Tag        : Natural;
+      References : Natural;
+      Result     : out Object_Handle)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (H)
+       and then Kind in Closure_Object | Upvalue_Object | Host_Function_Object
+       and then References <= Maximum_References,
+     Post   =>
+       Is_Valid (H)
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then Keeps_Objects (Kinds (H)'Old, Kinds (H))
+       and then Seed (H) = Seed (H)'Old
+       and then (if Result /= No_Object
+                 then Kind_Of (H, Result) = Kind
+                      and then Tag_Of (H, Result) = Tag
+                      and then Reference_Count (H, Result) = References
+                      and then (for all Position in 1 .. References =>
+                                  Reference_At (H, Result, Position) = Nil));
+
    --  Frees every object and releases the heap's memory from Budget.
    procedure Clear (H : in out Heap; Budget : in out Memory_Budget)
    with
@@ -387,6 +480,13 @@ private
    type Byte_Array_Access is access Byte_Array;
    type Table_Access is access Pyro.Tables.Table;
 
+   --  The values an object refers to besides a table's entries.
+   type Reference_Array is array (Positive range <>) of Value;
+   type Reference_Array_Access is access Reference_Array;
+
+   --  Bytes charged for each reference.
+   Reference_Bytes : constant Byte_Count := 16;
+
    --  A slot: what it holds, and what it owns. A free slot links to the next free one, and a
    --  gray object to the next gray one; a string slot keeps its hash.
    type Slot is record
@@ -394,8 +494,10 @@ private
       Color : Object_Color := White;
       Link  : Object_Handle := No_Object;
       Hash  : Unsigned_64 := 0;
+      Tag   : Natural := 0;
       Bytes : Byte_Array_Access := null;
       Table : Table_Access := null;
+      Refs  : Reference_Array_Access := null;
    end record;
 
    --  Slots live in chunks of Chunk_Length, found through a table of Chunk_Count entries
@@ -487,23 +589,49 @@ private
        then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Color
        else White);
 
+   --  [proof] Every reference is canonical. Hidden, as a quantifier inside every slot's
+   --  validity would weigh on every proof about slots; unfolded where a reference is read.
+   function Refs_Canonical (Refs : Reference_Array) return Boolean
+   is (for all Position in Refs'Range => Is_Canonical (Refs (Position)))
+   with Ghost;
+   pragma Annotate (GNATprove, Hide_Info, "Expression_Function_Body", Refs_Canonical);
+
+   --  [proof] References are numbered from 1, at most Maximum_References, and canonical.
+   function Refs_Valid (Refs : Reference_Array_Access) return Boolean
+   is (Refs /= null
+       and then Refs'First = 1
+       and then Refs'Length <= Maximum_References
+       and then Refs_Canonical (Refs.all))
+   with Ghost;
+
    --  [proof] A slot holds what its kind says: a free slot owns nothing and is white, a
-   --  string slot owns bytes 1 .. Length, at most Maximum_String_Length, and a table slot a
-   --  valid table.
+   --  string slot owns bytes 1 .. Length, at most Maximum_String_Length, a table slot a
+   --  valid table and its metatable, and the others their references.
    function Slot_Valid (Item : Slot) return Boolean
    is (case Item.Kind is
          when Free_Object   =>
-           Item.Bytes = null and then Item.Table = null and then Item.Color = White,
+           Item.Bytes = null
+           and then Item.Table = null
+           and then Item.Refs = null
+           and then Item.Color = White,
          when String_Object =>
            Item.Bytes /= null
            and then Item.Bytes'First = 1
            and then Item.Bytes'Last <= Maximum_String_Length
-           and then Item.Table = null,
+           and then Item.Table = null
+           and then Item.Refs = null,
          when Table_Object  =>
            Item.Bytes = null
            and then Item.Table /= null
-           and then Pyro.Tables.Is_Valid (Item.Table.all))
+           and then Pyro.Tables.Is_Valid (Item.Table.all)
+           and then Refs_Valid (Item.Refs)
+           and then Item.Refs'Length = 1,
+         when Closure_Object | Upvalue_Object | Host_Function_Object =>
+           Item.Bytes = null and then Item.Table = null and then Refs_Valid (Item.Refs))
    with Ghost;
+   --  Hidden, so that writing one slot leaves every other slot's validity as it was without
+   --  the provers unfolding it; the body's slot-level procedures unfold it where needed.
+   pragma Annotate (GNATprove, Hide_Info, "Expression_Function_Body", Slot_Valid);
 
    --  [proof] Slot Handle, of a heap with chunk table Chunks and Count slots, has its chunk
    --  and is valid when Handle is at most Count; otherwise it is free, white and owns nothing.
@@ -522,6 +650,8 @@ private
                               = null
                      and then Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Table
                               = null
+                     and then Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Refs
+                              = null
                      and then Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Color
                               = White))
    with Ghost;
@@ -530,12 +660,63 @@ private
    is (Place_Valid (H.Chunks, H.Slot_Count, Handle))
    with Ghost;
 
+   --  [proof] S followed by the references Refs.
+   function Append_All
+     (S : Value_Sequences.Sequence; Refs : Reference_Array) return Value_Sequences.Sequence
+   with
+     Ghost,
+     Global => null,
+     Pre    =>
+       Value_Sequences.Last (S) <= Pyro.Tables.Maximum_Entry_Count
+       and then Refs'First = 1
+       and then Refs'Length <= Maximum_References,
+     Post   =>
+       Value_Sequences.Last (Append_All'Result) = Value_Sequences.Last (S) + Refs'Length
+       and then (for all Position in 1 .. Value_Sequences.Last (S) =>
+                   Value_Sequences.Get (Append_All'Result, Position)
+                   = Value_Sequences.Get (S, Position))
+       and then (for all Position in 1 .. Refs'Length =>
+                   Value_Sequences.Get (Append_All'Result, Value_Sequences.Last (S) + Position)
+                   = Refs (Position));
+
+   --  [proof] The values slot Item holds: a table's entries, then the slot's references.
+   function Slot_Children (Item : Slot) return Value_Sequences.Sequence
+   is (case Item.Kind is
+         when Free_Object | String_Object => Value_Sequences.Empty_Sequence,
+         when Table_Object =>
+           (if Item.Table = null then Value_Sequences.Empty_Sequence
+            elsif Item.Refs = null then Pyro.Tables.Entries (Item.Table.all)
+            elsif Item.Refs'First = 1 and then Item.Refs'Length <= Maximum_References
+            then Append_All (Pyro.Tables.Entries (Item.Table.all), Item.Refs.all)
+            else Value_Sequences.Empty_Sequence),
+         when Closure_Object | Upvalue_Object | Host_Function_Object =>
+           (if Item.Refs /= null
+               and then Item.Refs'First = 1
+               and then Item.Refs'Length <= Maximum_References
+            then Append_All (Value_Sequences.Empty_Sequence, Item.Refs.all)
+            else Value_Sequences.Empty_Sequence))
+   with Ghost;
+
    function Children (H : Heap; Handle : Valid_Handle) return Value_Sequences.Sequence
-   is (if Kind_Of (H, Handle) = Table_Object
-          and then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Table /= null
-       then Pyro.Tables.Entries
-              (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Table.all)
-       else Value_Sequences.Empty_Sequence);
+   is (if Kind_Of (H, Handle) = Free_Object then Value_Sequences.Empty_Sequence
+       else Slot_Children (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset)));
+
+   function Reference_Count (H : Heap; Handle : Valid_Handle) return Natural
+   is (if Kind_Of (H, Handle) /= Free_Object
+          and then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Refs /= null
+          and then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Refs'First = 1
+          and then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Refs'Length
+                   <= Maximum_References
+       then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Refs'Length
+       else 0);
+
+   function Reference_At (H : Heap; Handle : Valid_Handle; Position : Positive) return Value
+   is (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Refs (Position));
+
+   function Tag_Of (H : Heap; Handle : Valid_Handle) return Natural
+   is (if Kind_Of (H, Handle) /= Free_Object
+       then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Tag
+       else 0);
 
    function Table_Model (H : Heap; T : Valid_Handle) return Value_Maps.Map
    is (if H.Chunks (Place_Of (T).Chunk) (Place_Of (T).Offset).Table /= null

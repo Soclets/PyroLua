@@ -366,6 +366,19 @@ allocates is charged to the same `Memory_Budget` as the front end, and running o
 ordinary result (`No_Object`). Clients see the heap through its operations: its private
 part is hidden from their proofs (PROOFS.md, Assumptions).
 
+Besides strings and tables, the heap holds the VM's closures (a prototype of the loaded
+chunk and its upvalues), upvalues (open: a place in the thread's stack; closed: a value)
+and host functions (a number the host chose). Every slot may own a short array of
+references, the values the object refers to besides a table's entries (a table's
+metatable, a closure's upvalues, a closed upvalue's value), and a number (a closure's
+prototype, an open upvalue's place in the stack, a host function's number). The
+collector's graph is a table's entries followed by its references, so one set of proofs
+covers every kind.
+
+A slot's validity is hidden from the heap's own proofs: writing one slot then leaves every
+other slot's validity as it was without the provers unfolding it, and each write reads the
+slot's facts and rebuilds them (`Lemma_Slot_Facts`, `Lemma_Slot_From_Facts`).
+
 ### Strings
 
 Strings are immutable heap objects with a cached hash: SipHash-1-3 of all their bytes,
@@ -429,6 +442,10 @@ later optimisation and not required for correctness.
   one entry per object (neither can happen), marking is incomplete and nothing is freed.
 - **Sweep** frees every white object, takes freed strings out of the intern set, returns
   their memory to the budget, and makes every object white again.
+- A collection runs in three steps, `Start`, `Mark_Roots` (once per array of roots) and
+  `Finish`, so the VM shades its stack and constants where they are instead of gathering
+  them. `Finish` keeps every object that was not white when it started: the VM's roots are
+  known to survive a collection, and nothing else is.
 - Weak tables (`__mode`) and finalisers (`__gc`) come in M5. Until then, a table's dead
   keys are strong (see Tables).
 

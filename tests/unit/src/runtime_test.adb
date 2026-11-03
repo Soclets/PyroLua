@@ -548,6 +548,53 @@ procedure Runtime_Test is
       Check (Used (Budget) = 0, "collector: interning Clear releases everything");
    end Test_Collector_Interning;
 
+   --  Closures, upvalues and host functions: their references keep objects alive, their
+   --  numbers are kept, and freeing them returns their memory.
+   procedure Test_Collector_Objects is
+      H        : Heap;
+      Budget   : Memory_Budget := Create (Default_Limit);
+      Closure  : Object_Handle;
+      Cell     : Object_Handle;
+      Host     : Object_Handle;
+      Inner    : Object_Handle;
+      Meta     : Object_Handle;
+      Complete : Boolean;
+      None     : Pyro.Garbage_Collector.Root_Array (1 .. 0);
+   begin
+      New_Object (H, Budget, Closure_Object, 7, 2, Closure);
+      New_Object (H, Budget, Upvalue_Object, 3, 1, Cell);
+      New_Object (H, Budget, Host_Function_Object, 42, 0, Host);
+      New_Table (H, Budget, Inner);
+      New_Table (H, Budget, Meta);
+      Check (Closure /= No_Object and then Cell /= No_Object and then Host /= No_Object
+             and then Inner /= No_Object and then Meta /= No_Object, "objects: allocated");
+      Check (Kind_Of (H, Closure) = Closure_Object and then Tag_Of (H, Closure) = 7
+             and then Reference_Count (H, Closure) = 2
+             and then Reference_At (H, Closure, 1) = Nil
+             and then Kind_Of (H, Host) = Host_Function_Object and then Tag_Of (H, Host) = 42
+             and then Reference_Count (H, Inner) = 1 and then Reference_At (H, Inner, 1) = Nil,
+             "objects: kinds, numbers and references");
+      --  closure -> upvalue -> table -> metatable
+      Set_Reference (H, Closure, 2, Object_Value_Of (Cell));
+      Set_Reference (H, Cell, 1, Object_Value_Of (Inner));
+      Set_Reference (H, Inner, 1, Object_Value_Of (Meta));
+      Set_Tag (H, Cell, 0);
+      Check (Tag_Of (H, Cell) = 0 and then Reference_At (H, Closure, 2) = Object_Value_Of (Cell),
+             "objects: references and numbers set");
+      Pyro.Garbage_Collector.Collect (H, Budget, [1 => Object_Value_Of (Closure)], Complete);
+      Check (Complete and then Kind_Of (H, Closure) = Closure_Object
+             and then Kind_Of (H, Cell) = Upvalue_Object
+             and then Kind_Of (H, Inner) = Table_Object
+             and then Kind_Of (H, Meta) = Table_Object
+             and then Kind_Of (H, Host) = Free_Object,
+             "objects: references keep objects, the rest is freed");
+      Pyro.Garbage_Collector.Collect (H, Budget, None, Complete);
+      Check (Kind_Of (H, Closure) = Free_Object and then Kind_Of (H, Meta) = Free_Object,
+             "objects: no roots frees everything");
+      Clear (H, Budget);
+      Check (Used (Budget) = 0, "objects: Clear releases everything");
+   end Test_Collector_Objects;
+
    --  Large graphs within the limit: a chain of tables deeper than any stack, and one table
    --  with many children. Marking uses the gray list, so depth costs no recursion.
    procedure Test_Collector_Stress is
@@ -607,6 +654,7 @@ begin
    Test_Collector_Random;
    Test_Collector_Interning;
    Test_Collector_Stress;
+   Test_Collector_Objects;
    if Failures > 0 then
       Put_Line (Natural'Image (Failures) & " failure(s)");
       Ada.Command_Line.Set_Exit_Status (1);
