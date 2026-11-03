@@ -1,0 +1,320 @@
+1 function_body vararg
+  1 block
+    4 local_statement
+      4 name_list
+        4 local_name "log"
+      4 expression_list
+        4 table_constructor
+    5 local_statement
+      5 name_list
+        5 local_name "Ordered"
+      5 expression_list
+        5 table_constructor
+    6 assignment
+      6 expression_list
+        6 assignment_target name-key
+          6 index_expression name-key
+            6 name_expression "Ordered" local@6
+            6 string_literal "__lt"
+      6 expression_list
+        6 function_expression
+          6 function_body
+            6 name_list
+              6 local_name "a"
+              6 local_name "b"
+            7 block
+              7 assignment
+                7 expression_list
+                  7 assignment_target
+                    7 index_expression
+                      7 name_expression "log" upvalue@1
+                      7 binary_operation add
+                        7 unary_operation length
+                          7 name_expression "log" upvalue@1
+                        7 integer_literal 1
+                7 expression_list
+                  7 binary_operation concatenate
+                    7 index_expression name-key
+                      7 name_expression "a" local@16
+                      7 string_literal "n"
+                    7 binary_operation concatenate
+                      7 string_literal "<"
+                      7 index_expression name-key
+                        7 name_expression "b" local@17
+                        7 string_literal "n"
+              8 return_statement
+                8 expression_list
+                  8 binary_operation less
+                    8 index_expression name-key
+                      8 name_expression "a" local@16
+                      8 string_literal "n"
+                    8 index_expression name-key
+                      8 name_expression "b" local@17
+                      8 string_literal "n"
+    10 local_function
+      10 local_name "new"
+      10 function_body
+        10 name_list
+          10 local_name "n"
+        11 block
+          11 return_statement
+            11 expression_list
+              11 call_expression
+                11 name_expression "setmetatable" global
+                11 table_constructor
+                  11 named_field name-key
+                    11 string_literal "n"
+                    11 name_expression "n" local@53
+                11 name_expression "Ordered" upvalue@6
+    13 local_statement
+      13 name_list
+        13 local_name "one"
+        13 local_name "two"
+      13 expression_list
+        13 call_expression
+          13 name_expression "new" local@52
+          13 integer_literal 1
+        13 call_expression
+          13 name_expression "new" local@52
+          13 integer_literal 2
+    14 call_statement
+      14 call_expression
+        14 name_expression "print" global
+        14 binary_operation less_equal
+          14 name_expression "one" local@67
+          14 name_expression "two" local@68
+        14 binary_operation less_equal
+          14 name_expression "two" local@68
+          14 name_expression "one" local@67
+        14 binary_operation less_equal
+          14 name_expression "one" local@67
+          14 name_expression "one" local@67
+    15 call_statement
+      15 call_expression
+        15 name_expression "print" global
+        15 binary_operation greater_equal
+          15 name_expression "one" local@67
+          15 name_expression "two" local@68
+        15 binary_operation greater_equal
+          15 name_expression "two" local@68
+          15 name_expression "one" local@67
+    16 call_statement
+      16 call_expression
+        16 name_expression "print" global
+        16 unary_operation logical_not
+          16 parenthesized
+            16 binary_operation less_equal
+              16 name_expression "one" local@67
+              16 name_expression "two" local@68
+        16 binary_operation less
+          16 name_expression "one" local@67
+          16 name_expression "two" local@68
+        16 binary_operation greater
+          16 name_expression "two" local@68
+          16 name_expression "one" local@67
+    17 numeric_for
+      17 local_name "i"
+      17 expression_list
+        17 integer_literal 1
+        17 unary_operation length
+          17 name_expression "log" local@1
+      18 block
+        18 call_statement
+          18 call_expression
+            18 name_expression "print" global
+            18 index_expression
+              18 name_expression "log" local@1
+              18 name_expression "i" local@113
+    22 local_statement
+      22 name_list
+        22 local_name "plain"
+      22 expression_list
+        22 table_constructor
+          22 named_field name-key
+            22 string_literal "n"
+            22 integer_literal 5
+    23 call_statement
+      23 call_expression
+        23 name_expression "print" global
+        23 call_expression
+          23 name_expression "pcall" global
+          23 function_expression
+            23 function_body
+              23 name_list
+              23 block
+                23 return_statement
+                  23 expression_list
+                    23 binary_operation less_equal
+                      23 name_expression "plain" upvalue@126
+                      23 name_expression "two" upvalue@68
+    24 call_statement
+      24 call_expression
+        24 name_expression "print" global
+        24 call_expression
+          24 name_expression "pcall" global
+          24 function_expression
+            24 function_body
+              24 name_list
+              24 block
+                24 return_statement
+                  24 expression_list
+                    24 binary_operation less_equal
+                      24 name_expression "two" upvalue@68
+                      24 name_expression "plain" upvalue@126
+    27 local_statement
+      27 name_list
+        27 local_name "Both"
+      27 expression_list
+        27 table_constructor
+          27 named_field name-key
+            27 string_literal "__lt"
+            27 function_expression
+              27 function_body
+                27 name_list
+                27 block
+                  27 return_statement
+                    27 expression_list
+                      27 true_literal
+          27 named_field name-key
+            27 string_literal "__le"
+            27 function_expression
+              27 function_body
+                27 name_list
+                27 block
+                  27 return_statement
+                    27 expression_list
+                      27 false_literal
+    28 local_statement
+      28 name_list
+        28 local_name "x"
+        28 local_name "y"
+      28 expression_list
+        28 call_expression
+          28 name_expression "setmetatable" global
+          28 table_constructor
+          28 name_expression "Both" local@162
+        28 call_expression
+          28 name_expression "setmetatable" global
+          28 table_constructor
+          28 name_expression "Both" local@162
+    29 call_statement
+      29 call_expression
+        29 name_expression "print" global
+        29 binary_operation less_equal
+          29 name_expression "x" local@185
+          29 name_expression "y" local@186
+        29 binary_operation less
+          29 name_expression "x" local@185
+          29 name_expression "y" local@186
+    32 local_statement
+      32 name_list
+        32 local_name "Number"
+      32 expression_list
+        32 table_constructor
+          32 named_field name-key
+            32 string_literal "__lt"
+            32 function_expression
+              32 function_body
+                32 name_list
+                  32 local_name "a"
+                  32 local_name "b"
+                33 block
+                  33 local_statement
+                    33 name_list
+                      33 local_name "left"
+                    33 expression_list
+                      33 binary_operation or_else
+                        33 binary_operation and_then
+                          33 binary_operation equal
+                            33 call_expression
+                              33 name_expression "type" global
+                              33 name_expression "a" local@210
+                            33 string_literal "table"
+                          33 index_expression name-key
+                            33 name_expression "a" local@210
+                            33 string_literal "n"
+                        33 name_expression "a" local@210
+                  34 local_statement
+                    34 name_list
+                      34 local_name "right"
+                    34 expression_list
+                      34 binary_operation or_else
+                        34 binary_operation and_then
+                          34 binary_operation equal
+                            34 call_expression
+                              34 name_expression "type" global
+                              34 name_expression "b" local@211
+                            34 string_literal "table"
+                          34 index_expression name-key
+                            34 name_expression "b" local@211
+                            34 string_literal "n"
+                        34 name_expression "b" local@211
+                  35 return_statement
+                    35 expression_list
+                      35 binary_operation less
+                        35 name_expression "left" local@213
+                        35 name_expression "right" local@228
+    37 local_statement
+      37 name_list
+        37 local_name "three"
+      37 expression_list
+        37 call_expression
+          37 name_expression "setmetatable" global
+          37 table_constructor
+            37 named_field name-key
+              37 string_literal "n"
+              37 integer_literal 3
+          37 name_expression "Number" local@207
+    38 call_statement
+      38 call_expression
+        38 name_expression "print" global
+        38 binary_operation less_equal
+          38 name_expression "three" local@255
+          38 integer_literal 3
+        38 binary_operation less_equal
+          38 name_expression "three" local@255
+          38 integer_literal 2
+        38 binary_operation greater_equal
+          38 name_expression "three" local@255
+          38 integer_literal 4
+        38 binary_operation greater_equal
+          38 name_expression "three" local@255
+          38 integer_literal 3
+        38 binary_operation less_equal
+          38 integer_literal 2
+          38 name_expression "three" local@255
+        38 binary_operation less_equal
+          38 integer_literal 4
+          38 name_expression "three" local@255
+    41 call_statement
+      41 call_expression
+        41 name_expression "print" global
+        41 call_expression
+          41 name_expression "pcall" global
+          41 function_expression
+            41 function_body
+              41 name_list
+              41 block
+                41 return_statement
+                  41 expression_list
+                    41 binary_operation less_equal
+                      41 table_constructor
+                      41 table_constructor
+    42 call_statement
+      42 call_expression
+        42 name_expression "print" global
+        42 call_expression
+          42 name_expression "pcall" global
+          42 function_expression
+            42 function_body
+              42 name_list
+              42 block
+                42 return_statement
+                  42 expression_list
+                    42 binary_operation less_equal
+                      42 call_expression
+                        42 name_expression "setmetatable" global
+                        42 table_constructor
+                        42 table_constructor
+                      42 integer_literal 1
+exit 0

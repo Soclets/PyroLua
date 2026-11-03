@@ -1,0 +1,312 @@
+5 keyword local
+5 keyword function
+5 name count
+5 (
+5 name n
+5 ,
+5 name total
+5 )
+6 keyword if
+6 name n
+6 ==
+6 integer 0
+6 keyword then
+7 keyword return
+7 name total
+8 keyword end
+9 keyword return
+9 name count
+9 (
+9 name n
+9 -
+9 integer 1
+9 ,
+9 name total
+9 +
+9 integer 1
+9 )
+10 keyword end
+11 name print
+11 (
+11 name count
+11 (
+11 integer 300000
+11 ,
+11 integer 0
+11 )
+11 )
+14 keyword local
+14 name counter
+14 =
+14 name setmetatable
+14 (
+14 {
+14 }
+14 ,
+14 {
+14 name __call
+14 =
+14 keyword function
+14 (
+14 name self
+14 ,
+14 name n
+14 ,
+14 name total
+14 )
+15 keyword if
+15 name n
+15 ==
+15 integer 0
+15 keyword then
+16 keyword return
+16 name total
+17 keyword end
+18 keyword return
+18 name self
+18 (
+18 name n
+18 -
+18 integer 1
+18 ,
+18 name total
+18 +
+18 integer 2
+18 )
+19 keyword end
+19 }
+19 )
+20 name print
+20 (
+20 name counter
+20 (
+20 integer 300000
+20 ,
+20 integer 0
+20 )
+20 )
+23 keyword local
+23 keyword function
+23 name last
+23 (
+23 ...
+23 )
+24 keyword return
+24 name select
+24 (
+24 -
+24 integer 1
+24 ,
+24 ...
+24 )
+25 keyword end
+26 keyword local
+26 keyword function
+26 name host
+26 (
+26 ...
+26 )
+27 keyword return
+27 name select
+27 (
+27 string "#"
+27 ,
+27 ...
+27 )
+27 ,
+27 name select
+27 (
+27 integer 2
+27 ,
+27 ...
+27 )
+28 keyword end
+29 name print
+29 (
+29 name host
+29 (
+29 integer 1
+29 ,
+29 integer 2
+29 ,
+29 integer 3
+29 )
+29 )
+30 keyword local
+30 name lengths
+30 =
+30 name setmetatable
+30 (
+30 {
+30 integer 1
+30 ,
+30 integer 2
+30 ,
+30 integer 3
+30 }
+30 ,
+30 {
+30 name __call
+30 =
+30 name rawlen
+30 }
+30 )
+31 keyword local
+31 keyword function
+31 name length
+31 (
+31 )
+32 keyword return
+32 name lengths
+32 (
+32 )
+33 keyword end
+34 name print
+34 (
+34 name length
+34 (
+34 )
+34 )
+35 name print
+35 (
+35 name last
+35 (
+35 integer 1
+35 ,
+35 integer 2
+35 ,
+35 integer 3
+35 )
+35 )
+37 keyword local
+37 name selecting
+37 =
+37 name setmetatable
+37 (
+37 {
+37 }
+37 ,
+37 {
+37 name __call
+37 =
+37 name select
+37 }
+37 )
+38 keyword local
+38 keyword function
+38 name through
+38 (
+38 ...
+38 )
+39 keyword return
+39 name selecting
+39 (
+39 ...
+39 )
+40 keyword end
+41 name print
+41 (
+41 name pcall
+41 (
+41 name through
+41 ,
+41 string "#"
+41 ,
+41 string "a"
+41 ,
+41 string "b"
+41 )
+41 )
+44 keyword local
+44 keyword function
+44 name failing
+44 (
+44 )
+45 keyword return
+45 name setmetatable
+45 (
+46 integer 1
+46 )
+47 keyword end
+48 name print
+48 (
+48 name pcall
+48 (
+48 name failing
+48 )
+48 )
+49 keyword local
+49 keyword function
+49 name hidden
+49 (
+49 )
+50 keyword local
+50 name fn
+50 =
+50 name rawlen
+51 keyword return
+51 name fn
+51 (
+51 integer 1
+51 )
+52 keyword end
+53 name print
+53 (
+53 name pcall
+53 (
+53 name hidden
+53 )
+53 )
+54 keyword local
+54 keyword function
+54 name not_callable
+54 (
+54 )
+55 keyword local
+55 name value
+55 =
+55 {
+55 }
+56 keyword return
+56 name value
+56 (
+56 integer 1
+56 )
+57 keyword end
+58 name print
+58 (
+58 name pcall
+58 (
+58 name not_callable
+58 )
+58 )
+59 keyword local
+59 name object
+59 =
+59 {
+59 name method
+59 =
+59 name rawlen
+59 }
+60 keyword local
+60 keyword function
+60 name method
+60 (
+60 )
+61 keyword return
+61 name object
+61 :
+61 name method
+61 (
+61 integer 2
+61 )
+62 keyword end
+63 name print
+63 (
+63 name pcall
+63 (
+63 name method
+63 )
+63 )
+64 <eof>
+exit 0

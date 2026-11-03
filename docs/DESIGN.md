@@ -543,6 +543,18 @@ host: `Run` returns to its caller with the status `Host_Call`, and the host read
   With `Protect`, an error in that call is caught and continues me with the error
   instead (`Call_Succeeded` is then false).
 
+For error messages, `Host_Call_Name` and `Host_Called_As_Method` say how the function was
+called, as `lua_getinfo`'s "n" does (`getfuncname`: from the instruction of the Lua
+function that called it, else no name), and `Called_Function` and `Globals` let the host
+look the function up among the globals when it has no name, as `luaL_argerror` does
+through `pushglobalfuncname`: "bad argument #1 to 'index'", "calling 'm' on bad self".
+
+A host function called in a tail call runs above the calling frame rather than in its
+place, as in `luaD_pretailcall`, so its errors have that frame's position and name, and
+the RETURN that follows every TAILCALL returns its results. A value with `__call` is
+called through it in a tail call too, as a proper tail call when the metamethod is a Lua
+function.
+
 The host function's frame stays on the stack, holding its arguments, while the call it
 asked for runs; when the call returns, `Run` reports the same frame again with the
 continuation number the host gave (`Continuation`), its arguments and the call's results
@@ -576,9 +588,16 @@ handlers say which register or upvalue each operand came from, and `getobjname`,
 (locals, upvalue names, constants) and its code, as PUC Lua does: "(global 'x')", "(field
 'y')", "(local 'z')", "(upvalue 'w')", "(constant 'k')", "(method 'm')", "(for iterator
 'for iterator')", "(metamethod 'index')". A frame that called is at the instruction
-before its program counter, as `currentpc` finds it, for the line of `error (msg, 2)`.
+before its program counter, as `currentpc` finds it, for the line of `error (msg, 2)`,
+except a frame that runs its instruction again after the call (a `__close` from CLOSE or
+RETURN), which is still at it.
 
 ### Semantics to get right
+
+Where the 5.4 manual and PUC Lua's default build disagree, Pyro follows the build: Lua 5.4
+as `src/Makefile` compiles it, with `LUA_COMPAT_5_3`. For the core language that means only
+`LUA_COMPAT_LT_LE`, the `__le` fallback below; its other two compatibility options are for
+the standard library and the C API.
 
 These are where differential tests matter most:
 
@@ -594,8 +613,9 @@ These are where differential tests matter most:
   loops, zero step is an error;
 - metamethod lookup is raw (`rawget` on the metatable), `__index`/`__newindex`
   chains have a loop limit (as PUC Lua's `MAXTAGLOOP`);
-- `__eq` is only tried for two tables or two userdata; `__lt`/`__le` (no `__le`
-  emulation via `__lt` in 5.4);
+- `__eq` is only tried for two tables or two userdata; `__lt`/`__le`, and with no
+  `__le`, `a <= b` as `not (b < a)` through `__lt` (`LUA_COMPAT_LT_LE`, which the 5.4
+  manual drops and the default build keeps);
 - `<close>` variables are closed on normal exit, `break`, `goto`, `return` and
   errors, in reverse order;
 - varargs, multiple returns and truncation/extension of value lists;

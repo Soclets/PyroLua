@@ -1,0 +1,349 @@
+4 keyword local
+4 name log
+4 =
+4 {
+4 }
+5 keyword local
+5 name Ordered
+5 =
+5 {
+5 }
+6 name Ordered
+6 .
+6 name __lt
+6 =
+6 keyword function
+6 (
+6 name a
+6 ,
+6 name b
+6 )
+7 name log
+7 [
+7 #
+7 name log
+7 +
+7 integer 1
+7 ]
+7 =
+7 name a
+7 .
+7 name n
+7 ..
+7 string "<"
+7 ..
+7 name b
+7 .
+7 name n
+8 keyword return
+8 name a
+8 .
+8 name n
+8 <
+8 name b
+8 .
+8 name n
+9 keyword end
+10 keyword local
+10 keyword function
+10 name new
+10 (
+10 name n
+10 )
+11 keyword return
+11 name setmetatable
+11 (
+11 {
+11 name n
+11 =
+11 name n
+11 }
+11 ,
+11 name Ordered
+11 )
+12 keyword end
+13 keyword local
+13 name one
+13 ,
+13 name two
+13 =
+13 name new
+13 (
+13 integer 1
+13 )
+13 ,
+13 name new
+13 (
+13 integer 2
+13 )
+14 name print
+14 (
+14 name one
+14 <=
+14 name two
+14 ,
+14 name two
+14 <=
+14 name one
+14 ,
+14 name one
+14 <=
+14 name one
+14 )
+15 name print
+15 (
+15 name one
+15 >=
+15 name two
+15 ,
+15 name two
+15 >=
+15 name one
+15 )
+16 name print
+16 (
+16 keyword not
+16 (
+16 name one
+16 <=
+16 name two
+16 )
+16 ,
+16 name one
+16 <
+16 name two
+16 ,
+16 name two
+16 >
+16 name one
+16 )
+17 keyword for
+17 name i
+17 =
+17 integer 1
+17 ,
+17 #
+17 name log
+17 keyword do
+18 name print
+18 (
+18 name log
+18 [
+18 name i
+18 ]
+18 )
+19 keyword end
+22 keyword local
+22 name plain
+22 =
+22 {
+22 name n
+22 =
+22 integer 5
+22 }
+23 name print
+23 (
+23 name pcall
+23 (
+23 keyword function
+23 (
+23 )
+23 keyword return
+23 name plain
+23 <=
+23 name two
+23 keyword end
+23 )
+23 )
+24 name print
+24 (
+24 name pcall
+24 (
+24 keyword function
+24 (
+24 )
+24 keyword return
+24 name two
+24 <=
+24 name plain
+24 keyword end
+24 )
+24 )
+27 keyword local
+27 name Both
+27 =
+27 {
+27 name __lt
+27 =
+27 keyword function
+27 (
+27 )
+27 keyword return
+27 keyword true
+27 keyword end
+27 ,
+27 name __le
+27 =
+27 keyword function
+27 (
+27 )
+27 keyword return
+27 keyword false
+27 keyword end
+27 }
+28 keyword local
+28 name x
+28 ,
+28 name y
+28 =
+28 name setmetatable
+28 (
+28 {
+28 }
+28 ,
+28 name Both
+28 )
+28 ,
+28 name setmetatable
+28 (
+28 {
+28 }
+28 ,
+28 name Both
+28 )
+29 name print
+29 (
+29 name x
+29 <=
+29 name y
+29 ,
+29 name x
+29 <
+29 name y
+29 )
+32 keyword local
+32 name Number
+32 =
+32 {
+32 name __lt
+32 =
+32 keyword function
+32 (
+32 name a
+32 ,
+32 name b
+32 )
+33 keyword local
+33 name left
+33 =
+33 name type
+33 (
+33 name a
+33 )
+33 ==
+33 string "table"
+33 keyword and
+33 name a
+33 .
+33 name n
+33 keyword or
+33 name a
+34 keyword local
+34 name right
+34 =
+34 name type
+34 (
+34 name b
+34 )
+34 ==
+34 string "table"
+34 keyword and
+34 name b
+34 .
+34 name n
+34 keyword or
+34 name b
+35 keyword return
+35 name left
+35 <
+35 name right
+36 keyword end
+36 }
+37 keyword local
+37 name three
+37 =
+37 name setmetatable
+37 (
+37 {
+37 name n
+37 =
+37 integer 3
+37 }
+37 ,
+37 name Number
+37 )
+38 name print
+38 (
+38 name three
+38 <=
+38 integer 3
+38 ,
+38 name three
+38 <=
+38 integer 2
+38 ,
+38 name three
+38 >=
+38 integer 4
+38 ,
+38 name three
+38 >=
+38 integer 3
+38 ,
+38 integer 2
+38 <=
+38 name three
+38 ,
+38 integer 4
+38 <=
+38 name three
+38 )
+41 name print
+41 (
+41 name pcall
+41 (
+41 keyword function
+41 (
+41 )
+41 keyword return
+41 {
+41 }
+41 <=
+41 {
+41 }
+41 keyword end
+41 )
+41 )
+42 name print
+42 (
+42 name pcall
+42 (
+42 keyword function
+42 (
+42 )
+42 keyword return
+42 name setmetatable
+42 (
+42 {
+42 }
+42 ,
+42 {
+42 }
+42 )
+42 <=
+42 integer 1
+42 keyword end
+42 )
+42 )
+43 <eof>
+exit 0

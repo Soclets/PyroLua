@@ -224,9 +224,22 @@ package body Pyro.Virtual_Machine.Comparisons with SPARK_Mode => On is
          end if;
          if Handler /= Nil then
             Call_Metamethod (M, Budget, Handler, [Left, Right], Test_Result, 0, I.K);
-         else
-            Order_Error (M, Budget, Left, Right);
+            return;
          end if;
+         if I.Operation in Less_Equal | Less_Equal_Integer | Greater_Equal_Integer then
+            --  [puc ltm.c:luaT_callorderTM] With LUA_COMPAT_LT_LE, which the reference build
+            --  has (LUA_COMPAT_5_3): Left <= Right is not (Right < Left), through the second
+            --  operand's __lt, else the first's; the test expects the opposite result.
+            Handler := Metafield (M, Right, Less_Than_Event);
+            if Handler = Nil then
+               Handler := Metafield (M, Left, Less_Than_Event);
+            end if;
+            if Handler /= Nil then
+               Call_Metamethod (M, Budget, Handler, [Right, Left], Test_Result, 0, not I.K);
+               return;
+            end if;
+         end if;
+         Order_Error (M, Budget, Left, Right);
       elsif Condition = I.K then
          Next (M);
       else

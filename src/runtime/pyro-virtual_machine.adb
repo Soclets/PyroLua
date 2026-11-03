@@ -1263,7 +1263,8 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       return Natural
         (Line_At
            (M.Program.all, F.Prototype,
-            (if (Level > 1 or else At_Call) and then F.PC > 0 then F.PC - 1 else F.PC)));
+            (if (Level > 1 or else At_Call) and then F.PC > 0 and then F.Action /= Rerun
+             then F.PC - 1 else F.PC)));
    end Current_Line;
 
    --  "name:line: " for frame Level, or "" when it is not a Lua frame.
@@ -1830,37 +1831,40 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
                (Object_Name (M.Program.all, M.Names.all, F.Prototype, F.PC, Source.Number));
    end Variable_Info;
 
-   --  [puc ldebug.c:funcnamefromcode] A name for the function the running frame calls: through
-   --  the CALL, TAILCALL or TFORCALL that calls it, or a metamethod's event. The frame is
-   --  past that instruction when At_Call.
-   function Call_Info (M : Machine; At_Call : Boolean) return String
-   with Global => null, Pre => Core_Valid (M), Post => Call_Info'Result'Length <= 2 ** 14
+   --  [puc ldebug.c:funcnamefromcode] A name for the function frame Index calls: through the
+   --  CALL, TAILCALL or TFORCALL that calls it, or a metamethod's event. The frame is past
+   --  that instruction when At_Call.
+   function Call_Name (M : Machine; Index : Positive; At_Call : Boolean) return Found_Name
+   with Global => null, Pre => Core_Valid (M) and then Index <= M.Depth
    is
       F    : Frame;
       PC   : Natural;
       Item : Instruction;
    begin
-      if not Lua_Top (M) then
-         return "";
+      Lemma_Frame (M, Index);
+      F := M.Frames (Index);
+      if F.Kind /= Lua_Frame then
+         return No_Found_Name;
       end if;
-      Lemma_Frame (M, M.Depth);
-      F := M.Frames (M.Depth);
-      if At_Call and then F.PC = 0 then
-         return "";
+      --  A frame that runs its instruction again after a call (Rerun) is still at it.
+      if At_Call and then F.Action /= Rerun then
+         if F.PC = 0 then
+            return No_Found_Name;
+         end if;
+         PC := F.PC - 1;
+      else
+         PC := F.PC;
       end if;
-      PC := (if At_Call then F.PC - 1 else F.PC);
       Item := Instruction_At (M.Program.all, F.Prototype, PC);
       case Item.Operation is
          when Call | Tail_Call =>
-            return Formatted
-                     (Object_Name
-                        (M.Program.all, M.Names.all, F.Prototype, PC, Natural (Item.A)));
+            return Object_Name (M.Program.all, M.Names.all, F.Prototype, PC, Natural (Item.A));
          when Generic_For_Call =>
-            return Formatted (Named (Iterator_Name, "for iterator"));
+            return Named (Iterator_Name, "for iterator");
          when Self | Get_Table_Upvalue .. Get_Field =>
-            return Formatted (Named (Metamethod_Name, "index"));
+            return Named (Metamethod_Name, "index");
          when Set_Table_Upvalue .. Set_Field =>
-            return Formatted (Named (Metamethod_Name, "newindex"));
+            return Named (Metamethod_Name, "newindex");
          when Metamethod_Binary .. Metamethod_Binary_Constant =>
             if Natural (Item.C) in Natural (First_Binary_Event) .. Natural (Last_Binary_Event)
             then
@@ -1870,30 +1874,35 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
                       (Event'Val (Event'Pos (Add_Event) + Natural (Item.C)
                                   - Natural (First_Binary_Event)));
                begin
-                  return Formatted (Named (Metamethod_Name, Name (Name'First + 2 .. Name'Last)));
+                  return Named (Metamethod_Name, Name (Name'First + 2 .. Name'Last));
                end;
             end if;
-            return "";
+            return No_Found_Name;
          when Negate =>
-            return Formatted (Named (Metamethod_Name, "unm"));
+            return Named (Metamethod_Name, "unm");
          when Bitwise_Not =>
-            return Formatted (Named (Metamethod_Name, "bnot"));
+            return Named (Metamethod_Name, "bnot");
          when Length =>
-            return Formatted (Named (Metamethod_Name, "len"));
+            return Named (Metamethod_Name, "len");
          when Concatenate =>
-            return Formatted (Named (Metamethod_Name, "concat"));
+            return Named (Metamethod_Name, "concat");
          when Equal =>
-            return Formatted (Named (Metamethod_Name, "eq"));
+            return Named (Metamethod_Name, "eq");
          when Less_Than | Less_Than_Integer | Greater_Than_Integer =>
-            return Formatted (Named (Metamethod_Name, "lt"));
+            return Named (Metamethod_Name, "lt");
          when Less_Equal | Less_Equal_Integer | Greater_Equal_Integer =>
-            return Formatted (Named (Metamethod_Name, "le"));
+            return Named (Metamethod_Name, "le");
          when Close | Return_Values =>
-            return Formatted (Named (Metamethod_Name, "close"));
+            return Named (Metamethod_Name, "close");
          when others =>
-            return "";
+            return No_Found_Name;
       end case;
-   end Call_Info;
+   end Call_Name;
+
+   --  The name of the function the running frame calls, as error messages give it.
+   function Call_Info (M : Machine; At_Call : Boolean) return String
+   is (if Lua_Top (M) then Formatted (Call_Name (M, M.Depth, At_Call)) else "")
+   with Global => null, Pre => Core_Valid (M), Post => Call_Info'Result'Length <= 2 ** 14;
 
    ----------------------------------------------------------------------------------------
    --  Errors
@@ -2334,11 +2343,10 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       end if;
    end Finish_Return;
 
-   --  The function value Callee can be called: a closure or a host function.
-   function Is_Callable (M : Machine; Callee : Value) return Boolean
+   --  Callee is a Lua function (a closure).
+   function Is_Lua_Function (M : Machine; Callee : Value) return Boolean
    is (Callee.Kind = Object_Value
-       and then Pyro.Heap.Kind_Of (M.Heap, Callee.Object)
-                in Closure_Object | Host_Function_Object);
+       and then Pyro.Heap.Kind_Of (M.Heap, Callee.Object) = Closure_Object);
 
    procedure Prepare_Call
      (M         : in out Machine;
@@ -2534,17 +2542,36 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    is
       F       : constant Frame := M.Frames (M.Depth);
       Place   : constant Positive := Register_Place (M, Func);
-      Count   : constant Natural := Argument_Number (M, Place, Arguments);
-      Last    : constant Stack_Size := M.Stack'Last;
-      Callee  : constant Value := M.Stack (Place);
+      Count   : Natural := Argument_Number (M, Place, Arguments);
+      Last    : Stack_Size := M.Stack'Last;
+      Callee  : Value := M.Stack (Place);
+      Handler : Value;
       Success : Boolean;
    begin
       Lemma_Frame (M, M.Depth);
       Lemma_Value (Objects (M), M.Stack.all, Place);
-      if not Is_Callable (M, Callee) then
-         Throw_Message
-           (M, Budget, Position_Of (M, 1) & "attempt to call a " & Type_Name (M, Callee)
-                       & " value" & Call_Info (M, At_Call => False));
+      if not Is_Function (M, Callee) then
+         --  [puc ldo.c:luaD_pretailcall] Its __call metamethod, with Callee as first argument.
+         Handler := Field_Of (M, Callee, Call_Event);
+         if Is_Lua_Function (M, Handler) then
+            Reserve (M.Stack, M.Heap, Budget, Place + Count + 1 + Extra_Stack, Success);
+            Lemma_Frames_Larger (M.Frames.all, M.Depth, Last, M.Stack'Last, M.Program.all);
+            if not Success then
+               Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
+               return;
+            end if;
+            Last := M.Stack'Last;
+            Copy (M.Stack.all, M.Heap, Place, Place + 1, Count + 1);
+            Store_Value (M.Stack.all, M.Heap, Place, Handler);
+            Callee := Handler;
+            Count := Count + 1;
+         end if;
+      end if;
+      if not Is_Lua_Function (M, Callee) then
+         --  [puc ldo.c:luaD_pretailcall] A host function, called directly or through __call,
+         --  runs above the frame, as an ordinary call; the RETURN that follows every TAILCALL
+         --  then returns its results. Anything else fails as that call.
+         Call_Register (M, Budget, Func, Arguments, -1);
          return;
       end if;
       Reserve (M.Stack, M.Heap, Budget, Place + Count + Extra_Stack, Success);
@@ -3697,6 +3724,34 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Lemma_Live_Heap (M.Heap, M.Stack (Place));
       return M.Stack (Place);
    end Argument;
+
+   function Host_Call_Name (M : Machine) return String is
+      Name : Found_Name;
+   begin
+      if M.Depth < 2 then
+         return "";
+      end if;
+      Name := Call_Name (M, M.Depth - 1, At_Call => True);
+      return Name.Text (1 .. Name.Length);
+   end Host_Call_Name;
+
+   function Host_Called_As_Method (M : Machine) return Boolean
+   is (M.Depth >= 2 and then Call_Name (M, M.Depth - 1, At_Call => True).Kind = Method_Name);
+
+   function Called_Function (M : Machine) return Value is
+   begin
+      Lemma_Frame (M, M.Depth);
+      Lemma_Value (Objects (M), M.Stack.all, M.Frames (M.Depth).Func);
+      Lemma_Live_Heap (M.Heap, M.Stack (M.Frames (M.Depth).Func));
+      return M.Stack (M.Frames (M.Depth).Func);
+   end Called_Function;
+
+   function Globals (M : Machine) return Value is
+   begin
+      Lemma_Value (Objects (M), M.Registry.all, Globals_Place);
+      Lemma_Live_Heap (M.Heap, M.Registry (Globals_Place));
+      return M.Registry (Globals_Place);
+   end Globals;
 
    function Call_Succeeded (M : Machine) return Boolean
    is (M.Succeeded);

@@ -46,7 +46,9 @@ package Pyro.Virtual_Machine with SPARK_Mode => On, Always_Terminates is
    type Chunk_Access is access Pyro.Bytecode.Chunk;
    type Symbols_Access is access Pyro.Symbols.Symbol_Table;
 
-   --  [limit LUAI_MAXSTACK] The most stack places a thread may use.
+   --  [limit LUAI_MAXSTACK] The most stack places a thread may use. [differs] Host functions,
+   --  metamethods and pcall nest up to it too: there is no LUAI_MAXCCALLS, since nothing
+   --  recurses on the host's stack.
    Maximum_Stack : constant := 1_000_000;
 
    --  The numbers hosts give their functions.
@@ -167,6 +169,28 @@ package Pyro.Virtual_Machine with SPARK_Mode => On, Always_Terminates is
      Global => null,
      Pre    => Is_Valid (M) and then Is_Waiting (M),
      Post   => Is_Canonical (Argument'Result) and then Is_Live (M, Argument'Result);
+
+   --  [puc ldebug.c:getfuncname] The name the waiting host function was called by, as
+   --  lua_getinfo's "n" gives it ("" when what called it is not a Lua function), whether it
+   --  was called as a method, and the function itself.
+   function Host_Call_Name (M : Machine) return String
+   with Global => null, Pre => Is_Valid (M) and then Is_Waiting (M);
+
+   function Host_Called_As_Method (M : Machine) return Boolean
+   with Global => null, Pre => Is_Valid (M) and then Is_Waiting (M);
+
+   function Called_Function (M : Machine) return Value
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Waiting (M),
+     Post   => Is_Canonical (Called_Function'Result) and then Is_Live (M, Called_Function'Result);
+
+   --  The table of global variables.
+   function Globals (M : Machine) return Value
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Loaded (M),
+     Post   => Is_Canonical (Globals'Result) and then Is_Live (M, Globals'Result);
 
    --  After a call the host asked for: whether it succeeded (it always did unless protected),
    --  and its results, or the error as its only result.
@@ -1189,7 +1213,7 @@ private
 
    --  [puc lvm.c:OP_TAILCALL] The running frame calls the function in register Func with
    --  Arguments arguments (-1: up to the top) in its own place, its caller getting the
-   --  results.
+   --  results. A host function runs above the frame instead, which returns its results.
    procedure Tail_Call_Register
      (M         : in out Machine;
       Budget    : in out Memory_Budget;
@@ -1201,7 +1225,8 @@ private
        Is_Valid (M)
        and then Running (M)
        and then Func < View (M).Registers
-       and then Arguments in -1 .. 254,
+       and then Arguments in -1 .. 254
+       and then View (M).PC + 1 < View (M).Code,
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  [puc lvm.c:OP_RETURN] The running frame returns Count values from register First

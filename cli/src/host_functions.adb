@@ -141,13 +141,50 @@ package body Host_Functions is
       Count : constant Natural := Argument_Count (M);
       Step  : constant Natural := Continuation (M);
 
-      --  [puc lauxlib.c:luaL_argerror]
-      procedure Argument_Error (Number : Positive; Problem : String) is
+      --  [puc lauxlib.c:pushglobalfuncname] The global variable holding the waiting host
+      --  function, or "?". (Lua looks through package.loaded, where _G is the only table to
+      --  hold these functions.)
+      function Global_Name return String is
+         Table  : constant Value := Globals (M);
+         Self   : constant Value := Called_Function (M);
+         Key    : Value := Nil;
+         Found  : Value;
+         Item   : Value;
+         Status : Pyro.Tables.Next_Status;
       begin
+         if not Is_Table (M, Table) then
+            return "?";
+         end if;
+         loop
+            Next_Pair (M, Table, Key, Found, Item, Status);
+            exit when Status /= Pyro.Tables.Found;
+            if Is_String (M, Found) and then Raw_Equal (Item, Self) then
+               return String_Text (M, Found);
+            end if;
+            Key := Found;
+         end loop;
+         return "?";
+      end Global_Name;
+
+      --  [puc lauxlib.c:luaL_argerror] The function is named as it was called; a method does
+      --  not count its self argument.
+      procedure Argument_Error (Number : Positive; Problem : String) is
+         Called   : constant String := Host_Call_Name (M);
+         Position : Natural := Number;
+      begin
+         if Host_Called_As_Method (M) then
+            Position := Position - 1;
+            if Position = 0 then
+               Raise_Message
+                 (M, Budget, "calling '" & Called & "' on bad self (" & Problem & ")", 1);
+               return;
+            end if;
+         end if;
          Raise_Message
            (M, Budget,
-            "bad argument #" & Pyro.Integer_Arithmetic.Image (Interfaces.Integer_64 (Number))
-            & " to '" & Lua_Name (Name) & "' (" & Problem & ")", 1);
+            "bad argument #" & Pyro.Integer_Arithmetic.Image (Interfaces.Integer_64 (Position))
+            & " to '" & (if Called = "" then Global_Name else Called) & "' (" & Problem & ")",
+            1);
       end Argument_Error;
 
       --  [puc lauxlib.c:luaL_typeerror]

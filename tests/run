@@ -174,6 +174,9 @@ LIMIT_CASES = {
 # Mutants per run, and the fixed seed of the quick run.
 FUZZ_MUTANTS = {"quick": 400, "full": 200000}
 FUZZ_SEED = 1954
+# Each mutant both accept is also run under these limits, and must end cleanly: normally, or
+# with a Lua error or a limit's message, never a crash, a Constraint_Error or an internal error.
+FUZZ_RUN_LIMITS = ["--max-steps", "1000000", "--max-memory", str(64 * 2 ** 20)]
 
 
 class StageTimeout(Exception):
@@ -699,8 +702,8 @@ class Runner:
         the same exit status, the same standard output byte for byte, and the same error
         message (the first line of the standard error, without the program's name; reference
         Lua then prints a stack traceback, which pyrolua does not). --full compares a run under
-        --gc-stress too."""
-        files = sorted(RUNTIME.rglob("*.lua"))
+        --gc-stress too. The CVE proofs of concept are run the same way."""
+        files = sorted(RUNTIME.rglob("*.lua")) + sorted(CVE.glob("*.lua"))
 
         def compare(source):
             relative = source.relative_to(ROOT)
@@ -778,7 +781,12 @@ class Runner:
         self.log(f"fuzz seed {seed}")
         generator = random.Random(seed)
         count = FUZZ_MUTANTS[self.mode]
-        mutants = [(index, mutate(generator, generator.choice(seeds)))
+        # Every other mutant comes from a script that runs (the runtime corpus and the CVE
+        # proofs of concept), so that many get as far as the virtual machine.
+        runnable = [path.read_bytes() for path in sorted(RUNTIME.rglob("*.lua"))
+                    + sorted(CVE.glob("*.lua"))]
+        mutants = [(index, mutate(generator,
+                                  generator.choice(runnable if index % 2 else seeds)))
                    for index in range(count)]
 
         def check(item):
@@ -789,18 +797,34 @@ class Runner:
             reference = self.check_reference(relative)
             pyro = self.check_pyro(relative)
             listing = None
+            ending = None
             if reference is not None and pyro is not None and reference[0] and pyro[0]:
                 listing = self.compare_listing(relative)
-            return index, path, text, reference, pyro, listing
+                ending = run_problem(self.run([PYRO, *FUZZ_RUN_LIMITS, relative],
+                                              what=str(relative)))
+            return index, path, text, reference, pyro, listing, ending
 
         disagreements = 0
+        bad_runs = 0
+        ran = 0
         done = 0
         try:
             with concurrent.futures.ThreadPoolExecutor(os.cpu_count() or 4) as pool:
-                for index, path, text, reference, pyro, listing in pool.map(check, mutants):
+                for index, path, text, reference, pyro, listing, ending in pool.map(check,
+                                                                                    mutants):
                     done += 1
                     if reference is None or pyro is None:
                         continue
+                    if reference[0] and pyro[0]:
+                        ran += 1
+                    if ending is not None:
+                        bad_runs += 1
+                        failures.mkdir(parents=True, exist_ok=True)
+                        kept = failures / f"seed{seed}-run{index}.lua"
+                        kept.write_bytes(text)
+                        if bad_runs <= 10:
+                            self.fail(f"{kept.relative_to(ROOT)}: pyrolua "
+                                      f"{' '.join(FUZZ_RUN_LIMITS)}: {ending}")
                     # Both reject: the same line and message (luac -p's first error), except
                     # for precompiled chunks (tests/known-differences.md).
                     if (reference[0] != pyro[0] or listing is not None
@@ -822,8 +846,11 @@ class Runner:
         if disagreements > 10:
             self.fail(f"{disagreements} disagreements in all (first 10 shown; all "
                       "kept in tests/output/fuzz-failures)")
+        if bad_runs > 10:
+            self.fail(f"{bad_runs} runs that did not end cleanly in all (first 10 shown; all "
+                      "kept in tests/output/fuzz-failures)")
         self.log(f"fuzz: {done} mutants, {disagreements} disagreements (acceptance, messages "
-                 "or listings)")
+                 f"or listings); {ran} run, {bad_runs} not ending cleanly")
 
     # ----------------------------------------------------------------------------------------
     # Checking one file
@@ -982,6 +1009,24 @@ def runtime_difference(reference, pyro):
     if reference[0] != 0 and error_message(reference[2]) != error_message(pyro[2]):
         return (f"error {error_message(pyro[2])!r}, reference Lua "
                 f"{error_message(reference[2])!r}")
+    return None
+
+
+def run_problem(result):
+    """Why a run of pyrolua did not end cleanly, or None: it must end normally, or with exit
+    status 1 and one "pyrolua: " message (a Lua error, or a limit reached)."""
+    code, out, err = result
+    if code is None:
+        return None  # a timeout, already reported
+    if code < 0:
+        return f"killed by signal {-code}"
+    text = err.decode("latin-1")
+    if code == 0:
+        return f"exit status 0 with standard error {text[:200]!r}" if text else None
+    if code != 1:
+        return f"exit status {code}: {text[:200]!r}"
+    if not text.startswith("pyrolua: ") or "internal error" in text or "raised " in text:
+        return f"standard error {text[:200]!r}"
     return None
 
 

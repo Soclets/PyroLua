@@ -49,3 +49,15 @@ and its message handler adds it to the error before the to-be-closed variables c
 pyrolua prints the message alone ("pyrolua: file.lua:3: message"), and a `__close` that
 runs then sees the message without a traceback. The runtime corpus compares the first line
 of the standard error, without the program's name.
+
+## No limit on nested host calls
+
+Source: `src/runtime/pyro-virtual_machine.ads`.
+
+PUC Lua runs a host function, and each metamethod or `pcall`, as a C call, and stops
+after about 200 nested ones (`LUAI_MAXCCALLS`) with "C stack overflow", to keep the C
+stack from overflowing. Pyro's virtual machine calls them by pushing frames, never by
+recursion, so it has no C stack to protect: such calls nest until the Lua stack's limit
+(`LUAI_MAXSTACK`, a million places), as Lua function calls do in both, and end in "stack
+overflow". A script that nests between about 200 calls and that limit fails in reference
+Lua and runs in Pyro.
