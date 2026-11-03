@@ -249,6 +249,30 @@ package Pyro.Heap with SPARK_Mode => On, Always_Terminates is
                    when Pyro.Tables.Out_Of_Memory =>
                      Table_Model (H, T) = Table_Model (H, T)'Old);
 
+   --  [puc ltable.c:luaH_resize] Sizes table T's array part to Array_Size places and its
+   --  hash part for Hash_Size keys (Pyro.Tables.Resize), keeping its contents. Success is
+   --  False, and the table as it was, when Budget cannot pay.
+   procedure Table_Resize
+     (H          : in out Heap;
+      Budget     : in out Memory_Budget;
+      T          : Valid_Handle;
+      Array_Size : Natural;
+      Hash_Size  : Natural;
+      Success    : out Boolean)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (H)
+       and then Kind_Of (H, T) = Table_Object
+       and then Array_Size <= Pyro.Tables.Maximum_Array_Size
+       and then Hash_Size <= Pyro.Tables.Maximum_Capacity / 2,
+     Post   =>
+       Is_Valid (H)
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then Kinds (H) = Kinds (H)'Old
+       and then Seed (H) = Seed (H)'Old
+       and then Table_Model (H, T) = Table_Model (H, T)'Old;
+
    --  The collector's colour of object Handle: White for every free slot, and for every
    --  object outside a collection.
    function Color_Of (H : Heap; Handle : Object_Handle) return Object_Color
@@ -487,17 +511,24 @@ private
    --  Bytes charged for each reference.
    Reference_Bytes : constant Byte_Count := 16;
 
-   --  A slot: what it holds, and what it owns. A free slot links to the next free one, and a
-   --  gray object to the next gray one; a string slot keeps its hash.
+   --  A slot: what it holds, and what it owns; a string slot keeps its hash.
    type Slot is record
       Kind  : Object_Kind := Free_Object;
-      Color : Object_Color := White;
-      Link  : Object_Handle := No_Object;
       Hash  : Unsigned_64 := 0;
-      Tag   : Natural := 0;
       Bytes : Byte_Array_Access := null;
       Table : Table_Access := null;
       Refs  : Reference_Array_Access := null;
+   end record;
+
+   --  A slot's header: what changes without changing what the slot holds. The collector's
+   --  colour (Color_Of shows a free slot white whatever its header says), the link to the
+   --  next free or gray slot, and the number the VM keeps in the object (Tag_Of). Headers live
+   --  apart from the slots, in chunks of their own, so that writing one leaves the slots, and
+   --  every proof about them, exactly as they were.
+   type Header is record
+      Color : Object_Color := White;
+      Link  : Object_Handle := No_Object;
+      Tag   : Natural := 0;
    end record;
 
    --  Slots live in chunks of Chunk_Length, found through a table of Chunk_Count entries
@@ -513,7 +544,12 @@ private
    type Chunk_Table is array (Chunk_Number) of Slot_Chunk_Access;
    type Chunk_Table_Access is access Chunk_Table;
 
-   --  Bytes charged for the chunk table and for each chunk.
+   type Header_Chunk is array (Chunk_Offset) of Header;
+   type Header_Chunk_Access is access Header_Chunk;
+   type Header_Table is array (Chunk_Number) of Header_Chunk_Access;
+   type Header_Table_Access is access Header_Table;
+
+   --  Bytes charged for the chunk table and for each chunk, with their headers.
    Table_Bytes : constant Byte_Count := 8 * Chunk_Count;
    Chunk_Bytes : constant Byte_Count := 32 * Chunk_Length;
 
@@ -560,6 +596,7 @@ private
       --  nothing depends on its accuracy.
       Filled     : Natural := 0;
       Chunks     : Chunk_Table_Access := null;
+      Headers    : Header_Table_Access := null;
       Slot_Count : Object_Handle := No_Object;
       --  The last freed slot, the start of the free list (checked when taken, so the list
       --  needs no invariant).
@@ -584,9 +621,13 @@ private
        then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Kind
        else Free_Object);
 
+   --  The header chunk of chunk Chunk is allocated.
+   function Has_Headers (H : Heap; Chunk : Chunk_Number) return Boolean
+   is (H.Headers /= null and then H.Headers (Chunk) /= null);
+
    function Color_Of (H : Heap; Handle : Object_Handle) return Object_Color
-   is (if Handle in 1 .. Slot_Count (H) and then Has_Chunk (H, Place_Of (Handle).Chunk)
-       then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Color
+   is (if Kind_Of (H, Handle) /= Free_Object and then Has_Headers (H, Place_Of (Handle).Chunk)
+       then H.Headers (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Color
        else White);
 
    --  [proof] Every reference is canonical. Hidden, as a quantifier inside every slot's
@@ -604,16 +645,13 @@ private
        and then Refs_Canonical (Refs.all))
    with Ghost;
 
-   --  [proof] A slot holds what its kind says: a free slot owns nothing and is white, a
+   --  [proof] A slot holds what its kind says: a free slot owns nothing, a
    --  string slot owns bytes 1 .. Length, at most Maximum_String_Length, a table slot a
    --  valid table and its metatable, and the others their references.
    function Slot_Valid (Item : Slot) return Boolean
    is (case Item.Kind is
          when Free_Object   =>
-           Item.Bytes = null
-           and then Item.Table = null
-           and then Item.Refs = null
-           and then Item.Color = White,
+           Item.Bytes = null and then Item.Table = null and then Item.Refs = null,
          when String_Object =>
            Item.Bytes /= null
            and then Item.Bytes'First = 1
@@ -633,8 +671,16 @@ private
    --  the provers unfolding it; the body's slot-level procedures unfold it where needed.
    pragma Annotate (GNATprove, Hide_Info, "Expression_Function_Body", Slot_Valid);
 
+   --  [proof] Slot Item is free and owns nothing.
+   function Is_Empty_Slot (Item : Slot) return Boolean
+   is (Item.Kind = Free_Object
+       and then Item.Bytes = null
+       and then Item.Table = null
+       and then Item.Refs = null)
+   with Ghost;
+
    --  [proof] Slot Handle, of a heap with chunk table Chunks and Count slots, has its chunk
-   --  and is valid when Handle is at most Count; otherwise it is free, white and owns nothing.
+   --  and is valid when Handle is at most Count; otherwise it is free and owns nothing.
    --  Stated over the chunk table and the count rather than the heap, so that changing any
    --  other part of the heap keeps it as it is.
    function Place_Valid
@@ -645,15 +691,7 @@ private
             and then Slot_Valid (Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset))
        else Chunks = null
             or else Chunks (Place_Of (Handle).Chunk) = null
-            or else (Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Kind = Free_Object
-                     and then Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Bytes
-                              = null
-                     and then Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Table
-                              = null
-                     and then Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Refs
-                              = null
-                     and then Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Color
-                              = White))
+            or else Is_Empty_Slot (Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset)))
    with Ghost;
 
    function Handle_Valid (H : Heap; Handle : Valid_Handle) return Boolean
@@ -714,8 +752,8 @@ private
    is (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Refs (Position));
 
    function Tag_Of (H : Heap; Handle : Valid_Handle) return Natural
-   is (if Kind_Of (H, Handle) /= Free_Object
-       then H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Tag
+   is (if Kind_Of (H, Handle) /= Free_Object and then Has_Headers (H, Place_Of (Handle).Chunk)
+       then H.Headers (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Tag
        else 0);
 
    function Table_Model (H : Heap; T : Valid_Handle) return Value_Maps.Map
@@ -740,10 +778,26 @@ private
    with Ghost, Post => (if Slot_Count (H) = 0 then Refs_Live'Result);
    pragma Annotate (GNATprove, Hide_Info, "Expression_Function_Body", Refs_Live);
 
+   --  [proof] Every allocated chunk has its headers.
+   function Headers_Valid (H : Heap) return Boolean
+   is (for all Chunk in Chunk_Number => (if Has_Chunk (H, Chunk) then Has_Headers (H, Chunk)))
+   with Ghost;
+
+   --  Every slot is valid: Place_Valid, written out so that the provers find the slot of any
+   --  handle a proof names (through Place_Of) rather than needing Place_Valid's own term.
    function Is_Valid (H : Heap) return Boolean
    is ((Slot_Count (H) = 0 or else H.Chunks /= null)
        and then (for all Handle in Valid_Handle =>
-                   Place_Valid (H.Chunks, H.Slot_Count, Handle))
+                   (if Handle <= H.Slot_Count
+                    then H.Chunks /= null
+                         and then H.Chunks (Place_Of (Handle).Chunk) /= null
+                         and then Slot_Valid
+                                    (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset))
+                    else H.Chunks = null
+                         or else H.Chunks (Place_Of (Handle).Chunk) = null
+                         or else Is_Empty_Slot
+                                   (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset))))
+       and then Headers_Valid (H)
        and then Intern_Valid (H)
        and then Refs_Live (H));
 
@@ -764,6 +818,6 @@ private
    is (H.Chunks (Place_Of (S).Chunk) (Place_Of (S).Offset).Hash);
 
    function Is_Released (H : Heap) return Boolean
-   is (H.Chunks = null and then H.Intern = null);
+   is (H.Chunks = null and then H.Headers = null and then H.Intern = null);
 
 end Pyro.Heap;

@@ -355,13 +355,16 @@ or holds one object of a known kind. The central invariant, `Is_Valid (Heap)`, s
 the host's handles) refers to an allocated slot of the expected kind. Every heap
 operation preserves `Is_Valid (Heap)` (Gold).
 
-A slot is a small record: its kind, the next free slot when it is free, and owned
-pointers to what its object owns (a string's bytes, a table's parts). Slots live in
-chunks of 4096, found through a table of chunks allocated once, so a chunk is never
-copied and the objects its slots own never move; a handle's chunk and place come from a
-function whose only proven property is that they give the handle back, so proofs never
-see the division. The free list is threaded through the free slots, and a slot taken
-from it is checked to be free, so it needs no invariant of its own. Everything the heap
+A slot is a small record: its kind and owned pointers to what its object owns (a string's
+bytes, a table's parts). Slots live in chunks of 4096, found through a table of chunks
+allocated once, so a chunk is never copied and the objects its slots own never move; a
+handle's chunk and place come from a function whose only proven property is that they give
+the handle back, so proofs never see the division. What changes without changing what a
+slot holds (the collector's colour, the link to the next free or gray slot, the VM's number
+for the object) is in a header kept in chunks of its own beside the slots, so that
+colouring an object leaves every slot, and so the heap's validity, untouched. The free list
+is threaded through the free slots' headers, and a slot taken from it is checked to be
+free, so it needs no invariant of its own. Everything the heap
 allocates is charged to the same `Memory_Budget` as the front end, and running out is an
 ordinary result (`No_Object`). Clients see the heap through its operations: its private
 part is hidden from their proofs (PROOFS.md, Assumptions).

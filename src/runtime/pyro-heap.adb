@@ -8,6 +8,9 @@ package body Pyro.Heap with SPARK_Mode => On is
 
    procedure Free_Bytes is new Ada.Unchecked_Deallocation (Byte_Array, Byte_Array_Access);
    procedure Free_Chunk is new Ada.Unchecked_Deallocation (Slot_Chunk, Slot_Chunk_Access);
+   procedure Free_Headers is new Ada.Unchecked_Deallocation (Header_Chunk, Header_Chunk_Access);
+   procedure Free_Header_Table is
+     new Ada.Unchecked_Deallocation (Header_Table, Header_Table_Access);
    procedure Free_Table is new Ada.Unchecked_Deallocation (Chunk_Table, Chunk_Table_Access);
    procedure Free_Intern is new Ada.Unchecked_Deallocation (Intern_Table, Intern_Table_Access);
    procedure Free_Table_Object is new Ada.Unchecked_Deallocation (Pyro.Tables.Table, Table_Access);
@@ -251,10 +254,7 @@ package body Pyro.Heap with SPARK_Mode => On is
      Post   =>
        (case Item.Kind is
           when Free_Object   =>
-            Item.Bytes = null
-            and then Item.Table = null
-            and then Item.Refs = null
-            and then Item.Color = White,
+            Item.Bytes = null and then Item.Table = null and then Item.Refs = null,
           when String_Object =>
             Item.Bytes /= null
             and then Item.Bytes'First = 1
@@ -284,10 +284,7 @@ package body Pyro.Heap with SPARK_Mode => On is
      Pre    =>
        (case Item.Kind is
           when Free_Object   =>
-            Item.Bytes = null
-            and then Item.Table = null
-            and then Item.Refs = null
-            and then Item.Color = White,
+            Item.Bytes = null and then Item.Table = null and then Item.Refs = null,
           when String_Object =>
             Item.Bytes /= null
             and then Item.Bytes'First = 1
@@ -309,17 +306,12 @@ package body Pyro.Heap with SPARK_Mode => On is
       null;
    end Lemma_Slot_From_Facts;
 
-   --  [proof] A free, white slot that owns nothing is valid.
+   --  [proof] A free slot that owns nothing is valid.
    procedure Lemma_Free_Slot (Item : Slot)
    with
      Ghost,
      Global => null,
-     Pre    =>
-       Item.Kind = Free_Object
-       and then Item.Bytes = null
-       and then Item.Table = null
-       and then Item.Refs = null
-       and then Item.Color = White,
+     Pre    => Is_Empty_Slot (Item),
      Post   => Slot_Valid (Item)
    is
       pragma Annotate (GNATprove, Unhide_Info, "Expression_Function_Body", Slot_Valid);
@@ -339,7 +331,6 @@ package body Pyro.Heap with SPARK_Mode => On is
      Post   =>
        Slot_Valid (Item)
        and then Item.Kind = String_Object
-       and then Item.Color = Item.Color'Old
        and then Item.Hash = Hash
        and then Item.Bytes /= null
        and then Item.Bytes'First = 1
@@ -361,7 +352,6 @@ package body Pyro.Heap with SPARK_Mode => On is
      Post   =>
        Slot_Valid (Item)
        and then Item.Kind = Table_Object
-       and then Item.Color = Item.Color'Old
        and then Item.Table /= null
        and then Value_Maps.Is_Empty (Pyro.Tables.Model (Item.Table.all))
        and then Item.Refs /= null
@@ -380,10 +370,8 @@ package body Pyro.Heap with SPARK_Mode => On is
       Pyro.Tables.Set_Seed (Item.Table.all, Key);
    end Init_Table;
 
-   --  Makes free slot Item an object of kind Kind, with number Tag and References references,
-   --  all nil.
-   procedure Init_Object
-     (Item : in out Slot; Kind : Object_Kind; Tag : Natural; References : Natural)
+   --  Makes free slot Item an object of kind Kind, with References references, all nil.
+   procedure Init_Object (Item : in out Slot; Kind : Object_Kind; References : Natural)
    with
      Global => null,
      Pre    =>
@@ -394,8 +382,6 @@ package body Pyro.Heap with SPARK_Mode => On is
      Post   =>
        Slot_Valid (Item)
        and then Item.Kind = Kind
-       and then Item.Color = Item.Color'Old
-       and then Item.Tag = Tag
        and then Item.Refs /= null
        and then Item.Refs'First = 1
        and then Item.Refs'Length = References
@@ -407,20 +393,17 @@ package body Pyro.Heap with SPARK_Mode => On is
       pragma Annotate (GNATprove, Unhide_Info, "Expression_Function_Body", Refs_Canonical);
    begin
       Item.Kind := Kind;
-      Item.Tag := Tag;
       Item.Refs := new Reference_Array'(1 .. References => Nil);
    end Init_Object;
 
-   --  Frees the white object slot Item holds, releasing its memory from Budget, and links the
-   --  free slot to Link.
-   procedure Free_Slot (Item : in out Slot; Budget : in out Memory_Budget; Link : Object_Handle)
+   --  Frees the object slot Item holds, releasing its memory from Budget.
+   procedure Free_Slot (Item : in out Slot; Budget : in out Memory_Budget)
    with
      Global => null,
-     Pre    => Slot_Valid (Item) and then Item.Color = White,
+     Pre    => Slot_Valid (Item),
      Post   =>
        Slot_Valid (Item)
        and then Item.Kind = Free_Object
-       and then Item.Color = White
        and then Limit (Budget) = Limit (Budget)'Old
    is
       pragma Annotate (GNATprove, Unhide_Info, "Expression_Function_Body", Slot_Valid);
@@ -444,8 +427,6 @@ package body Pyro.Heap with SPARK_Mode => On is
       Free_Refs (Item.Refs);
       Item.Kind := Free_Object;
       Item.Hash := 0;
-      Item.Tag := 0;
-      Item.Link := Link;
    end Free_Slot;
 
    --  Takes a slot for a new object: the first on the free list, or a new one after the
@@ -481,7 +462,9 @@ package body Pyro.Heap with SPARK_Mode => On is
       if H.Free_Head in 1 .. Slot_Count (H) and then Kind_Of (H, H.Free_Head) = Free_Object then
          Handle := H.Free_Head;
          pragma Assert (Handle_Valid (H, Handle));
-         H.Free_Head := H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Link;
+         pragma Assert (Has_Headers (H, Place_Of (Handle).Chunk));
+         H.Free_Head := H.Headers (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset).Link;
+         H.Headers (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset) := (others => <>);
             Lemma_Graph_Grows (K0, Kinds (H), G0, Graph (H));
          Lemma_Refs_Live (H);
          return;
@@ -497,22 +480,28 @@ package body Pyro.Heap with SPARK_Mode => On is
       if H.Chunks = null then
          Charge (Budget, Table_Bytes, Success);
          if not Success then
-                  Lemma_Graph_Grows (K0, Kinds (H), G0, Graph (H));
+            Lemma_Graph_Grows (K0, Kinds (H), G0, Graph (H));
             Lemma_Refs_Live (H);
             return;
          end if;
          H.Chunks := new Chunk_Table'(others => null);
       end if;
+      if H.Headers = null then
+         H.Headers := new Header_Table'(others => null);
+      end if;
       if H.Chunks (Place_Of (Next).Chunk) = null then
          Charge (Budget, Chunk_Bytes, Success);
          if not Success then
-                  Lemma_Graph_Grows (K0, Kinds (H), G0, Graph (H));
+            Lemma_Graph_Grows (K0, Kinds (H), G0, Graph (H));
             Lemma_Refs_Live (H);
             return;
          end if;
+         if H.Headers (Place_Of (Next).Chunk) = null then
+            H.Headers (Place_Of (Next).Chunk) := new Header_Chunk'
+              (others => (Color => White, Link => No_Object, Tag => 0));
+         end if;
          H.Chunks (Place_Of (Next).Chunk) := new Slot_Chunk'
-           (others => (Kind  => Free_Object, Color => White, Link => No_Object, Hash => 0,
-                       Tag   => 0, Bytes => null, Table => null, Refs => null));
+           (others => (Kind => Free_Object, Hash => 0, Bytes => null, Table => null, Refs => null));
       end if;
       pragma Assert (Handle_Valid (H, Next));
       Lemma_Free_Slot (H.Chunks (Place_Of (Next).Chunk) (Place_Of (Next).Offset));
@@ -835,7 +824,16 @@ package body Pyro.Heap with SPARK_Mode => On is
    function Slots_Valid (H : Heap) return Boolean
    is ((Slot_Count (H) = 0 or else H.Chunks /= null)
        and then (for all Handle in Valid_Handle =>
-                   Place_Valid (H.Chunks, H.Slot_Count, Handle)))
+                   (if Handle <= H.Slot_Count
+                    then H.Chunks /= null
+                         and then H.Chunks (Place_Of (Handle).Chunk) /= null
+                         and then Slot_Valid
+                                    (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset))
+                    else H.Chunks = null
+                         or else H.Chunks (Place_Of (Handle).Chunk) = null
+                         or else Is_Empty_Slot
+                                   (H.Chunks (Place_Of (Handle).Chunk) (Place_Of (Handle).Offset))))
+       and then Headers_Valid (H))
    with Ghost;
 
    --  Pyro.Tables.Set on the table that slot Item owns.
@@ -855,7 +853,6 @@ package body Pyro.Heap with SPARK_Mode => On is
      Post   =>
        Slot_Valid (Item)
        and then Item.Kind = Table_Object
-       and then Item.Color = Item.Color'Old
        and then Item.Table /= null
        and then Limit (Budget) = Limit (Budget)'Old
        and then Pyro.Tables.Entries_From
@@ -922,6 +919,8 @@ package body Pyro.Heap with SPARK_Mode => On is
                      Table_Model (H, T) = Table_Model (H, T)'Old)
    is
       P : constant Place := Place_Of (T);
+      K0 : constant Kind_Sequences.Sequence := Kinds (H) with Ghost;
+      G0 : constant Graph_Sequences.Sequence := Graph (H) with Ghost;
    begin
       pragma Assert (Handle_Valid (H, T));
       Lemma_Slot_Facts (H.Chunks (P.Chunk) (P.Offset));
@@ -930,6 +929,14 @@ package body Pyro.Heap with SPARK_Mode => On is
       --  Not needed at run time: written again so that the provers see one slot changed.
       H.Chunks (P.Chunk) (P.Offset).Kind := Table_Object;
       Lemma_Slot_From_Facts (H.Chunks (P.Chunk) (P.Offset));
+      --  The frame, one property at a time.
+      pragma Assert (Slots_Valid (H));
+      pragma Assert
+        (for all Other in 1 .. Slot_Count (H) =>
+           Kind_Of (H, Other) = Kind_Sequences.Get (K0, Other));
+      pragma Assert
+        (for all Other in 1 .. Slot_Count (H) =>
+           (if Other /= T then Children (H, Other) = Graph_Sequences.Get (G0, Other)));
    end Set_Entry;
 
    procedure Table_Set
@@ -949,6 +956,106 @@ package body Pyro.Heap with SPARK_Mode => On is
       Lemma_Graph_Set (K0, G0, Graph (H), T, Key_Of (Key), Item);
       Lemma_Refs_Live (H);
    end Table_Set;
+
+   --  Pyro.Tables.Resize on the table that slot Item owns.
+   procedure Resize_In_Slot
+     (Item       : in out Slot;
+      Budget     : in out Memory_Budget;
+      Array_Size : Natural;
+      Hash_Size  : Natural;
+      Success    : out Boolean)
+   with
+     Global => null,
+     Pre    =>
+       Slot_Valid (Item)
+       and then Item.Kind = Table_Object
+       and then Array_Size <= Pyro.Tables.Maximum_Array_Size
+       and then Hash_Size <= Pyro.Tables.Maximum_Capacity / 2,
+     Post   =>
+       Slot_Valid (Item)
+       and then Item.Kind = Table_Object
+       and then Item.Table /= null
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then Pyro.Tables.Entries_From
+                  (Slot_Children (Item), Slot_Children (Item)'Old, Nil, Nil)
+       and then Pyro.Tables.Model (Item.Table.all) = Pyro.Tables.Model (Item.Table.all)'Old
+   is
+      pragma Annotate (GNATprove, Unhide_Info, "Expression_Function_Body", Slot_Valid);
+      Before : constant Value_Sequences.Sequence := Pyro.Tables.Entries (Item.Table.all)
+      with Ghost;
+   begin
+      Pyro.Tables.Resize (Item.Table.all, Budget, Array_Size, Hash_Size, Success);
+      Lemma_Append_From (Before, Pyro.Tables.Entries (Item.Table.all), Item.Refs.all, Nil, Nil);
+   end Resize_In_Slot;
+
+   --  Pyro.Tables.Resize on table T: every other object holds what it held.
+   procedure Resize_Entry
+     (H          : in out Heap;
+      Budget     : in out Memory_Budget;
+      T          : Valid_Handle;
+      Array_Size : Natural;
+      Hash_Size  : Natural;
+      Success    : out Boolean)
+   with
+     Global => null,
+     Pre    =>
+       Slots_Valid (H)
+       and then Intern_Valid (H)
+       and then Kind_Of (H, T) = Table_Object
+       and then Array_Size <= Pyro.Tables.Maximum_Array_Size
+       and then Hash_Size <= Pyro.Tables.Maximum_Capacity / 2,
+     Post   =>
+       Slots_Valid (H)
+       and then Intern_Valid (H)
+       and then Seed (H) = Seed (H)'Old
+       and then Slot_Count (H) = Slot_Count (H)'Old
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then (for all Other in 1 .. Slot_Count (H) =>
+                   Kind_Of (H, Other) = Kind_Sequences.Get (Kinds (H)'Old, Other))
+       and then (for all Other in 1 .. Slot_Count (H) =>
+                   (if Other /= T
+                    then Children (H, Other) = Graph_Sequences.Get (Graph (H)'Old, Other)))
+       and then Pyro.Tables.Entries_From
+                  (Children (H, T), Graph_Sequences.Get (Graph (H)'Old, T), Nil, Nil)
+       and then Table_Model (H, T) = Table_Model (H, T)'Old
+   is
+      P : constant Place := Place_Of (T);
+      K0 : constant Kind_Sequences.Sequence := Kinds (H) with Ghost;
+      G0 : constant Graph_Sequences.Sequence := Graph (H) with Ghost;
+   begin
+      pragma Assert (Handle_Valid (H, T));
+      Lemma_Slot_Facts (H.Chunks (P.Chunk) (P.Offset));
+      Resize_In_Slot (H.Chunks (P.Chunk) (P.Offset), Budget, Array_Size, Hash_Size, Success);
+      Lemma_Slot_Facts (H.Chunks (P.Chunk) (P.Offset));
+      --  Not needed at run time: written again so that the provers see one slot changed.
+      H.Chunks (P.Chunk) (P.Offset).Kind := Table_Object;
+      Lemma_Slot_From_Facts (H.Chunks (P.Chunk) (P.Offset));
+      --  The frame, one property at a time.
+      pragma Assert (Slots_Valid (H));
+      pragma Assert
+        (for all Other in 1 .. Slot_Count (H) =>
+           Kind_Of (H, Other) = Kind_Sequences.Get (K0, Other));
+      pragma Assert
+        (for all Other in 1 .. Slot_Count (H) =>
+           (if Other /= T then Children (H, Other) = Graph_Sequences.Get (G0, Other)));
+   end Resize_Entry;
+
+   procedure Table_Resize
+     (H          : in out Heap;
+      Budget     : in out Memory_Budget;
+      T          : Valid_Handle;
+      Array_Size : Natural;
+      Hash_Size  : Natural;
+      Success    : out Boolean)
+   is
+      K0 : constant Kind_Sequences.Sequence := Kinds (H) with Ghost;
+      G0 : constant Graph_Sequences.Sequence := Graph (H) with Ghost;
+   begin
+      Lemma_Graph_Live (H);
+      Resize_Entry (H, Budget, T, Array_Size, Hash_Size, Success);
+      Lemma_Graph_Set (K0, G0, Graph (H), T, Nil, Nil);
+      Lemma_Refs_Live (H);
+   end Table_Resize;
 
    --  The number of values slot Item holds (Slot_Children), with no ghost code.
    function Slot_Child_Count (Item : Slot) return Natural
@@ -1043,8 +1150,6 @@ package body Pyro.Heap with SPARK_Mode => On is
      Post   =>
        Slot_Valid (Item)
        and then Item.Kind = Item.Kind'Old
-       and then Item.Color = Item.Color'Old
-       and then Item.Tag = Item.Tag'Old
        and then Item.Refs /= null
        and then Item.Refs'First = 1
        and then Item.Refs'Last = Item.Refs'Last'Old
@@ -1094,6 +1199,8 @@ package body Pyro.Heap with SPARK_Mode => On is
        and then Reference_At (H, Handle, Position) = Item
    is
       P    : constant Place := Place_Of (Handle);
+      K0   : constant Kind_Sequences.Sequence := Kinds (H) with Ghost;
+      G0   : constant Graph_Sequences.Sequence := Graph (H) with Ghost;
       Kind : constant Object_Kind := Kind_Of (H, Handle);
    begin
       pragma Assert (Handle_Valid (H, Handle));
@@ -1103,6 +1210,14 @@ package body Pyro.Heap with SPARK_Mode => On is
       --  Not needed at run time: written again so that the provers see one slot changed.
       H.Chunks (P.Chunk) (P.Offset).Kind := Kind;
       Lemma_Slot_From_Facts (H.Chunks (P.Chunk) (P.Offset));
+      --  The frame, one property at a time.
+      pragma Assert (Slots_Valid (H));
+      pragma Assert
+        (for all Other in 1 .. Slot_Count (H) =>
+           Kind_Of (H, Other) = Kind_Sequences.Get (K0, Other));
+      pragma Assert
+        (for all Other in 1 .. Slot_Count (H) =>
+           (if Other /= Handle then Children (H, Other) = Graph_Sequences.Get (G0, Other)));
    end Set_Reference_Entry;
 
    procedure Set_Reference
@@ -1148,7 +1263,9 @@ package body Pyro.Heap with SPARK_Mode => On is
       K1 := Kinds (H);
       G1 := Graph (H);
       Lemma_Graph_Live (H);
-      Init_Object (H.Chunks (P.Chunk) (P.Offset), Kind, Tag, References);
+      Init_Object (H.Chunks (P.Chunk) (P.Offset), Kind, References);
+      pragma Assert (Has_Headers (H, P.Chunk));
+      H.Headers (P.Chunk) (P.Offset).Tag := Tag;
       Lemma_Graph_Grows (K1, Kinds (H), G1, Graph (H));
       Lemma_Refs_Live (H);
    end New_Object;
@@ -1196,13 +1313,8 @@ package body Pyro.Heap with SPARK_Mode => On is
    begin
       Lemma_Graph_Live (H);
       pragma Assert (Handle_Valid (H, Handle));
-      Lemma_Slot_Facts (H.Chunks (P.Chunk) (P.Offset));
-      H.Chunks (P.Chunk) (P.Offset).Color := Color;
-      Lemma_Slot_From_Facts (H.Chunks (P.Chunk) (P.Offset));
-      pragma Assert (Place_Valid (H.Chunks, H.Slot_Count, Handle));
-      pragma Assert
-        (for all Other in Valid_Handle =>
-           (if Other /= Handle then Place_Valid (H.Chunks, H.Slot_Count, Other)));
+      pragma Assert (Has_Headers (H, P.Chunk));
+      H.Headers (P.Chunk) (P.Offset).Color := Color;
       Lemma_Same_Objects (H, K0, G0);
       Lemma_Refs_Live (H);
       pragma Assert
@@ -1232,9 +1344,8 @@ package body Pyro.Heap with SPARK_Mode => On is
    begin
       Lemma_Graph_Live (H);
       pragma Assert (Handle_Valid (H, Handle));
-      Lemma_Slot_Facts (H.Chunks (P.Chunk) (P.Offset));
-      H.Chunks (P.Chunk) (P.Offset).Link := Link;
-      Lemma_Slot_From_Facts (H.Chunks (P.Chunk) (P.Offset));
+      pragma Assert (Has_Headers (H, P.Chunk));
+      H.Headers (P.Chunk) (P.Offset).Link := Link;
       Lemma_Same_Objects (H, K0, G0);
       Lemma_Refs_Live (H);
       pragma Assert
@@ -1249,9 +1360,8 @@ package body Pyro.Heap with SPARK_Mode => On is
    begin
       Lemma_Graph_Live (H);
       pragma Assert (Handle_Valid (H, Handle));
-      Lemma_Slot_Facts (H.Chunks (P.Chunk) (P.Offset));
-      H.Chunks (P.Chunk) (P.Offset).Tag := Tag;
-      Lemma_Slot_From_Facts (H.Chunks (P.Chunk) (P.Offset));
+      pragma Assert (Has_Headers (H, P.Chunk));
+      H.Headers (P.Chunk) (P.Offset).Tag := Tag;
       Lemma_Same_Objects (H, K0, G0);
       Lemma_Refs_Live (H);
    end Set_Tag;
@@ -1289,7 +1399,8 @@ package body Pyro.Heap with SPARK_Mode => On is
         and then Color_Of (H, Head) = Gray
       then
          Handle := Head;
-         H.Gray_Head := H.Chunks (Place_Of (Head).Chunk) (Place_Of (Head).Offset).Link;
+         pragma Assert (Has_Headers (H, Place_Of (Head).Chunk));
+         H.Gray_Head := H.Headers (Place_Of (Head).Chunk) (Place_Of (Head).Offset).Link;
       end if;
       Lemma_Same_Objects (H, K0, G0);
       Lemma_Refs_Live (H);
@@ -1353,18 +1464,18 @@ package body Pyro.Heap with SPARK_Mode => On is
       if H.Chunks (P.Chunk) (P.Offset).Kind = Free_Object then
          return;
       end if;
-      if H.Chunks (P.Chunk) (P.Offset).Color /= White then
-         H.Chunks (P.Chunk) (P.Offset).Color := White;
-         Lemma_Slot_From_Facts (H.Chunks (P.Chunk) (P.Offset));
+      pragma Assert (Has_Headers (H, P.Chunk));
+      if H.Headers (P.Chunk) (P.Offset).Color /= White then
+         H.Headers (P.Chunk) (P.Offset).Color := White;
          pragma Assert (Color_Of (H, Handle) = White);
          return;
       end if;
-      Free_Slot (H.Chunks (P.Chunk) (P.Offset), Budget, Free_Head);
+      Free_Slot (H.Chunks (P.Chunk) (P.Offset), Budget);
       Lemma_Slot_Facts (H.Chunks (P.Chunk) (P.Offset));
       --  Not needed at run time: written again so that the provers see one slot changed.
       H.Chunks (P.Chunk) (P.Offset).Kind := Free_Object;
       Lemma_Slot_From_Facts (H.Chunks (P.Chunk) (P.Offset));
-      pragma Assert (H.Chunks (P.Chunk) (P.Offset).Color = White);
+      H.Headers (P.Chunk) (P.Offset) := (Color => White, Link => Free_Head, Tag => 0);
       pragma Assert (Color_Of (H, Handle) = White);
       H.Free_Head := Handle;
    end Sweep_Slot;
@@ -1496,6 +1607,14 @@ package body Pyro.Heap with SPARK_Mode => On is
          Release (Budget, Table_Bytes);
       end if;
       Free_Table (H.Chunks);
+      if H.Headers /= null then
+         for Chunk in Chunk_Number loop
+            Free_Headers (H.Headers (Chunk));
+            pragma Loop_Invariant
+              (for all Earlier in 0 .. Chunk => H.Headers (Earlier) = null);
+         end loop;
+      end if;
+      Free_Header_Table (H.Headers);
       if H.Intern /= null then
          Release (Budget, Entry_Bytes * Byte_Count (H.Intern'Length));
       end if;

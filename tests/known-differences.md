@@ -42,6 +42,8 @@ sit close to the steps limit, fail; it can come back once they have more room.
 
 ## No stack tracebacks
 
+Accepted by the owner on 2026-11-03.
+
 Source: `cli/src/pyro_program.adb`.
 
 lua.c prints a stack traceback after the message of an error no protected call catches,
@@ -51,6 +53,8 @@ runs then sees the message without a traceback. The runtime corpus compares the 
 of the standard error, without the program's name.
 
 ## No limit on nested host calls
+
+Accepted by the owner on 2026-11-03.
 
 Source: `src/runtime/pyro-virtual_machine.ads`.
 

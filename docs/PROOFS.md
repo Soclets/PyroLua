@@ -73,6 +73,23 @@ is stated over the ghost `Kinds` and `Graph` and hidden behind `Refs_Live`, so t
 operations that change objects reason about it. `Pyro.Strings` (SipHash-1-3) is Silver
 and checked against the reference vectors in `tests/unit`.
 
+Two choices keep these proofs well inside the provers' steps limit, and stable when the
+package changes (an unrelated addition used to send a check from about 5,000 steps to
+22,000, and others past the limit):
+
+- Each slot's validity is written out in `Is_Valid` rather than through the function
+  `Place_Valid`, so the provers find the instance for any handle a proof names through
+  `Place_Of`. Through `Place_Valid` they needed a term naming the heap as it was before a
+  write, which no goal after the write contains, and found it only by luck.
+- What the collector and the VM change without changing what a slot holds (colour, link,
+  tag) lives in headers apart from the slots (DESIGN.md, Heap), so writing it leaves the
+  chunk table, and the whole of slot validity, the same term: `Set_Color`, `Set_Link` and
+  `Set_Tag` need no reasoning about other slots at all. The procedures that do change a slot
+  prove their frame one property at a time.
+
+At the end of M4's follow-up the heaviest heap check takes 4,092 of the 30,000 steps, and
+the same with unrelated declarations added to the package.
+
 ### Garbage collector (M3)
 
 The heap's ghost view is `Kinds (H)` (what each slot holds), `Colors (H)` and `Graph (H)`
