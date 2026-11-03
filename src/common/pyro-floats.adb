@@ -60,4 +60,23 @@ package body Pyro.Floats with SPARK_Mode => Off is
       return (Value and 16#7FFF_FFFF_FFFF_FFFF#) = 0;
    end Is_Zero;
 
+   function Image (Value : Float_Bits) return String is
+      function Format
+        (Bits : Float_Bits; Buffer : out Interfaces.C.char_array; Size : Interfaces.C.int)
+         return Interfaces.C.int
+      with Import, Convention => C, External_Name => "pyro_format_float";
+      Buffer : Interfaces.C.char_array (0 .. Maximum_Image_Length);
+      Length : constant Natural :=
+        Natural (Format (Value, Buffer, Interfaces.C.int (Maximum_Image_Length - 1)));
+      Text   : String (1 .. Length);
+   begin
+      for Index in Text'Range loop
+         Text (Index) := Character (Buffer (Interfaces.C.size_t (Index - 1)));
+      end loop;
+      if (for all Character of Text => Character in '-' | '0' .. '9') then
+         return Text & ".0";
+      end if;
+      return Text;
+   end Image;
+
 end Pyro.Floats;

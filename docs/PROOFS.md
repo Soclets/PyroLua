@@ -127,8 +127,8 @@ kept small and conservative.
 
 | Unit | Reason | Since |
 | --- | --- | --- |
-| `Pyro.Floats` (body) and its C helper `src/common/pyro_floats.c` | IEEE 754 arithmetic with infinities and NaN, correctly rounded decimal-to-float conversion, `%.14g` formatting. SPARK assumes floats are finite, so these must operate on raw bits outside SPARK. Decimal conversion is libc's `strtod_l` with an explicit "C" locale, so a host calling `setlocale` cannot change how numerals are read. Constant folding (M2) uses libc's `pow`, `fmod` and `floor` as luac does, so folded constants are bit-identical to luac's. | M1, M2 |
-| `cli/` (`pyrolua` executable) | File and console I/O, command-line handling, bytecode listings (with `%.14g` from libc in `cli/src/pyro_cli_floats.c`). Not part of the library. | M1 |
+| `Pyro.Floats` (body) and its C helper `src/common/pyro_floats.c` | IEEE 754 arithmetic with infinities and NaN, correctly rounded decimal-to-float conversion, `%.14g` formatting (Lua's, with ".0" after an integral value, since M4). SPARK assumes floats are finite, so these must operate on raw bits outside SPARK. Decimal conversion is libc's `strtod_l` with an explicit "C" locale, so a host calling `setlocale` cannot change how numerals are read. Constant folding (M2) uses libc's `pow`, `fmod` and `floor` as luac does, so folded constants are bit-identical to luac's. | M1, M2, M4 |
+| `cli/` (`pyrolua` executable) | File and console I/O, command-line handling, bytecode listings. Not part of the library. | M1 |
 
 Any new entry needs a reason here and should be as small as possible.
 

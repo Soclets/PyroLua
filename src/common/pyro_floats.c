@@ -14,6 +14,7 @@
 #include <locale.h>
 #include <math.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #if defined(__APPLE__)
@@ -84,4 +85,12 @@ int pyro_float_to_integer (uint64_t bits, int64_t *result) {
     return 1;
   }
   return 0;
+}
+
+/* [trusted] Writes the float with bits 'bits' as LUA_NUMBER_FMT ("%.14g") into 'buffer'
+   (NUL-terminated, at most 'size' bytes with the NUL) and returns the length written, as
+   lobject.c's tostringbuff does with the C library. */
+int pyro_format_float (uint64_t bits, char *buffer, int size) {
+  int length = snprintf(buffer, (size_t) size, "%.14g", to_double(bits));
+  return (length < 0) ? 0 : (length >= size ? size - 1 : length);
 }

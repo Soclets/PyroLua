@@ -56,4 +56,11 @@ package Pyro.Integer_Arithmetic with SPARK_Mode => On, Pure, Always_Terminates i
    function Modulo (Left, Right : Integer_64) return Integer_64
    with Pre => Right /= 0;
 
+   --  The longest decimal image of an integer: "-9223372036854775808".
+   Maximum_Image_Length : constant := 20;
+
+   --  [puc lobject.c:tostringbuff] Value in decimal, as LUA_INTEGER_FMT ("%lld") writes it.
+   function Image (Value : Integer_64) return String
+   with Post => Image'Result'First = 1 and then Image'Result'Length in 1 .. Maximum_Image_Length;
+
 end Pyro.Integer_Arithmetic;

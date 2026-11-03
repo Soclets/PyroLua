@@ -7,8 +7,7 @@ pragma SPARK_Mode (Off);
 with Ada.Characters.Handling;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with GNAT.OS_Lib;
-with Interfaces;
-with Interfaces.C;
+with Pyro.Floats;
 with Pyro.Integer_Arithmetic;
 
 package body Bytecode_Listing is
@@ -147,21 +146,6 @@ package body Bytecode_Listing is
          Put ("""");
       end Put_String;
 
-      function Float_Image (Bits : Interfaces.Unsigned_64) return String is
-         function Format
-           (Bits : Interfaces.Unsigned_64; Buffer : out Interfaces.C.char_array;
-            Size : Interfaces.C.int) return Interfaces.C.int
-         with Import, Convention => C, External_Name => "pyro_format_float";
-         Buffer : Interfaces.C.char_array (0 .. 99);
-         Length : constant Natural := Natural (Format (Bits, Buffer, 100));
-         Text   : String (1 .. Length);
-      begin
-         for Index in Text'Range loop
-            Text (Index) := Character (Buffer (Interfaces.C.size_t (Index - 1)));
-         end loop;
-         return Text;
-      end Float_Image;
-
       --  [puc luac.c:PrintConstant].
       procedure Put_Constant (P : Prototype_Index; Number : Natural) is
       begin
@@ -177,14 +161,7 @@ package body Bytecode_Listing is
                when False_Constant => Put ("false");
                when True_Constant => Put ("true");
                when Float_Constant =>
-                  declare
-                     Text : constant String := Float_Image (Value.Bits);
-                  begin
-                     Put (Text);
-                     if (for all Byte of Text => Byte in '-' | '0' .. '9') then
-                        Put (".0");
-                     end if;
-                  end;
+                  Put (Pyro.Floats.Image (Value.Bits));
                when Integer_Constant =>
                   Put (Image (Long_Long_Integer
                          (Pyro.Integer_Arithmetic.To_Signed (Value.Bits))));

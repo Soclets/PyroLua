@@ -9,6 +9,7 @@ with Ada.Text_IO;          use Ada.Text_IO;
 with Interfaces;           use Interfaces;
 with Pyro.Floats;
 with Pyro.Garbage_Collector;
+with Pyro.Integer_Arithmetic;
 with Pyro.Heap;            use Pyro.Heap;
 with Pyro.Strings;
 with Pyro.Tables;          use Pyro.Tables;
@@ -35,6 +36,36 @@ procedure Runtime_Test is
       end loop;
       return Result;
    end Bytes;
+
+   --  Numbers are written as Lua writes them (lobject.c's tostringbuff).
+   procedure Test_Number_Images is
+      use Pyro.Floats;
+      function Integer_Image (Value : Integer_64) return String
+      renames Pyro.Integer_Arithmetic.Image;
+      Zero : constant Float_Bits := From_Integer (0);
+      One  : constant Float_Bits := From_Integer (1);
+   begin
+      Check (Integer_Image (0) = "0" and then Integer_Image (-1) = "-1"
+             and then Integer_Image (1234) = "1234",
+             "images: small integers");
+      Check (Integer_Image (Integer_64'Last) = "9223372036854775807"
+             and then Integer_Image (Integer_64'First) = "-9223372036854775808",
+             "images: integer limits");
+      Check (Pyro.Floats.Image (One) = "1.0" and then Pyro.Floats.Image (Zero) = "0.0",
+             "images: integral floats end in .0");
+      Check (Pyro.Floats.Image (Arithmetic (Negate, Zero, Zero)) = "-0.0", "images: -0.0");
+      Check (Pyro.Floats.Image (Arithmetic (Divide, One, From_Integer (10))) = "0.1",
+             "images: 0.1");
+      Check (Pyro.Floats.Image (Arithmetic (Power, From_Integer (10), From_Integer (15)))
+             = "1e+15", "images: 1e+15");
+      Check (Pyro.Floats.Image (Arithmetic (Power, From_Integer (2), From_Integer (63)))
+             = "9.2233720368548e+18", "images: 2^63");
+      Check (Pyro.Floats.Image (Arithmetic (Divide, One, Zero)) = "inf"
+             and then Pyro.Floats.Image (Arithmetic (Divide, From_Integer (-1), Zero)) = "-inf",
+             "images: infinities");
+      Check (Pyro.Floats.Image (Arithmetic (Divide, Zero, Zero)) in "nan" | "-nan",
+             "images: NaN");
+   end Test_Number_Images;
 
    --  Strings are allocated, read back, and freed by Clear with their memory.
    procedure Test_Heap_Strings is
@@ -565,6 +596,7 @@ procedure Runtime_Test is
    end Test_Collector_Stress;
 
 begin
+   Test_Number_Images;
    Test_Tables_Model;
    Test_Tables_Length;
    Test_Tables_Probes;

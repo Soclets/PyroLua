@@ -44,4 +44,16 @@ package Pyro.Floats with SPARK_Mode => On, Always_Terminates is
    function Is_Zero (Value : Float_Bits) return Boolean
    with Global => null;
 
+   --  The longest text Image gives: "%.14g" of a float is at most 21 characters
+   --  ("-1.2345678901234e-308"), and ".0" may follow.
+   Maximum_Image_Length : constant := 23;
+
+   --  [puc lobject.c:tostringbuff] Value as Lua writes a float: C's "%.14g" (so "1e+15",
+   --  "inf", "-inf", and "nan" or "-nan" as the C library writes them), followed by ".0" when
+   --  that looks like an integer ("1.0", "-0.0").
+   function Image (Value : Float_Bits) return String
+   with
+     Global => null,
+     Post   => Image'Result'First = 1 and then Image'Result'Length in 1 .. Maximum_Image_Length;
+
 end Pyro.Floats;
