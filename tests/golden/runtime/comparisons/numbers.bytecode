@@ -1,0 +1,243 @@
+
+main <tests/corpus/runtime/comparisons/numbers.lua:0,0> (215 instructions at #1)
+0+ params, 16 slots, 1 upvalue, 6 locals, 14 constants, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	load_integer	0 3
+	3	[2]	load_float	1 3
+	4	[2]	load_constant	2 0	; 9007199254740993
+	5	[3]	load_integer	3 0
+	6	[3]	divide_constant	3 3 1	; 0.0
+	7	[3]	metamethod_binary_constant	3 1 11 0	; __div 0.0
+	8	[4]	get_table_upvalue	4 0 2	; _ENV "print"
+	9	[4]	equal    	0 1 1
+	10	[4]	jump     	1	; to 12
+	11	[4]	load_false_skip	5
+	12	[4]	load_true	5
+	13	[4]	less_than	0 1 1
+	14	[4]	jump     	1	; to 16
+	15	[4]	load_false_skip	6
+	16	[4]	load_true	6
+	17	[4]	less_equal	0 1 1
+	18	[4]	jump     	1	; to 20
+	19	[4]	load_false_skip	7
+	20	[4]	load_true	7
+	21	[4]	greater_than_integer	1 2 1
+	22	[4]	jump     	1	; to 24
+	23	[4]	load_false_skip	8
+	24	[4]	load_true	8
+	25	[4]	less_than_integer	1 4 1
+	26	[4]	jump     	1	; to 28
+	27	[4]	load_false_skip	9
+	28	[4]	load_true	9
+	29	[4]	load_float	10 0
+	30	[4]	negate   	10 10
+	31	[4]	equal_integer	10 0 1
+	32	[4]	jump     	1	; to 34
+	33	[4]	load_false_skip	10
+	34	[4]	load_true	10
+	35	[4]	equal    	3 3 1
+	36	[4]	jump     	1	; to 38
+	37	[4]	load_false_skip	11
+	38	[4]	load_true	11
+	39	[4]	less_than	3 3 1
+	40	[4]	jump     	1	; to 42
+	41	[4]	load_false_skip	12
+	42	[4]	load_true	12
+	43	[4]	less_equal_integer	3 1 1
+	44	[4]	jump     	1	; to 46
+	45	[4]	load_false_skip	13
+	46	[4]	load_true	13
+	47	[4]	call     	4 10 1	; 9 in 0 out
+	48	[5]	get_table_upvalue	4 0 2	; _ENV "print"
+	49	[5]	equal_constant	2 3 1	; 9.007199254741e+15
+	50	[5]	jump     	1	; to 52
+	51	[5]	load_false_skip	5
+	52	[5]	load_true	5
+	53	[5]	load_constant	6 4	; 9.007199254741e+15
+	54	[5]	less_than	2 6 1
+	55	[5]	jump     	1	; to 57
+	56	[5]	load_false_skip	6
+	57	[5]	load_true	6
+	58	[5]	load_constant	7 3	; 9.007199254741e+15
+	59	[5]	less_than	7 2 1
+	60	[5]	jump     	1	; to 62
+	61	[5]	load_false_skip	7
+	62	[5]	load_true	7
+	63	[5]	load_constant	8 3	; 9.007199254741e+15
+	64	[5]	less_than	8 2 1
+	65	[5]	jump     	1	; to 67
+	66	[5]	load_false_skip	8
+	67	[5]	load_true	8
+	68	[5]	load_constant	9 5	; 9.2233720368548e+18
+	69	[5]	load_constant	10 6	; 9223372036854775807
+	70	[5]	less_than	10 9 1
+	71	[5]	jump     	1	; to 73
+	72	[5]	load_false_skip	9
+	73	[5]	load_true	9
+	74	[5]	call     	4 6 1	; 5 in 0 out
+	75	[6]	get_table_upvalue	4 0 2	; _ENV "print"
+	76	[6]	load_constant	5 7	; -9.2233720368548e+18
+	77	[6]	equal_constant	5 8 1	; -9223372036854775808
+	78	[6]	jump     	1	; to 80
+	79	[6]	load_false_skip	5
+	80	[6]	load_true	5
+	81	[6]	load_constant	6 6	; 9223372036854775807
+	82	[6]	load_constant	7 5	; 9.2233720368548e+18
+	83	[6]	less_than	6 7 1
+	84	[6]	jump     	1	; to 86
+	85	[6]	load_false_skip	6
+	86	[6]	load_true	6
+	87	[6]	load_integer	7 1
+	88	[6]	divide_constant	7 7 9	; 0
+	89	[6]	metamethod_binary_constant	7 9 11 0	; __div 0
+	90	[6]	load_constant	8 6	; 9223372036854775807
+	91	[6]	less_than	8 7 1
+	92	[6]	jump     	1	; to 94
+	93	[6]	load_false_skip	7
+	94	[6]	load_true	7
+	95	[6]	call     	4 4 1	; 3 in 0 out
+	96	[7]	load_integer	4 10
+	97	[7]	load_integer	5 20
+	98	[8]	get_table_upvalue	6 0 2	; _ENV "print"
+	99	[8]	less_than	4 5 1
+	100	[8]	jump     	1	; to 102
+	101	[8]	load_false_skip	7
+	102	[8]	load_true	7
+	103	[8]	less_equal	4 5 1
+	104	[8]	jump     	1	; to 106
+	105	[8]	load_false_skip	8
+	106	[8]	load_true	8
+	107	[8]	less_than	5 4 1
+	108	[8]	jump     	1	; to 110
+	109	[8]	load_false_skip	9
+	110	[8]	load_true	9
+	111	[8]	less_equal	5 4 1
+	112	[8]	jump     	1	; to 114
+	113	[8]	load_false_skip	10
+	114	[8]	load_true	10
+	115	[8]	equal    	4 5 1
+	116	[8]	jump     	1	; to 118
+	117	[8]	load_false_skip	11
+	118	[8]	load_true	11
+	119	[8]	equal    	4 5 0
+	120	[8]	jump     	1	; to 122
+	121	[8]	load_false_skip	12
+	122	[8]	load_true	12
+	123	[8]	call     	6 7 1	; 6 in 0 out
+	124	[9]	get_table_upvalue	6 0 2	; _ENV "print"
+	125	[9]	less_than_integer	4 15 1
+	126	[9]	jump     	1	; to 128
+	127	[9]	load_false_skip	7
+	128	[9]	load_true	7
+	129	[9]	less_equal_integer	4 10 1
+	130	[9]	jump     	1	; to 132
+	131	[9]	load_false_skip	8
+	132	[9]	load_true	8
+	133	[9]	greater_than_integer	4 5 1
+	134	[9]	jump     	1	; to 136
+	135	[9]	load_false_skip	9
+	136	[9]	load_true	9
+	137	[9]	greater_equal_integer	4 11 1
+	138	[9]	jump     	1	; to 140
+	139	[9]	load_false_skip	10
+	140	[9]	load_true	10
+	141	[9]	equal_integer	4 10 1
+	142	[9]	jump     	1	; to 144
+	143	[9]	load_false_skip	11
+	144	[9]	load_true	11
+	145	[9]	equal_integer	4 10 0
+	146	[9]	jump     	1	; to 148
+	147	[9]	load_false_skip	12
+	148	[9]	load_true	12
+	149	[9]	load_constant	13 10	; 10.5
+	150	[9]	less_than	4 13 1
+	151	[9]	jump     	1	; to 153
+	152	[9]	load_false_skip	13
+	153	[9]	load_true	13
+	154	[9]	load_constant	14 11	; 9.5
+	155	[9]	less_than	14 4 1
+	156	[9]	jump     	1	; to 158
+	157	[9]	load_false_skip	14
+	158	[9]	load_true	14
+	159	[9]	equal_integer	4 10 1
+	160	[9]	jump     	1	; to 162
+	161	[9]	load_false_skip	15
+	162	[9]	load_true	15
+	163	[9]	call     	6 10 1	; 9 in 0 out
+	164	[10]	get_table_upvalue	6 0 2	; _ENV "print"
+	165	[10]	less_than_integer	1 15 1
+	166	[10]	jump     	1	; to 168
+	167	[10]	load_false_skip	7
+	168	[10]	load_true	7
+	169	[10]	less_equal_integer	1 3 1
+	170	[10]	jump     	1	; to 172
+	171	[10]	load_false_skip	8
+	172	[10]	load_true	8
+	173	[10]	greater_than_integer	1 5 1
+	174	[10]	jump     	1	; to 176
+	175	[10]	load_false_skip	9
+	176	[10]	load_true	9
+	177	[10]	greater_equal_integer	1 3 1
+	178	[10]	jump     	1	; to 180
+	179	[10]	load_false_skip	10
+	180	[10]	load_true	10
+	181	[10]	equal_integer	1 3 1
+	182	[10]	jump     	1	; to 184
+	183	[10]	load_false_skip	11
+	184	[10]	load_true	11
+	185	[10]	less_than_integer	3 1 1
+	186	[10]	jump     	1	; to 188
+	187	[10]	load_false_skip	12
+	188	[10]	load_true	12
+	189	[10]	greater_than_integer	3 1 1
+	190	[10]	jump     	1	; to 192
+	191	[10]	load_false_skip	13
+	192	[10]	load_true	13
+	193	[10]	equal_integer	3 1 1
+	194	[10]	jump     	1	; to 196
+	195	[10]	load_false_skip	14
+	196	[10]	load_true	14
+	197	[10]	call     	6 9 1	; 8 in 0 out
+	198	[11]	less_than	4 5 0
+	199	[11]	jump     	4	; to 204
+	200	[11]	get_table_upvalue	6 0 2	; _ENV "print"
+	201	[11]	load_constant	7 12	; "less"
+	202	[11]	call     	6 2 1	; 1 in 0 out
+	203	[11]	jump     	3	; to 207
+	204	[11]	get_table_upvalue	6 0 2	; _ENV "print"
+	205	[11]	load_constant	7 13	; "not less"
+	206	[11]	call     	6 2 1	; 1 in 0 out
+	207	[12]	less_than_integer	4 13 0
+	208	[12]	jump     	3	; to 212
+	209	[12]	add_integer	4 4 1
+	210	[12]	metamethod_binary_integer	4 1 6 0	; __add
+	211	[12]	jump     	-5	; to 207
+	212	[13]	get_table_upvalue	6 0 2	; _ENV "print"
+	213	[13]	move     	7 4
+	214	[13]	call     	6 2 1	; 1 in 0 out
+	215	[13]	return_values	6 1 1	; 0 out
+constants (14) for #1:
+	0	I	9007199254740993
+	1	F	0.0
+	2	S	"print"
+	3	F	9.007199254741e+15
+	4	F	9.007199254741e+15
+	5	F	9.2233720368548e+18
+	6	I	9223372036854775807
+	7	F	-9.2233720368548e+18
+	8	I	-9223372036854775808
+	9	I	0
+	10	F	10.5
+	11	F	9.5
+	12	S	"less"
+	13	S	"not less"
+locals (6) for #1:
+	0	i	5	216
+	1	f	5	216
+	2	big	5	216
+	3	nan	8	216
+	4	a	98	216
+	5	b	98	216
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0

@@ -1,0 +1,96 @@
+
+main <tests/corpus/runtime/comparisons/errors.lua:0,0> (29 instructions at #5)
+0+ params, 3 slots, 1 upvalue, 0 locals, 2 constants, 4 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	get_table_upvalue	0 0 0	; _ENV "print"
+	3	[2]	get_table_upvalue	1 0 1	; _ENV "pcall"
+	4	[2]	closure  	2 0	; #1
+	5	[2]	call     	1 2 0	; 1 in all out
+	6	[2]	call     	0 0 1	; all in 0 out
+	7	[3]	get_table_upvalue	0 0 0	; _ENV "print"
+	8	[3]	get_table_upvalue	1 0 1	; _ENV "pcall"
+	9	[3]	closure  	2 1	; #2
+	10	[3]	call     	1 2 0	; 1 in all out
+	11	[3]	call     	0 0 1	; all in 0 out
+	12	[4]	get_table_upvalue	0 0 0	; _ENV "print"
+	13	[4]	get_table_upvalue	1 0 1	; _ENV "pcall"
+	14	[4]	closure  	2 2	; #3
+	15	[4]	call     	1 2 0	; 1 in all out
+	16	[4]	call     	0 0 1	; all in 0 out
+	17	[5]	get_table_upvalue	0 0 0	; _ENV "print"
+	18	[5]	get_table_upvalue	1 0 1	; _ENV "pcall"
+	19	[5]	closure  	2 3	; #4
+	20	[5]	call     	1 2 0	; 1 in all out
+	21	[5]	call     	0 0 1	; all in 0 out
+	22	[6]	get_table_upvalue	0 0 0	; _ENV "print"
+	23	[6]	load_nil 	1 0	; 1 out
+	24	[6]	greater_than_integer	1 1 1
+	25	[6]	jump     	1	; to 27
+	26	[6]	load_false_skip	1
+	27	[6]	load_true	1
+	28	[6]	call     	0 2 1	; 1 in 0 out
+	29	[6]	return_values	0 1 1	; 0 out
+constants (2) for #5:
+	0	S	"print"
+	1	S	"pcall"
+locals (0) for #5:
+upvalues (1) for #5:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/comparisons/errors.lua:2,2> (7 instructions at #1)
+0 params, 2 slots, 0 upvalues, 0 locals, 1 constant, 0 functions
+	1	[2]	load_constant	0 0	; "2"
+	2	[2]	greater_than_integer	0 1 1
+	3	[2]	jump     	1	; to 5
+	4	[2]	load_false_skip	0
+	5	[2]	load_true	0
+	6	[2]	return_one	0
+	7	[2]	return_none	
+constants (1) for #1:
+	0	S	"2"
+locals (0) for #1:
+upvalues (0) for #1:
+
+function <tests/corpus/runtime/comparisons/errors.lua:3,3> (7 instructions at #2)
+0 params, 2 slots, 0 upvalues, 1 local, 0 constants, 0 functions
+	1	[3]	load_nil 	0 0	; 1 out
+	2	[3]	less_equal_integer	0 1 1
+	3	[3]	jump     	1	; to 5
+	4	[3]	load_false_skip	1
+	5	[3]	load_true	1
+	6	[3]	return_one	1
+	7	[3]	return_none	
+constants (0) for #2:
+locals (1) for #2:
+	0	a	2	8
+upvalues (0) for #2:
+
+function <tests/corpus/runtime/comparisons/errors.lua:4,4> (7 instructions at #3)
+0 params, 2 slots, 0 upvalues, 1 local, 0 constants, 0 functions
+	1	[4]	load_true	0
+	2	[4]	less_than_integer	0 5 1
+	3	[4]	jump     	1	; to 5
+	4	[4]	load_false_skip	1
+	5	[4]	load_true	1
+	6	[4]	return_one	1
+	7	[4]	return_none	
+constants (0) for #3:
+locals (1) for #3:
+	0	a	2	8
+upvalues (0) for #3:
+
+function <tests/corpus/runtime/comparisons/errors.lua:5,5> (7 instructions at #4)
+0 params, 2 slots, 0 upvalues, 1 local, 1 constant, 0 functions
+	1	[5]	load_constant	0 0	; "x"
+	2	[5]	greater_equal_integer	0 1 1
+	3	[5]	jump     	1	; to 5
+	4	[5]	load_false_skip	1
+	5	[5]	load_true	1
+	6	[5]	return_one	1
+	7	[5]	return_none	
+constants (1) for #4:
+	0	S	"x"
+locals (1) for #4:
+	0	a	2	8
+upvalues (0) for #4:
+exit 0

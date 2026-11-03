@@ -1,0 +1,80 @@
+1 function_body vararg
+  1 block
+    2 call_statement
+      2 call_expression
+        2 name_expression "print" global
+        2 call_expression
+          2 name_expression "pcall" global
+          2 function_expression
+            2 function_body
+              2 name_list
+              2 block
+                2 return_statement
+                  2 expression_list
+                    2 binary_operation less
+                      2 integer_literal 1
+                      2 string_literal "2"
+    3 call_statement
+      3 call_expression
+        3 name_expression "print" global
+        3 call_expression
+          3 name_expression "pcall" global
+          3 function_expression
+            3 function_body
+              3 name_list
+              3 block
+                3 local_statement
+                  3 name_list
+                    3 local_name "a"
+                  3 expression_list
+                    3 nil_literal
+                3 return_statement
+                  3 expression_list
+                    3 binary_operation less_equal
+                      3 name_expression "a" local@18
+                      3 integer_literal 1
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 call_expression
+          4 name_expression "pcall" global
+          4 function_expression
+            4 function_body
+              4 name_list
+              4 block
+                4 local_statement
+                  4 name_list
+                    4 local_name "a"
+                  4 expression_list
+                    4 true_literal
+                4 return_statement
+                  4 expression_list
+                    4 binary_operation greater
+                      4 integer_literal 5
+                      4 name_expression "a" local@37
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 call_expression
+          5 name_expression "pcall" global
+          5 function_expression
+            5 function_body
+              5 name_list
+              5 block
+                5 local_statement
+                  5 name_list
+                    5 local_name "a"
+                  5 expression_list
+                    5 string_literal "x"
+                5 return_statement
+                  5 expression_list
+                    5 binary_operation greater_equal
+                      5 name_expression "a" local@56
+                      5 integer_literal 1
+    6 call_statement
+      6 call_expression
+        6 name_expression "print" global
+        6 binary_operation less
+          6 integer_literal 1
+          6 nil_literal
+exit 0

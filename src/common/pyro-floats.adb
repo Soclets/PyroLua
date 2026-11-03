@@ -47,6 +47,13 @@ package body Pyro.Floats with SPARK_Mode => Off is
       Result := Converted;
    end To_Integer;
 
+   function Compare (Kind : Comparison; Left, Right : Float_Bits) return Boolean is
+      function Compute (Kind : Interfaces.C.int; Left, Right : Float_Bits) return Interfaces.C.int
+      with Import, Convention => C, External_Name => "pyro_float_compare";
+   begin
+      return Compute (Comparison'Pos (Kind), Left, Right) /= 0;
+   end Compare;
+
    function Is_NaN (Value : Float_Bits) return Boolean is
       use type Interfaces.Unsigned_64;
    begin

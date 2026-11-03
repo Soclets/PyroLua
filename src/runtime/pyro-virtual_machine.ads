@@ -498,6 +498,18 @@ private
             when Pyro.Bytecode.Negate | Pyro.Bytecode.Bitwise_Not | Pyro.Bytecode.Logical_Not
                | Pyro.Bytecode.Length =>
               Is_Register (V, Integer (I.A)) and then Is_Register (V, Integer (I.B)),
+            when Pyro.Bytecode.Equal | Pyro.Bytecode.Less_Than | Pyro.Bytecode.Less_Equal
+               | Pyro.Bytecode.Test_Set =>
+              Is_Register (V, Integer (I.A))
+              and then Is_Register (V, Integer (I.B))
+              and then V.PC + 2 < V.Code,
+            when Pyro.Bytecode.Equal_Constant =>
+              Is_Register (V, Integer (I.A))
+              and then Natural (I.B) < V.Constants
+              and then V.PC + 2 < V.Code,
+            when Pyro.Bytecode.Equal_Integer .. Pyro.Bytecode.Greater_Equal_Integer
+               | Pyro.Bytecode.Test =>
+              Is_Register (V, Integer (I.A)) and then V.PC + 2 < V.Code,
             when Pyro.Bytecode.Set_Table_Upvalue =>
               Natural (I.A) < V.Upvalues
               and then Natural (I.B) < V.Constants
@@ -561,6 +573,14 @@ private
        and then Current (M).Operation
                 in Pyro.Bytecode.Metamethod_Binary .. Pyro.Bytecode.Metamethod_Binary_Constant,
      Post   => Previous_Target'Result < View (M).Registers;
+
+   --  [puc lvm.c:l_strcmp] How string Left orders against string Right, byte by byte: -1
+   --  before, 0 equal, 1 after.
+   function String_Order (M : Machine; Left, Right : Value) return Integer
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_String (M, Left) and then Is_String (M, Right),
+     Post   => String_Order'Result in -1 .. 1;
 
    --  Register Number of the running frame.
    function Register (M : Machine; Number : Natural) return Value

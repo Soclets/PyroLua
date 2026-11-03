@@ -1,0 +1,219 @@
+1 function_body vararg
+  1 block
+    2 local_statement
+      2 name_list
+        2 local_name "i"
+        2 local_name "f"
+        2 local_name "big"
+      2 expression_list
+        2 integer_literal 3
+        2 float_literal 0x4008000000000000
+        2 integer_literal 9007199254740993
+    3 local_statement
+      3 name_list
+        3 local_name "nan"
+      3 expression_list
+        3 binary_operation divide
+          3 integer_literal 0
+          3 float_literal 0x0000000000000000
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 binary_operation equal
+          4 name_expression "i" local@1
+          4 name_expression "f" local@2
+        4 binary_operation less
+          4 name_expression "i" local@1
+          4 name_expression "f" local@2
+        4 binary_operation less_equal
+          4 name_expression "i" local@1
+          4 name_expression "f" local@2
+        4 binary_operation less
+          4 integer_literal 2
+          4 name_expression "f" local@2
+        4 binary_operation less
+          4 name_expression "f" local@2
+          4 integer_literal 4
+        4 binary_operation equal
+          4 unary_operation negate
+            4 float_literal 0x0000000000000000
+          4 float_literal 0x0000000000000000
+        4 binary_operation equal
+          4 name_expression "nan" local@10
+          4 name_expression "nan" local@10
+        4 binary_operation less
+          4 name_expression "nan" local@10
+          4 name_expression "nan" local@10
+        4 binary_operation less_equal
+          4 name_expression "nan" local@10
+          4 integer_literal 1
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 binary_operation equal
+          5 name_expression "big" local@3
+          5 binary_operation power
+            5 integer_literal 2
+            5 integer_literal 53
+        5 binary_operation less
+          5 name_expression "big" local@3
+          5 binary_operation add
+            5 binary_operation power
+              5 integer_literal 2
+              5 integer_literal 53
+            5 integer_literal 2
+        5 binary_operation greater
+          5 name_expression "big" local@3
+          5 binary_operation power
+            5 integer_literal 2
+            5 integer_literal 53
+        5 binary_operation less
+          5 binary_operation power
+            5 integer_literal 2
+            5 integer_literal 53
+          5 name_expression "big" local@3
+        5 binary_operation greater
+          5 binary_operation power
+            5 integer_literal 2
+            5 integer_literal 63
+          5 integer_literal 9223372036854775807
+    6 call_statement
+      6 call_expression
+        6 name_expression "print" global
+        6 binary_operation equal
+          6 binary_operation subtract
+            6 unary_operation negate
+              6 integer_literal 9223372036854775807
+            6 integer_literal 1
+          6 unary_operation negate
+            6 binary_operation power
+              6 integer_literal 2
+              6 integer_literal 63
+        6 binary_operation less
+          6 integer_literal 9223372036854775807
+          6 binary_operation power
+            6 integer_literal 2
+            6 integer_literal 63
+        6 binary_operation greater
+          6 binary_operation divide
+            6 integer_literal 1
+            6 integer_literal 0
+          6 integer_literal 9223372036854775807
+    7 local_statement
+      7 name_list
+        7 local_name "a"
+        7 local_name "b"
+      7 expression_list
+        7 integer_literal 10
+        7 integer_literal 20
+    8 call_statement
+      8 call_expression
+        8 name_expression "print" global
+        8 binary_operation less
+          8 name_expression "a" local@100
+          8 name_expression "b" local@101
+        8 binary_operation less_equal
+          8 name_expression "a" local@100
+          8 name_expression "b" local@101
+        8 binary_operation greater
+          8 name_expression "a" local@100
+          8 name_expression "b" local@101
+        8 binary_operation greater_equal
+          8 name_expression "a" local@100
+          8 name_expression "b" local@101
+        8 binary_operation equal
+          8 name_expression "a" local@100
+          8 name_expression "b" local@101
+        8 binary_operation not_equal
+          8 name_expression "a" local@100
+          8 name_expression "b" local@101
+    9 call_statement
+      9 call_expression
+        9 name_expression "print" global
+        9 binary_operation less
+          9 name_expression "a" local@100
+          9 integer_literal 15
+        9 binary_operation less_equal
+          9 name_expression "a" local@100
+          9 integer_literal 10
+        9 binary_operation greater
+          9 name_expression "a" local@100
+          9 integer_literal 5
+        9 binary_operation greater_equal
+          9 name_expression "a" local@100
+          9 integer_literal 11
+        9 binary_operation equal
+          9 name_expression "a" local@100
+          9 integer_literal 10
+        9 binary_operation not_equal
+          9 name_expression "a" local@100
+          9 integer_literal 10
+        9 binary_operation less
+          9 name_expression "a" local@100
+          9 float_literal 0x4025000000000000
+        9 binary_operation greater
+          9 name_expression "a" local@100
+          9 float_literal 0x4023000000000000
+        9 binary_operation equal
+          9 name_expression "a" local@100
+          9 float_literal 0x4024000000000000
+    10 call_statement
+      10 call_expression
+        10 name_expression "print" global
+        10 binary_operation less
+          10 name_expression "f" local@2
+          10 integer_literal 15
+        10 binary_operation less_equal
+          10 name_expression "f" local@2
+          10 integer_literal 3
+        10 binary_operation greater
+          10 name_expression "f" local@2
+          10 integer_literal 5
+        10 binary_operation greater_equal
+          10 name_expression "f" local@2
+          10 integer_literal 3
+        10 binary_operation equal
+          10 name_expression "f" local@2
+          10 integer_literal 3
+        10 binary_operation less
+          10 name_expression "nan" local@10
+          10 integer_literal 1
+        10 binary_operation greater
+          10 name_expression "nan" local@10
+          10 integer_literal 1
+        10 binary_operation equal
+          10 name_expression "nan" local@10
+          10 integer_literal 1
+    11 if_statement
+      11 block
+        11 call_statement
+          11 call_expression
+            11 name_expression "print" global
+            11 string_literal "not less"
+      11 if_clause
+        11 binary_operation less
+          11 name_expression "a" local@100
+          11 name_expression "b" local@101
+        11 block
+          11 call_statement
+            11 call_expression
+              11 name_expression "print" global
+              11 string_literal "less"
+    12 while_statement
+      12 binary_operation less
+        12 name_expression "a" local@100
+        12 integer_literal 13
+      12 block
+        12 assignment
+          12 expression_list
+            12 assignment_target "a"
+              12 name_expression "a" local@100
+          12 expression_list
+            12 binary_operation add
+              12 name_expression "a" local@100
+              12 integer_literal 1
+    13 call_statement
+      13 call_expression
+        13 name_expression "print" global
+        13 name_expression "a" local@100
+exit 0

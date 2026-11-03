@@ -4,6 +4,7 @@
 
 with Pyro.Floats;
 with Pyro.Virtual_Machine.Arithmetic;
+with Pyro.Virtual_Machine.Comparisons;
 
 package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
 
@@ -97,6 +98,8 @@ package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
             Pyro.Virtual_Machine.Arithmetic.Execute_Metamethod (M, Budget, I);
          when Negate .. Logical_Not =>
             Pyro.Virtual_Machine.Arithmetic.Execute_Unary (M, Budget, I);
+         when Test_Opcode =>
+            Pyro.Virtual_Machine.Comparisons.Execute (M, Budget, I);
          when Jump =>
             Next (M, Integer (I.Wide) - Offset_sJ);
          when Closure =>

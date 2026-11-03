@@ -68,6 +68,17 @@ uint64_t pyro_float_arithmetic (int kind, uint64_t left_bits, uint64_t right_bit
   }
 }
 
+/* [trusted] luai_numeq, luai_numlt and luai_numle: 'kind' is the position in
+   Pyro.Floats.Comparison. */
+int pyro_float_compare (int kind, uint64_t left_bits, uint64_t right_bits) {
+  double a = to_double(left_bits), b = to_double(right_bits);
+  switch (kind) {
+    case 0: return a == b;
+    case 1: return a < b;
+    default: return a <= b;
+  }
+}
+
 /* The conversion C (and Lua's cast_num) makes from a 64-bit integer. */
 uint64_t pyro_integer_to_float (int64_t value) {
   return to_bits((double) value);

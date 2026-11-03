@@ -1,0 +1,253 @@
+2 keyword local
+2 name i
+2 ,
+2 name f
+2 ,
+2 name big
+2 =
+2 integer 3
+2 ,
+2 float 3.0 0x4008000000000000
+2 ,
+2 integer 9007199254740993
+3 keyword local
+3 name nan
+3 =
+3 integer 0
+3 /
+3 float 0.0 0x0000000000000000
+4 name print
+4 (
+4 name i
+4 ==
+4 name f
+4 ,
+4 name i
+4 <
+4 name f
+4 ,
+4 name i
+4 <=
+4 name f
+4 ,
+4 integer 2
+4 <
+4 name f
+4 ,
+4 name f
+4 <
+4 integer 4
+4 ,
+4 -
+4 float 0.0 0x0000000000000000
+4 ==
+4 float 0.0 0x0000000000000000
+4 ,
+4 name nan
+4 ==
+4 name nan
+4 ,
+4 name nan
+4 <
+4 name nan
+4 ,
+4 name nan
+4 <=
+4 integer 1
+4 )
+5 name print
+5 (
+5 name big
+5 ==
+5 integer 2
+5 ^
+5 integer 53
+5 ,
+5 name big
+5 <
+5 integer 2
+5 ^
+5 integer 53
+5 +
+5 integer 2
+5 ,
+5 name big
+5 >
+5 integer 2
+5 ^
+5 integer 53
+5 ,
+5 integer 2
+5 ^
+5 integer 53
+5 <
+5 name big
+5 ,
+5 integer 2
+5 ^
+5 integer 63
+5 >
+5 integer 9223372036854775807
+5 )
+6 name print
+6 (
+6 -
+6 integer 9223372036854775807
+6 -
+6 integer 1
+6 ==
+6 -
+6 integer 2
+6 ^
+6 integer 63
+6 ,
+6 integer 9223372036854775807
+6 <
+6 integer 2
+6 ^
+6 integer 63
+6 ,
+6 integer 1
+6 /
+6 integer 0
+6 >
+6 integer 9223372036854775807
+6 )
+7 keyword local
+7 name a
+7 ,
+7 name b
+7 =
+7 integer 10
+7 ,
+7 integer 20
+8 name print
+8 (
+8 name a
+8 <
+8 name b
+8 ,
+8 name a
+8 <=
+8 name b
+8 ,
+8 name a
+8 >
+8 name b
+8 ,
+8 name a
+8 >=
+8 name b
+8 ,
+8 name a
+8 ==
+8 name b
+8 ,
+8 name a
+8 ~=
+8 name b
+8 )
+9 name print
+9 (
+9 name a
+9 <
+9 integer 15
+9 ,
+9 name a
+9 <=
+9 integer 10
+9 ,
+9 name a
+9 >
+9 integer 5
+9 ,
+9 name a
+9 >=
+9 integer 11
+9 ,
+9 name a
+9 ==
+9 integer 10
+9 ,
+9 name a
+9 ~=
+9 integer 10
+9 ,
+9 name a
+9 <
+9 float 10.5 0x4025000000000000
+9 ,
+9 name a
+9 >
+9 float 9.5 0x4023000000000000
+9 ,
+9 name a
+9 ==
+9 float 10.0 0x4024000000000000
+9 )
+10 name print
+10 (
+10 name f
+10 <
+10 integer 15
+10 ,
+10 name f
+10 <=
+10 integer 3
+10 ,
+10 name f
+10 >
+10 integer 5
+10 ,
+10 name f
+10 >=
+10 integer 3
+10 ,
+10 name f
+10 ==
+10 integer 3
+10 ,
+10 name nan
+10 <
+10 integer 1
+10 ,
+10 name nan
+10 >
+10 integer 1
+10 ,
+10 name nan
+10 ==
+10 integer 1
+10 )
+11 keyword if
+11 name a
+11 <
+11 name b
+11 keyword then
+11 name print
+11 (
+11 string "less"
+11 )
+11 keyword else
+11 name print
+11 (
+11 string "not less"
+11 )
+11 keyword end
+12 keyword while
+12 name a
+12 <
+12 integer 13
+12 keyword do
+12 name a
+12 =
+12 name a
+12 +
+12 integer 1
+12 keyword end
+13 name print
+13 (
+13 name a
+13 )
+14 <eof>
+exit 0

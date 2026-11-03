@@ -36,6 +36,14 @@ package Pyro.Floats with SPARK_Mode => On, Always_Terminates is
      (Value : Float_Bits; Result : out Interfaces.Integer_64; Success : out Boolean)
    with Global => null;
 
+   --  The comparisons of floats.
+   type Comparison is (Equal, Less_Than, Less_Equal);
+
+   --  [puc llimits.h:luai_numeq, luai_numlt, luai_numle] Left Kind Right, as C compares
+   --  doubles: false when either is a NaN, and -0.0 equal to 0.0.
+   function Compare (Kind : Comparison; Left, Right : Float_Bits) return Boolean
+   with Global => null;
+
    --  True for a NaN.
    function Is_NaN (Value : Float_Bits) return Boolean
    with Global => null;

@@ -737,6 +737,27 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       return Natural (Instruction_At (M.Program.all, P, M.Frames (M.Depth).PC - 1).A);
    end Previous_Target;
 
+   function String_Order (M : Machine; Left, Right : Value) return Integer is
+      Left_Length  : constant Natural :=
+        Natural'Min (Pyro.Heap.String_Length (M.Heap, Left.Object),
+                     Pyro.Heap.Maximum_String_Length);
+      Right_Length : constant Natural :=
+        Natural'Min (Pyro.Heap.String_Length (M.Heap, Right.Object),
+                     Pyro.Heap.Maximum_String_Length);
+      X, Y         : Character;
+   begin
+      for Position in 1 .. Natural'Min (Left_Length, Right_Length) loop
+         X := Pyro.Heap.String_Byte (M.Heap, Left.Object, Byte_Position (Position));
+         Y := Pyro.Heap.String_Byte (M.Heap, Right.Object, Byte_Position (Position));
+         if X /= Y then
+            return (if X < Y then -1 else 1);
+         end if;
+      end loop;
+      return (if Left_Length < Right_Length then -1
+              elsif Left_Length > Right_Length then 1
+              else 0);
+   end String_Order;
+
    --  The place in the stack of register Number of the running frame.
    function Register_Place (M : Machine; Number : Natural) return Positive
    with

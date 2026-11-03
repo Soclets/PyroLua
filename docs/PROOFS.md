@@ -142,7 +142,7 @@ kept small and conservative.
 
 | Unit | Reason | Since |
 | --- | --- | --- |
-| `Pyro.Floats` (body) and its C helper `src/common/pyro_floats.c` | IEEE 754 arithmetic with infinities and NaN, correctly rounded decimal-to-float conversion, `%.14g` formatting (Lua's, with ".0" after an integral value, since M4). SPARK assumes floats are finite, so these must operate on raw bits outside SPARK. Decimal conversion is libc's `strtod_l` with an explicit "C" locale, so a host calling `setlocale` cannot change how numerals are read. Constant folding (M2) uses libc's `pow`, `fmod` and `floor` as luac does, so folded constants are bit-identical to luac's. | M1, M2, M4 |
+| `Pyro.Floats` (body) and its C helper `src/common/pyro_floats.c` | IEEE 754 arithmetic and comparisons with infinities and NaN, correctly rounded decimal-to-float conversion, `%.14g` formatting (Lua's, with ".0" after an integral value, since M4). SPARK assumes floats are finite, so these must operate on raw bits outside SPARK. Decimal conversion is libc's `strtod_l` with an explicit "C" locale, so a host calling `setlocale` cannot change how numerals are read. Constant folding (M2) uses libc's `pow`, `fmod` and `floor` as luac does, so folded constants are bit-identical to luac's. | M1, M2, M4 |
 | `cli/` (`pyrolua` executable) | File and console I/O, command-line handling, bytecode listings, and the host functions test scripts use (`print`, `pcall`, …), written in ordinary Ada around the VM's host-function protocol. The SipHash seed comes from `getentropy`, imported directly; when it fails `pyrolua` stops with an error rather than run with a guessable seed. Not part of the library. | M1, M4 |
 
 Any new entry needs a reason here and should be as small as possible.
