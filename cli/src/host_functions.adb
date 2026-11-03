@@ -174,11 +174,16 @@ package body Host_Functions is
          Success : Boolean;
       begin
          New_String (M, Budget, Text, Item, Success);
+         if not Success then
+            Raise_Message (M, Budget, "not enough memory", 0);
+            return;
+         end if;
          Return_Values (M, Budget, [1 => Item]);
       end Return_Text;
 
       --  [puc lauxlib.c:luaL_tolstring] Converts argument Position for print or tostring:
       --  calls its __tostring with continuation Position (True), or gives its text.
+      --  Called is also True when it raised "not enough memory".
       procedure Convert (Position : Positive; Called : out Boolean; Text : out Value) is
          Item    : constant Value := Argument (M, Position);
          Handler : constant Value := Metafield (M, Item, To_String_Field);
@@ -191,6 +196,10 @@ package body Host_Functions is
             Called := True;
          elsif not Is_String (M, Item) then
             New_String (M, Budget, Image (M, Item), Text, Success);
+            if not Success then
+               Raise_Message (M, Budget, "not enough memory", 0);
+               Called := True;
+            end if;
          end if;
       end Convert;
 
@@ -205,6 +214,10 @@ package body Host_Functions is
             Raise_Message (M, Budget, "'__tostring' must return a string", 1);
          elsif not Is_String (M, Text) then
             New_String (M, Budget, Basic_Image (Text), Text, Success);
+            if not Success then
+               Valid := False;
+               Raise_Message (M, Budget, "not enough memory", 0);
+            end if;
          end if;
       end Converted;
 
@@ -466,7 +479,11 @@ package body Host_Functions is
                   [1 => Argument (M, 1)], 1, Protect => False);
             else
                New_Function (M, Budget, Id_Of (Next_Function), Text, Success);
-               Return_Values (M, Budget, [Text, Argument (M, 1), Nil]);
+               if Success then
+                  Return_Values (M, Budget, [Text, Argument (M, 1), Nil]);
+               else
+                  Raise_Message (M, Budget, "not enough memory", 0);
+               end if;
             end if;
 
          when Ipairs_Function =>
@@ -474,7 +491,11 @@ package body Host_Functions is
                Argument_Error (1, "value expected");
             else
                New_Function (M, Budget, Id_Of (Ipairs_Iterator), Text, Success);
-               Return_Values (M, Budget, [Text, Argument (M, 1), Integer_Value_Of (0)]);
+               if Success then
+                  Return_Values (M, Budget, [Text, Argument (M, 1), Integer_Value_Of (0)]);
+               else
+                  Raise_Message (M, Budget, "not enough memory", 0);
+               end if;
             end if;
 
          when Ipairs_Iterator =>

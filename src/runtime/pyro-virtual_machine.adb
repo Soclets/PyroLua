@@ -4,6 +4,7 @@
 --  the host-function protocol.
 
 with Ada.Unchecked_Deallocation;
+with Pyro.Color_Sequences;
 with Pyro.Floats;
 with Pyro.Heap.Table_Reads;
 with Pyro.Integer_Arithmetic;
@@ -585,7 +586,11 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
        and then Is_Canonical (Item)
        and then Pyro.Heap.Live_In (Pyro.Heap.Kinds (Heap), Item)
        and then Values_Live (Pyro.Heap.Kinds (Heap), Items),
-     Post   => Values_Live (Pyro.Heap.Kinds (Heap), Items) and then Items (Place) = Item
+     Post   =>
+       Values_Live (Pyro.Heap.Kinds (Heap), Items)
+       and then Items (Place) = Item
+       and then (for all Other in Items'Range =>
+                   (if Other /= Place then Items (Other) = Items'Old (Other)))
    is
       Before : constant Root_Array := Items with Ghost;
    begin
@@ -663,12 +668,15 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
        and then Count <= Items'Last
        and then From - 1 <= Items'Last - Count
        and then Values_Live (Pyro.Heap.Kinds (Heap), Items),
-     Post   => Values_Live (Pyro.Heap.Kinds (Heap), Items)
+     Post   =>
+       Values_Live (Pyro.Heap.Kinds (Heap), Items)
+       and then (for all Index in From .. From - 1 + Count => Items (Index) = Nil)
    is
    begin
       for Index in 0 .. Count - 1 loop
          Store_Value (Items, Heap, From + Index, Nil);
          pragma Loop_Invariant (Values_Live (Pyro.Heap.Kinds (Heap), Items));
+         pragma Loop_Invariant (for all Earlier in From .. From + Index => Items (Earlier) = Nil);
       end loop;
    end Fill_Nil;
 
@@ -2156,6 +2164,12 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    procedure Raise_Memory_Error (M : in out Machine; Budget : in out Memory_Budget) is
       Error : constant Value := M.Registry (Memory_Place);
    begin
+      if M.State = Ready and then not M.Retried then
+         --  The running instruction, which has not moved on, runs again after a collection.
+         M.Retry := True;
+         return;
+      end if;
+      M.Pressure := True;
       Lemma_Value (Objects (M), M.Registry.all, Memory_Place);
       Throw (M, Budget, Error);
    end Raise_Memory_Error;
@@ -2859,6 +2873,15 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          end loop;
          Join (M, Budget, Top - Joined, Top - 1, Length, Handle);
          if Handle = No_Object then
+            --  After a collection, the instruction goes on with the values left.
+            declare
+               Current : constant Frame := M.Frames (M.Depth);
+            begin
+               Lemma_Frame (M, M.Depth);
+               Set_Top_Frame
+                 (M.Frames.all, M.Depth, (Current with delta Resume => Total), M.Stack'Last,
+                  M.Program.all);
+            end;
             Raise_Memory_Error (M, Budget);
             return;
          end if;
@@ -3119,6 +3142,183 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    end Store_List;
 
    ----------------------------------------------------------------------------------------
+   --  Garbage collection
+   ----------------------------------------------------------------------------------------
+
+   --  [proof] Every object value of A is an object C does not show white.
+   function Marked (C : Pyro.Color_Sequences.Sequence; A : Root_Array) return Boolean
+   is (for all R in A'Range =>
+         A (R).Kind /= Object_Value
+         or else (A (R).Object in 1 .. Pyro.Color_Sequences.Last (C)
+                  and then Pyro.Color_Sequences.Get (C, A (R).Object) /= White))
+   with Ghost;
+
+   --  [proof] The values of A, live in the heap's kinds, are live as Mark_Roots needs them.
+   procedure Lemma_Roots_Heap_Live (H : Pyro.Heap.Heap; A : Root_Array)
+   with
+     Ghost,
+     Global => null,
+     Pre    => Values_Live (Pyro.Heap.Kinds (H), A),
+     Post   => (for all R in A'Range => Pyro.Heap.Is_Live (H, A (R)))
+   is
+      pragma Annotate (GNATprove, Unhide_Info, "Expression_Function_Body", Values_Live);
+   begin
+      null;
+   end Lemma_Roots_Heap_Live;
+
+   --  [proof] The values of A Mark_Roots left non-white are marked.
+   procedure Lemma_Marked (H : Pyro.Heap.Heap; A : Root_Array)
+   with
+     Ghost,
+     Global => null,
+     Pre    =>
+       Values_Live (Pyro.Heap.Kinds (H), A)
+       and then (for all R in A'Range =>
+                   A (R).Kind /= Object_Value
+                   or else Pyro.Heap.Color_Of (H, A (R).Object) /= White),
+     Post   => Marked (Pyro.Heap.Colors (H), A)
+   is
+      pragma Annotate (GNATprove, Unhide_Info, "Expression_Function_Body", Values_Live);
+   begin
+      null;
+   end Lemma_Marked;
+
+   --  [proof] A stack whose places up to Extent Mark_Roots left non-white, and nil above, is
+   --  marked.
+   procedure Lemma_Marked_Prefix (H : Pyro.Heap.Heap; A : Root_Array; Extent : Natural)
+   with
+     Ghost,
+     Global => null,
+     Pre    =>
+       Values_Live (Pyro.Heap.Kinds (H), A)
+       and then A'First = 1
+       and then Extent <= A'Last
+       and then (for all R in 1 .. Extent =>
+                   A (R).Kind /= Object_Value
+                   or else Pyro.Heap.Color_Of (H, A (R).Object) /= White)
+       and then (for all R in A'Range => (if R > Extent then A (R) = Nil)),
+     Post   => Marked (Pyro.Heap.Colors (H), A)
+   is
+      pragma Annotate (GNATprove, Unhide_Info, "Expression_Function_Body", Values_Live);
+   begin
+      null;
+   end Lemma_Marked_Prefix;
+
+   --  The stack places a collection keeps: up to the top of the running frame, or the top of
+   --  the stack when it is higher (lgc.c's traversethread keeps up to L->top). A caller's
+   --  registers above the function it called are dead: a call overwrites them.
+   function Stack_Extent (M : Machine) return Natural
+   with
+     Global => null,
+     Pre    => Core_Valid (M),
+     Post   => Stack_Extent'Result <= M.Stack'Last and then Stack_Extent'Result <= Stack_Limit
+   is
+      Extent : Natural := Natural'Min (M.Top - 1, M.Stack'Last);
+   begin
+      if M.Depth > 0 then
+         Extent := Natural'Max (Extent, Natural'Min (M.Frames (M.Depth).Top - 1, M.Stack'Last));
+      end if;
+      if M.State = Waiting then
+         --  The results of the call a waiting host function asked for.
+         Extent :=
+           Natural'Max (Extent, Natural'Min (M.Results_At - 1 + M.Result_Size, M.Stack'Last));
+      end if;
+      return Extent;
+   end Stack_Extent;
+
+   --  [proof] Marked values stay marked while colours only grow.
+   procedure Lemma_Still_Marked (C1, C2 : Pyro.Color_Sequences.Sequence; A : Root_Array)
+   with
+     Ghost,
+     Global => null,
+     Pre    => Marked (C1, A) and then Pyro.Garbage_Collector.Grown (C1, C2),
+     Post   => Marked (C2, A)
+   is
+   begin
+      null;
+   end Lemma_Still_Marked;
+
+   --  [proof] Marked values, live before Finish, are live after it: Finish keeps every
+   --  object that was not white.
+   procedure Lemma_Survived
+     (K1 : Pyro.Kind_Sequences.Sequence;
+      C1 : Pyro.Color_Sequences.Sequence;
+      H  : Pyro.Heap.Heap;
+      A  : Root_Array)
+   with
+     Ghost,
+     Global => null,
+     Pre    =>
+       Values_Live (K1, A)
+       and then Marked (C1, A)
+       and then Pyro.Color_Sequences.Last (C1) = Pyro.Kind_Sequences.Last (K1)
+       and then Pyro.Heap.Slot_Count (H) = Pyro.Kind_Sequences.Last (K1)
+       and then (for all Handle in 1 .. Pyro.Heap.Slot_Count (H) =>
+                   (if Pyro.Color_Sequences.Get (C1, Handle) /= White
+                    then Pyro.Heap.Kind_Of (H, Handle) = Pyro.Kind_Sequences.Get (K1, Handle))),
+     Post   => Values_Live (Pyro.Heap.Kinds (H), A)
+   is
+      pragma Annotate (GNATprove, Unhide_Info, "Expression_Function_Body", Values_Live);
+   begin
+      null;
+   end Lemma_Survived;
+
+   --  [puc lgc.c:fullgc] Collects garbage: every value the machine keeps (its constants,
+   --  registry, whole stack and open upvalues) is a root, so they all stay live.
+   procedure Collect_Garbage (M : in out Machine; Budget : in out Memory_Budget)
+   with
+     Global => null,
+     Pre    => Core_Valid (M),
+     Post   =>
+       Core_Valid (M)
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then M.State = M.State'Old
+       and then (if Is_Valid (M)'Old then Is_Valid (M))
+   is
+      Extent   : constant Natural := Stack_Extent (M);
+      K0       : Pyro.Kind_Sequences.Sequence with Ghost;
+      C0       : Pyro.Color_Sequences.Sequence with Ghost;
+      Complete : Boolean;
+   begin
+      --  [puc lgc.c:traversethread] The places above the frames hold nothing to keep.
+      Fill_Nil (M.Stack.all, M.Heap, Extent + 1, M.Stack'Last - Extent);
+      Pyro.Garbage_Collector.Start (M.Heap);
+      Lemma_Roots_Heap_Live (M.Heap, M.Constants.all);
+      Pyro.Garbage_Collector.Mark_Roots (M.Heap, M.Constants.all);
+      Lemma_Marked (M.Heap, M.Constants.all);
+      C0 := Pyro.Heap.Colors (M.Heap);
+      Lemma_Roots_Heap_Live (M.Heap, M.Registry.all);
+      Pyro.Garbage_Collector.Mark_Roots (M.Heap, M.Registry.all);
+      Lemma_Marked (M.Heap, M.Registry.all);
+      Lemma_Still_Marked (C0, Pyro.Heap.Colors (M.Heap), M.Constants.all);
+      C0 := Pyro.Heap.Colors (M.Heap);
+      Lemma_Roots_Heap_Live (M.Heap, M.Stack.all);
+      Pyro.Garbage_Collector.Mark_Roots (M.Heap, M.Stack (1 .. Extent));
+      Lemma_Marked_Prefix (M.Heap, M.Stack.all, Extent);
+      Lemma_Still_Marked (C0, Pyro.Heap.Colors (M.Heap), M.Constants.all);
+      Lemma_Still_Marked (C0, Pyro.Heap.Colors (M.Heap), M.Registry.all);
+      C0 := Pyro.Heap.Colors (M.Heap);
+      Lemma_Roots_Heap_Live (M.Heap, M.Open.all);
+      Pyro.Garbage_Collector.Mark_Roots (M.Heap, M.Open.all);
+      Lemma_Marked (M.Heap, M.Open.all);
+      Lemma_Still_Marked (C0, Pyro.Heap.Colors (M.Heap), M.Constants.all);
+      Lemma_Still_Marked (C0, Pyro.Heap.Colors (M.Heap), M.Registry.all);
+      Lemma_Still_Marked (C0, Pyro.Heap.Colors (M.Heap), M.Stack.all);
+      K0 := Pyro.Heap.Kinds (M.Heap);
+      C0 := Pyro.Heap.Colors (M.Heap);
+      Pyro.Garbage_Collector.Finish (M.Heap, Budget, Complete);
+      pragma Unreferenced (Complete);
+      Lemma_Survived (K0, C0, M.Heap, M.Constants.all);
+      Lemma_Survived (K0, C0, M.Heap, M.Registry.all);
+      Lemma_Survived (K0, C0, M.Heap, M.Stack.all);
+      Lemma_Survived (K0, C0, M.Heap, M.Open.all);
+   end Collect_Garbage;
+
+   --  The memory used doubled.
+   function Doubled (Budget : Memory_Budget) return Byte_Count
+   is (2 * Used (Budget));
+
+   ----------------------------------------------------------------------------------------
    --  Loading and running
    ----------------------------------------------------------------------------------------
 
@@ -3329,6 +3529,10 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       pragma Assert (M.Stack'Last in Initial_Stack .. Stack_Limit);
       pragma Assert (M.Frames'First = 1 and then M.Frames'Last <= Maximum_Frames);
       pragma Assert (M.Open'First = 1 and then M.Open'Last in Initial_Open .. Maximum_Open);
+      M.Threshold := Doubled (Budget);
+      M.Retry := False;
+      M.Retried := False;
+      M.Pressure := False;
       Call_At (M, Budget, 1, 0, -1);
       Success := M.State = Ready;
    end Load;
@@ -3445,6 +3649,16 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          end if;
          if M.Steps < Unsigned_64'Last then
             M.Steps := M.Steps + 1;
+         end if;
+         --  The safe point: no handle lives outside the machine's roots.
+         M.Retried := M.Retry;
+         if M.Options.Stress or else M.Retry or else M.Pressure
+           or else Used (Budget) > M.Threshold
+         then
+            Collect_Garbage (M, Budget);
+            M.Threshold := Doubled (Budget);
+            M.Retry := False;
+            M.Pressure := False;
          end if;
          Pyro.Virtual_Machine.Execution.Step (M, Budget);
       end loop;
@@ -3579,12 +3793,19 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Success : out Boolean)
    is
       Handle : Object_Handle;
-      Before : constant Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
+      Before : Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
    begin
       Result := Nil;
       Success := False;
       Pyro.Heap.New_String (M.Heap, Budget, To_Bytes (Text), Handle);
       Lemma_Roots_Grow (Before, M);
+      if Handle = No_Object then
+         --  [puc lmem.c:tryagain] Collect, keeping the host function's frame, and try again.
+         Collect_Garbage (M, Budget);
+         Before := Objects (M);
+         Pyro.Heap.New_String (M.Heap, Budget, To_Bytes (Text), Handle);
+         Lemma_Roots_Grow (Before, M);
+      end if;
       if Handle /= No_Object then
          Result := Object_Value_Of (Handle);
          Success := True;
@@ -3598,10 +3819,17 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Result  : out Value;
       Success : out Boolean)
    is
-      Before : constant Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
+      Before : Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
    begin
       Function_Value (M.Heap, M.Registry.all, Budget, Id, Result, Success);
       Lemma_Roots_Grow (Before, M);
+      if not Success then
+         --  [puc lmem.c:tryagain] Collect, keeping the host function's frame, and try again.
+         Collect_Garbage (M, Budget);
+         Before := Objects (M);
+         Function_Value (M.Heap, M.Registry.all, Budget, Id, Result, Success);
+         Lemma_Roots_Grow (Before, M);
+      end if;
       Lemma_Live_Heap (M.Heap, Result);
    end New_Function;
 

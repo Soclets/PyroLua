@@ -1,0 +1,260 @@
+
+main <tests/corpus/runtime/gc/garbage.lua:0,0> (142 instructions at #5)
+0+ params, 14 slots, 1 upvalue, 38 locals, 16 constants, 3 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	new_table	0 0 0	; 0
+	3	[2]	extra_argument	0
+	4	[3]	load_integer	1 1
+	5	[3]	load_integer	2 2000
+	6	[3]	load_integer	3 1
+	7	[3]	for_prepare	1 31	; exit to 40
+	8	[4]	new_table	5 1 2	; 2
+	9	[4]	extra_argument	0
+	10	[4]	move     	6 4
+	11	[4]	multiply_constant	7 4 0	; 2
+	12	[4]	metamethod_binary_constant	4 0 8 0	; __mul 2
+	13	[4]	load_constant	8 2	; "item"
+	14	[4]	move     	9 4
+	15	[4]	concatenate	8 2
+	16	[4]	set_field	5 1 8	; "name"
+	17	[4]	set_list 	5 2 0
+	18	[5]	closure  	6 0	; #1
+	19	[6]	load_constant	7 3	; "s"
+	20	[6]	move     	8 4
+	21	[6]	load_constant	9 4	; "-"
+	22	[6]	multiply 	10 4 4
+	23	[6]	metamethod_binary	4 4 8	; __mul
+	24	[6]	concatenate	7 4
+	25	[7]	modulo_constant	8 4 5	; 100
+	26	[7]	metamethod_binary_constant	4 5 9 0	; __mod 100
+	27	[7]	equal_integer	8 0 0
+	28	[7]	jump     	9	; to 38
+	29	[7]	length   	8 0
+	30	[7]	add_integer	8 8 1
+	31	[7]	metamethod_binary_integer	8 1 6 0	; __add
+	32	[7]	new_table	9 3 0	; 0
+	33	[7]	extra_argument	0
+	34	[7]	set_field	9 6 5	; "t"
+	35	[7]	set_field	9 7 6	; "f"
+	36	[7]	set_field	9 3 7	; "s"
+	37	[7]	set_table	0 8 9
+	38	[7]	close    	5
+	39	[3]	for_loop 	1 32	; to 8
+	40	[9]	load_integer	1 0
+	41	[10]	get_table_upvalue	2 0 8	; _ENV "ipairs"
+	42	[10]	move     	3 0
+	43	[10]	call     	2 2 5	; 1 in 4 out
+	44	[10]	generic_for_prepare	2 8	; to 53
+	45	[10]	get_field	8 7 6	; "t"
+	46	[10]	get_integer	8 8 2
+	47	[10]	add      	8 1 8
+	48	[10]	metamethod_binary	1 8 6	; __add
+	49	[10]	get_field	9 7 3	; "s"
+	50	[10]	length   	9 9
+	51	[10]	add      	1 8 9
+	52	[10]	metamethod_binary	8 9 6	; __add
+	53	[10]	generic_for_call	2 2
+	54	[10]	generic_for_loop	2 10	; to 45
+	55	[10]	close    	2
+	56	[11]	get_table_upvalue	2 0 9	; _ENV "print"
+	57	[11]	length   	3 0
+	58	[11]	move     	4 1
+	59	[11]	get_integer	5 0 5
+	60	[11]	get_field	5 5 7	; "f"
+	61	[11]	call     	5 1 2	; 0 in 1 out
+	62	[11]	get_integer	6 0 20
+	63	[11]	get_field	6 6 3	; "s"
+	64	[11]	call     	2 5 1	; 4 in 0 out
+	65	[12]	load_nil 	2 0	; 1 out
+	66	[13]	load_integer	3 1
+	67	[13]	load_integer	4 500
+	68	[13]	load_integer	5 1
+	69	[13]	for_prepare	3 5	; exit to 76
+	70	[13]	new_table	7 2 0	; 0
+	71	[13]	extra_argument	0
+	72	[13]	set_field	7 10 2	; "next"
+	73	[13]	set_field	7 11 6	; "value"
+	74	[13]	move     	2 7
+	75	[13]	for_loop 	3 6	; to 70
+	76	[14]	load_integer	3 0
+	77	[15]	test     	2 0
+	78	[15]	jump     	5	; to 84
+	79	[15]	get_field	4 2 11	; "value"
+	80	[15]	add      	3 3 4
+	81	[15]	metamethod_binary	3 4 6	; __add
+	82	[15]	get_field	2 2 10	; "next"
+	83	[15]	jump     	-7	; to 77
+	84	[16]	get_table_upvalue	4 0 9	; _ENV "print"
+	85	[16]	move     	5 3
+	86	[16]	call     	4 2 1	; 1 in 0 out
+	87	[17]	new_table	4 1 0	; 0
+	88	[17]	extra_argument	0
+	89	[17]	closure  	5 1	; #2
+	90	[17]	set_field	4 12 5	; "__index"
+	91	[18]	new_table	5 0 0	; 0
+	92	[18]	extra_argument	0
+	93	[19]	load_integer	6 1
+	94	[19]	load_integer	7 300
+	95	[19]	load_integer	8 1
+	96	[19]	for_prepare	6 6	; exit to 104
+	97	[19]	get_table_upvalue	10 0 13	; _ENV "setmetatable"
+	98	[19]	new_table	11 0 0	; 0
+	99	[19]	extra_argument	0
+	100	[19]	move     	12 4
+	101	[19]	call     	10 3 2	; 2 in 1 out
+	102	[19]	set_table	5 9 10
+	103	[19]	for_loop 	6 7	; to 97
+	104	[20]	get_table_upvalue	6 0 9	; _ENV "print"
+	105	[20]	load_integer	7 300
+	106	[20]	get_table	7 5 7
+	107	[20]	get_field	7 7 14	; "hello"
+	108	[20]	get_table_upvalue	8 0 15	; _ENV "getmetatable"
+	109	[20]	get_integer	9 5 1
+	110	[20]	call     	8 2 2	; 1 in 1 out
+	111	[20]	equal    	8 4 1
+	112	[20]	jump     	1	; to 114
+	113	[20]	load_false_skip	8
+	114	[20]	load_true	8
+	115	[20]	call     	6 3 1	; 2 in 0 out
+	116	[21]	load_integer	6 0
+	117	[22]	closure  	7 2	; #4
+	118	[23]	new_table	8 0 0	; 0
+	119	[23]	extra_argument	0
+	120	[24]	load_integer	9 1
+	121	[24]	load_integer	10 100
+	122	[24]	load_integer	11 1
+	123	[24]	for_prepare	9 3	; exit to 128
+	124	[24]	move     	13 7
+	125	[24]	call     	13 1 2	; 0 in 1 out
+	126	[24]	set_table	8 12 13
+	127	[24]	for_loop 	9 4	; to 124
+	128	[25]	load_integer	9 1
+	129	[25]	load_integer	10 100
+	130	[25]	load_integer	11 1
+	131	[25]	for_prepare	9 4	; exit to 137
+	132	[25]	get_table	13 8 12
+	133	[25]	call     	13 1 1	; 0 in 0 out
+	134	[25]	get_table	13 8 12
+	135	[25]	call     	13 1 1	; 0 in 0 out
+	136	[25]	for_loop 	9 5	; to 132
+	137	[26]	get_table_upvalue	9 0 9	; _ENV "print"
+	138	[26]	move     	10 6
+	139	[26]	get_integer	11 8 50
+	140	[26]	call     	11 1 0	; 0 in all out
+	141	[26]	call     	9 0 1	; all in 0 out
+	142	[26]	return_values	9 1 1k	; 0 out
+constants (16) for #5:
+	0	I	2
+	1	S	"name"
+	2	S	"item"
+	3	S	"s"
+	4	S	"-"
+	5	I	100
+	6	S	"t"
+	7	S	"f"
+	8	S	"ipairs"
+	9	S	"print"
+	10	S	"next"
+	11	S	"value"
+	12	S	"__index"
+	13	S	"setmetatable"
+	14	S	"hello"
+	15	S	"getmetatable"
+locals (38) for #5:
+	0	keep	4	143
+	1	(for state)	7	40
+	2	(for state)	7	40
+	3	(for state)	7	40
+	4	i	8	39
+	5	t	18	38
+	6	f	19	38
+	7	s	25	38
+	8	total	41	143
+	9	(for state)	44	55
+	10	(for state)	44	55
+	11	(for state)	44	55
+	12	(for state)	44	55
+	13	_	45	53
+	14	k	45	53
+	15	chain	66	143
+	16	(for state)	69	76
+	17	(for state)	69	76
+	18	(for state)	69	76
+	19	i	70	75
+	20	sum	77	143
+	21	mt	91	143
+	22	proxies	93	143
+	23	(for state)	96	104
+	24	(for state)	96	104
+	25	(for state)	96	104
+	26	i	97	103
+	27	counter	117	143
+	28	make	118	143
+	29	fs	120	143
+	30	(for state)	123	128
+	31	(for state)	123	128
+	32	(for state)	123	128
+	33	i	124	127
+	34	(for state)	131	137
+	35	(for state)	131	137
+	36	(for state)	131	137
+	37	i	132	136
+upvalues (1) for #5:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/gc/garbage.lua:5,5> (3 instructions at #1)
+0 params, 2 slots, 1 upvalue, 0 locals, 1 constant, 0 functions
+	1	[5]	get_table_upvalue	0 0 0	; t "name"
+	2	[5]	return_one	0
+	3	[5]	return_none	
+constants (1) for #1:
+	0	S	"name"
+locals (0) for #1:
+upvalues (1) for #1:
+	0	t	1	5
+
+function <tests/corpus/runtime/gc/garbage.lua:17,17> (5 instructions at #2)
+2 params, 4 slots, 0 upvalues, 2 locals, 1 constant, 0 functions
+	1	[17]	move     	2 1
+	2	[17]	load_constant	3 0	; "!"
+	3	[17]	concatenate	2 2
+	4	[17]	return_one	2
+	5	[17]	return_none	
+constants (1) for #2:
+	0	S	"!"
+locals (2) for #2:
+	0	_	1	6
+	1	k	1	6
+upvalues (0) for #2:
+
+function <tests/corpus/runtime/gc/garbage.lua:22,22> (4 instructions at #4)
+0 params, 2 slots, 1 upvalue, 1 local, 0 constants, 1 function
+	1	[22]	load_integer	0 0
+	2	[22]	closure  	1 0	; #3
+	3	[22]	return_values	1 2 0k	; 1 out
+	4	[22]	return_values	1 1 0k	; 0 out
+constants (0) for #4:
+locals (1) for #4:
+	0	n	2	5
+upvalues (1) for #4:
+	0	counter	1	6
+
+function <tests/corpus/runtime/gc/garbage.lua:22,22> (11 instructions at #3)
+0 params, 2 slots, 2 upvalues, 0 locals, 0 constants, 0 functions
+	1	[22]	get_upvalue	0 0	; n
+	2	[22]	add_integer	0 0 1
+	3	[22]	metamethod_binary_integer	0 1 6 0	; __add
+	4	[22]	set_upvalue	0 0	; n
+	5	[22]	get_upvalue	0 1	; counter
+	6	[22]	add_integer	0 0 1
+	7	[22]	metamethod_binary_integer	0 1 6 0	; __add
+	8	[22]	set_upvalue	0 1	; counter
+	9	[22]	get_upvalue	0 0	; n
+	10	[22]	return_one	0
+	11	[22]	return_none	
+constants (0) for #3:
+locals (0) for #3:
+upvalues (2) for #3:
+	0	n	1	0
+	1	counter	0	0
+exit 0

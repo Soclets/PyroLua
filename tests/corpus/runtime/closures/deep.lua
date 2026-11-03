@@ -1,3 +1,4 @@
+-- no gc-stress: tens of thousands of frames and a million tail calls, each a collection.
 -- Deep recursion within the limits, and a stack overflow caught.
 local function depth(n) if n == 0 then return 0 end return 1 + depth(n - 1) end
 print(depth(10000))

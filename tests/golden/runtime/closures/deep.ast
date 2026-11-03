@@ -1,90 +1,90 @@
 1 function_body vararg
   1 block
-    2 local_function
-      2 local_name "depth"
-      2 function_body
-        2 name_list
-          2 local_name "n"
-        2 block
-          2 if_statement
-            2 if_clause
-              2 binary_operation equal
-                2 name_expression "n" local@2
-                2 integer_literal 0
-              2 block
-                2 return_statement
-                  2 expression_list
-                    2 integer_literal 0
-          2 return_statement
-            2 expression_list
-              2 binary_operation add
-                2 integer_literal 1
-                2 call_expression
-                  2 name_expression "depth" upvalue@1
-                  2 binary_operation subtract
-                    2 name_expression "n" local@2
-                    2 integer_literal 1
-    3 call_statement
-      3 call_expression
-        3 name_expression "print" global
-        3 call_expression
-          3 name_expression "depth" local@1
-          3 integer_literal 10000
-    4 local_function
-      4 local_name "forever"
-      4 function_body
-        4 name_list
-          4 local_name "n"
-        4 block
-          4 return_statement
-            4 expression_list
-              4 binary_operation add
-                4 integer_literal 1
-                4 call_expression
-                  4 name_expression "forever" upvalue@31
-                  4 binary_operation add
-                    4 name_expression "n" local@32
-                    4 integer_literal 1
-    5 local_statement
-      5 name_list
-        5 local_name "ok"
-        5 local_name "message"
-      5 expression_list
-        5 call_expression
-          5 name_expression "pcall" global
-          5 name_expression "forever" local@31
-          5 integer_literal 1
-    6 call_statement
-      6 call_expression
-        6 name_expression "print" global
-        6 name_expression "ok" local@46
-        6 name_expression "message" local@47
-    7 local_function
-      7 local_name "tail"
-      7 function_body
-        7 name_list
-          7 local_name "n"
-        7 block
-          7 if_statement
-            7 if_clause
-              7 binary_operation equal
-                7 name_expression "n" local@61
-                7 integer_literal 0
-              7 block
-                7 return_statement
-                  7 expression_list
-                    7 string_literal "done"
-          7 return_statement
-            7 expression_list
-              7 call_expression
-                7 name_expression "tail" upvalue@60
-                7 binary_operation subtract
-                  7 name_expression "n" local@61
-                  7 integer_literal 1
-    8 call_statement
-      8 call_expression
-        8 name_expression "print" global
-        8 call_expression
-          8 name_expression "tail" local@60
-          8 integer_literal 1000000
+    3 local_function
+      3 local_name "depth"
+      3 function_body
+        3 name_list
+          3 local_name "n"
+        3 block
+          3 if_statement
+            3 if_clause
+              3 binary_operation equal
+                3 name_expression "n" local@2
+                3 integer_literal 0
+              3 block
+                3 return_statement
+                  3 expression_list
+                    3 integer_literal 0
+          3 return_statement
+            3 expression_list
+              3 binary_operation add
+                3 integer_literal 1
+                3 call_expression
+                  3 name_expression "depth" upvalue@1
+                  3 binary_operation subtract
+                    3 name_expression "n" local@2
+                    3 integer_literal 1
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 call_expression
+          4 name_expression "depth" local@1
+          4 integer_literal 10000
+    5 local_function
+      5 local_name "forever"
+      5 function_body
+        5 name_list
+          5 local_name "n"
+        5 block
+          5 return_statement
+            5 expression_list
+              5 binary_operation add
+                5 integer_literal 1
+                5 call_expression
+                  5 name_expression "forever" upvalue@31
+                  5 binary_operation add
+                    5 name_expression "n" local@32
+                    5 integer_literal 1
+    6 local_statement
+      6 name_list
+        6 local_name "ok"
+        6 local_name "message"
+      6 expression_list
+        6 call_expression
+          6 name_expression "pcall" global
+          6 name_expression "forever" local@31
+          6 integer_literal 1
+    7 call_statement
+      7 call_expression
+        7 name_expression "print" global
+        7 name_expression "ok" local@46
+        7 name_expression "message" local@47
+    8 local_function
+      8 local_name "tail"
+      8 function_body
+        8 name_list
+          8 local_name "n"
+        8 block
+          8 if_statement
+            8 if_clause
+              8 binary_operation equal
+                8 name_expression "n" local@61
+                8 integer_literal 0
+              8 block
+                8 return_statement
+                  8 expression_list
+                    8 string_literal "done"
+          8 return_statement
+            8 expression_list
+              8 call_expression
+                8 name_expression "tail" upvalue@60
+                8 binary_operation subtract
+                  8 name_expression "n" local@61
+                  8 integer_literal 1
+    9 call_statement
+      9 call_expression
+        9 name_expression "print" global
+        9 call_expression
+          9 name_expression "tail" local@60
+          9 integer_literal 1000000
 exit 0

@@ -2,28 +2,28 @@
 main <tests/corpus/runtime/closures/deep.lua:0,0> (23 instructions at #4)
 0+ params, 8 slots, 1 upvalue, 5 locals, 3 constants, 3 functions
 	1	[1]	vararg_prepare	0
-	2	[2]	closure  	0 0	; #1
-	3	[3]	get_table_upvalue	1 0 0	; _ENV "print"
-	4	[3]	move     	2 0
-	5	[3]	load_integer	3 10000
-	6	[3]	call     	2 2 0	; 1 in all out
-	7	[3]	call     	1 0 1	; all in 0 out
-	8	[4]	closure  	1 1	; #2
-	9	[5]	get_table_upvalue	2 0 1	; _ENV "pcall"
-	10	[5]	move     	3 1
-	11	[5]	load_integer	4 1
-	12	[5]	call     	2 3 3	; 2 in 2 out
-	13	[6]	get_table_upvalue	4 0 0	; _ENV "print"
-	14	[6]	move     	5 2
-	15	[6]	move     	6 3
-	16	[6]	call     	4 3 1	; 2 in 0 out
-	17	[7]	closure  	4 2	; #3
-	18	[8]	get_table_upvalue	5 0 0	; _ENV "print"
-	19	[8]	move     	6 4
-	20	[8]	load_constant	7 2	; 1000000
-	21	[8]	call     	6 2 0	; 1 in all out
-	22	[8]	call     	5 0 1	; all in 0 out
-	23	[8]	return_values	5 1 1k	; 0 out
+	2	[3]	closure  	0 0	; #1
+	3	[4]	get_table_upvalue	1 0 0	; _ENV "print"
+	4	[4]	move     	2 0
+	5	[4]	load_integer	3 10000
+	6	[4]	call     	2 2 0	; 1 in all out
+	7	[4]	call     	1 0 1	; all in 0 out
+	8	[5]	closure  	1 1	; #2
+	9	[6]	get_table_upvalue	2 0 1	; _ENV "pcall"
+	10	[6]	move     	3 1
+	11	[6]	load_integer	4 1
+	12	[6]	call     	2 3 3	; 2 in 2 out
+	13	[7]	get_table_upvalue	4 0 0	; _ENV "print"
+	14	[7]	move     	5 2
+	15	[7]	move     	6 3
+	16	[7]	call     	4 3 1	; 2 in 0 out
+	17	[8]	closure  	4 2	; #3
+	18	[9]	get_table_upvalue	5 0 0	; _ENV "print"
+	19	[9]	move     	6 4
+	20	[9]	load_constant	7 2	; 1000000
+	21	[9]	call     	6 2 0	; 1 in all out
+	22	[9]	call     	5 0 1	; all in 0 out
+	23	[9]	return_values	5 1 1k	; 0 out
 constants (3) for #4:
 	0	S	"print"
 	1	S	"pcall"
@@ -37,54 +37,54 @@ locals (5) for #4:
 upvalues (1) for #4:
 	0	_ENV	1	0
 
-function <tests/corpus/runtime/closures/deep.lua:2,2> (12 instructions at #1)
+function <tests/corpus/runtime/closures/deep.lua:3,3> (12 instructions at #1)
 1 param, 3 slots, 1 upvalue, 1 local, 0 constants, 0 functions
-	1	[2]	equal_integer	0 0 0
-	2	[2]	jump     	2	; to 5
-	3	[2]	load_integer	1 0
-	4	[2]	return_one	1
-	5	[2]	get_upvalue	1 0	; depth
-	6	[2]	add_integer	2 0 -1
-	7	[2]	metamethod_binary_integer	0 1 7 0	; __sub
-	8	[2]	call     	1 2 2	; 1 in 1 out
-	9	[2]	add_integer	1 1 1
-	10	[2]	metamethod_binary_integer	1 1 6 1	; __add flip
-	11	[2]	return_one	1
-	12	[2]	return_none	
+	1	[3]	equal_integer	0 0 0
+	2	[3]	jump     	2	; to 5
+	3	[3]	load_integer	1 0
+	4	[3]	return_one	1
+	5	[3]	get_upvalue	1 0	; depth
+	6	[3]	add_integer	2 0 -1
+	7	[3]	metamethod_binary_integer	0 1 7 0	; __sub
+	8	[3]	call     	1 2 2	; 1 in 1 out
+	9	[3]	add_integer	1 1 1
+	10	[3]	metamethod_binary_integer	1 1 6 1	; __add flip
+	11	[3]	return_one	1
+	12	[3]	return_none	
 constants (0) for #1:
 locals (1) for #1:
 	0	n	1	13
 upvalues (1) for #1:
 	0	depth	1	0
 
-function <tests/corpus/runtime/closures/deep.lua:4,4> (8 instructions at #2)
+function <tests/corpus/runtime/closures/deep.lua:5,5> (8 instructions at #2)
 1 param, 3 slots, 1 upvalue, 1 local, 0 constants, 0 functions
-	1	[4]	get_upvalue	1 0	; forever
-	2	[4]	add_integer	2 0 1
-	3	[4]	metamethod_binary_integer	0 1 6 0	; __add
-	4	[4]	call     	1 2 2	; 1 in 1 out
-	5	[4]	add_integer	1 1 1
-	6	[4]	metamethod_binary_integer	1 1 6 1	; __add flip
-	7	[4]	return_one	1
-	8	[4]	return_none	
+	1	[5]	get_upvalue	1 0	; forever
+	2	[5]	add_integer	2 0 1
+	3	[5]	metamethod_binary_integer	0 1 6 0	; __add
+	4	[5]	call     	1 2 2	; 1 in 1 out
+	5	[5]	add_integer	1 1 1
+	6	[5]	metamethod_binary_integer	1 1 6 1	; __add flip
+	7	[5]	return_one	1
+	8	[5]	return_none	
 constants (0) for #2:
 locals (1) for #2:
 	0	n	1	9
 upvalues (1) for #2:
 	0	forever	1	1
 
-function <tests/corpus/runtime/closures/deep.lua:7,7> (10 instructions at #3)
+function <tests/corpus/runtime/closures/deep.lua:8,8> (10 instructions at #3)
 1 param, 3 slots, 1 upvalue, 1 local, 1 constant, 0 functions
-	1	[7]	equal_integer	0 0 0
-	2	[7]	jump     	2	; to 5
-	3	[7]	load_constant	1 0	; "done"
-	4	[7]	return_one	1
-	5	[7]	get_upvalue	1 0	; tail
-	6	[7]	add_integer	2 0 -1
-	7	[7]	metamethod_binary_integer	0 1 7 0	; __sub
-	8	[7]	tail_call	1 2 0	; 1 in
-	9	[7]	return_values	1 0 0	; all out
-	10	[7]	return_none	
+	1	[8]	equal_integer	0 0 0
+	2	[8]	jump     	2	; to 5
+	3	[8]	load_constant	1 0	; "done"
+	4	[8]	return_one	1
+	5	[8]	get_upvalue	1 0	; tail
+	6	[8]	add_integer	2 0 -1
+	7	[8]	metamethod_binary_integer	0 1 7 0	; __sub
+	8	[8]	tail_call	1 2 0	; 1 in
+	9	[8]	return_values	1 0 0	; all out
+	10	[8]	return_none	
 constants (1) for #3:
 	0	S	"done"
 locals (1) for #3:

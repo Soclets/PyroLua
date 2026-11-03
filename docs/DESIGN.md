@@ -508,6 +508,28 @@ Only tables have metatables for now: the string metatable comes with the string 
 (M5), and pyrolua's runtime corpus runs reference Lua without one. Metamethod names are
 interned when a chunk is loaded and kept in the registry, so a lookup allocates nothing.
 
+### Collection
+
+The VM collects only at a safe point, the top of the dispatch loop before an instruction
+starts, and in the host-function protocol's `New_String` and `New_Function` when they
+cannot allocate. Its roots are the chunk's constants, the registry (the globals, the host
+functions, the error being raised, the metamethod names), the open upvalues and the stack
+up to the running frame's top (or the stack's top, for open results; for a waiting host
+function, its arguments and the results of the call it asked for): `lgc.c` keeps up to
+`L->top` the same way, since a caller's registers above the function it called are dead.
+The places above are set to nil before marking. Marking takes the arrays in place
+(`Mark_Roots`), and the proof carries the collector's guarantee (`Finish` keeps every object
+marked) to the machine's invariant that every value it keeps is live: a handle kept
+anywhere else could not be used without a failed proof.
+
+A collection runs when the memory used has doubled since the last one, and with
+`--gc-stress` (`Settings.Stress`) at every safe point. When an instruction cannot allocate,
+it asks to run again after a collection, without having moved on (a concatenation keeps
+how many values it has left); a second failure raises "not enough memory". An allocation
+that fails also has the next safe point collect, as `lgc.c`'s emergency collection does. A
+host function keeps no value outside its frame across `New_String` and `New_Function`,
+which may collect.
+
 ### Host functions
 
 A host function is called from the dispatch loop without the loop calling back into the

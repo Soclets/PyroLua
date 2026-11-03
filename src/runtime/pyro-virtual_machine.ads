@@ -438,7 +438,9 @@ package Pyro.Virtual_Machine with SPARK_Mode => On, Always_Terminates is
        (if Valid
         then Is_Canonical (Result) and then Result.Kind in Integer_Value | Float_Value);
 
-   --  A string holding Text. Success is False when Budget cannot pay.
+   --  A string holding Text. Success is False when Budget cannot pay, even after collecting
+   --  garbage: a value the host function holds outside its frame (its arguments and the
+   --  results of its call) may then be freed.
    procedure New_String
      (M       : in out Machine;
       Budget  : in out Memory_Budget;
@@ -456,7 +458,7 @@ package Pyro.Virtual_Machine with SPARK_Mode => On, Always_Terminates is
        and then Limit (Budget) = Limit (Budget)'Old;
 
    --  The host function with number Id (always the same value). Success is False when Budget
-   --  cannot pay.
+   --  cannot pay, even after collecting garbage, as New_String may.
    procedure New_Function
      (M       : in out Machine;
       Budget  : in out Memory_Budget;
@@ -590,6 +592,12 @@ private
       Steps       : Unsigned_64 := 0;
       --  Collect when the memory used passes it.
       Threshold   : Byte_Count := 0;
+      --  An allocation of the running instruction failed: collect, then run it again
+      --  (Retry); the instruction runs again after a collection (Retried).
+      Retry       : Boolean := False;
+      Retried     : Boolean := False;
+      --  An allocation failed: collect at the next safe point (lgc.c's emergency collection).
+      Pressure    : Boolean := False;
    end record;
 
    ----------------------------------------------------------------------------------------

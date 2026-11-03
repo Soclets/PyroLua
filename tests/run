@@ -698,7 +698,8 @@ class Runner:
         """pyrolua file.lua against reference Lua (with REFERENCE_PRELUDE) on the runtime corpus:
         the same exit status, the same standard output byte for byte, and the same error
         message (the first line of the standard error, without the program's name; reference
-        Lua then prints a stack traceback, which pyrolua does not)."""
+        Lua then prints a stack traceback, which pyrolua does not). --full compares a run under
+        --gc-stress too."""
         files = sorted(RUNTIME.rglob("*.lua"))
 
         def compare(source):
@@ -709,15 +710,25 @@ class Runner:
                 self.fail(f"{relative}: luac -p rejects it")
             reference = self.run([LUA, "-e", REFERENCE_PRELUDE, relative], what=str(relative))
             pyro = self.run([PYRO, relative], what=str(relative))
-            return relative, reference, pyro
+            # --full runs it again collecting garbage at every safe point, which frees at once
+            # any handle the VM keeps outside its roots; a script that would take too long so
+            # says on a line "-- no gc-stress".
+            stressed = None
+            if self.mode == "full" and "-- no gc-stress" not in source.read_text(errors="replace"):
+                stressed = self.run([PYRO, "--gc-stress", relative], what=str(relative))
+            return relative, reference, pyro, stressed
 
         with concurrent.futures.ThreadPoolExecutor(os.cpu_count() or 4) as pool:
-            for relative, reference, pyro in pool.map(compare, files):
+            for relative, reference, pyro, stressed in pool.map(compare, files):
                 if reference[0] is None or pyro[0] is None:
                     continue
                 problem = runtime_difference(reference, pyro)
                 if problem:
                     self.fail(f"{relative}: {problem}")
+                if stressed is not None and stressed[0] is not None:
+                    problem = runtime_difference(reference, stressed)
+                    if problem:
+                        self.fail(f"{relative} (--gc-stress): {problem}")
 
     def stage_listing(self):
         """pyrolua --bytecode --lua-style against luac -l -l on every chunk luac accepts."""
