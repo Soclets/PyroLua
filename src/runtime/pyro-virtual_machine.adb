@@ -18,6 +18,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    procedure Free_Values is new Ada.Unchecked_Deallocation (Root_Array, Root_Array_Access);
    procedure Free_Bases is new Ada.Unchecked_Deallocation (Base_Array, Base_Array_Access);
    procedure Free_Frames is new Ada.Unchecked_Deallocation (Frame_Array, Frame_Array_Access);
+   procedure Free_Places is new Ada.Unchecked_Deallocation (Place_Array, Place_Array_Access);
    procedure Free_Chunk is new Ada.Unchecked_Deallocation (Pyro.Bytecode.Chunk, Chunk_Access);
    procedure Free_Symbols is new Ada.Unchecked_Deallocation
      (Pyro.Symbols.Symbol_Table, Symbols_Access);
@@ -152,6 +153,10 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
        and then M.Open'First = 1
        and then M.Open'Last in Initial_Open .. Maximum_Open
        and then M.Open_Count <= M.Open'Last
+       and then M.Closing /= null
+       and then M.Closing'First = 1
+       and then M.Closing'Last in Initial_Open .. Maximum_Open
+       and then M.Closing_Count <= M.Closing'Last
        and then M.Results_At <= M.Stack'Last
        and then M.Result_Size <= M.Stack'Last + 1 - M.Results_At)
    with Ghost;
@@ -1230,8 +1235,11 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    end Push_Frame;
 
    --  The source line of the instruction frame Level (counted from the top) is running, 0
-   --  when it is not a Lua frame.
-   function Current_Line (M : Machine; Level : Positive) return Natural
+   --  when it is not a Lua frame. A frame below the top, or the top one when At_Call (it moved
+   --  on past the call it makes), is at the instruction before its program counter, as
+   --  ldebug.c's currentpc finds it.
+   function Current_Line
+     (M : Machine; Level : Positive; At_Call : Boolean := False) return Natural
    with Global => null, Pre => Core_Valid (M)
    is
       F : Frame;
@@ -1244,17 +1252,21 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       if F.Kind /= Lua_Frame then
          return 0;
       end if;
-      return Natural (Line_At (M.Program.all, F.Prototype, F.PC));
+      return Natural
+        (Line_At
+           (M.Program.all, F.Prototype,
+            (if (Level > 1 or else At_Call) and then F.PC > 0 then F.PC - 1 else F.PC)));
    end Current_Line;
 
    --  "name:line: " for frame Level, or "" when it is not a Lua frame.
-   function Position_Of (M : Machine; Level : Positive) return String
+   function Position_Of
+     (M : Machine; Level : Positive; At_Call : Boolean := False) return String
    with
      Global => null,
      Pre    => Core_Valid (M),
      Post   => Position_Of'Result'First = 1 and then Position_Of'Result'Length <= 128
    is
-      Line : constant Natural := Current_Line (M, Level);
+      Line : constant Natural := Current_Line (M, Level, At_Call);
    begin
       if Line = 0 then
          return "";
@@ -1397,67 +1409,487 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    end Find_Upvalue;
 
    ----------------------------------------------------------------------------------------
-   --  Errors
+   --  Names in error messages
    ----------------------------------------------------------------------------------------
 
-   --  Unwinds the frames after an error, the error value in the registry: down to a host
-   --  function that asked for a protected call, which then waits with the error; with none,
-   --  the machine is done and failed.
-   procedure Unwind (M : in out Machine)
+   --  The longest name a message gives, so that messages stay bounded.
+   Maximum_Name : constant := 2 ** 12;
+
+   --  [puc ldebug.c:getobjname] What a name names.
+   type Name_Kind is
+     (No_Name, Local_Name, Upvalue_Name, Constant_Name, Global_Name, Field_Name, Method_Name,
+      Iterator_Name, Metamethod_Name);
+
+   function Kind_Word (Kind : Name_Kind) return String
+   is (case Kind is
+         when No_Name         => "",
+         when Local_Name      => "local",
+         when Upvalue_Name    => "upvalue",
+         when Constant_Name   => "constant",
+         when Global_Name     => "global",
+         when Field_Name      => "field",
+         when Method_Name     => "method",
+         when Iterator_Name   => "for iterator",
+         when Metamethod_Name => "metamethod");
+
+   --  A name found for a value: its kind and its text.
+   type Found_Name is record
+      Kind   : Name_Kind := No_Name;
+      Text   : String (1 .. Maximum_Name) := [others => ' '];
+      Length : Natural range 0 .. Maximum_Name := 0;
+   end record;
+
+   No_Found_Name : constant Found_Name := (Kind => No_Name, Text => [others => ' '], Length => 0);
+
+   function Named (Kind : Name_Kind; Text : String) return Found_Name
+   with Pre => Text'Length <= Maximum_Name
+   is
+      Result : Found_Name := No_Found_Name;
+   begin
+      Result.Kind := Kind;
+      Result.Length := Text'Length;
+      for Index in 1 .. Text'Length loop
+         Result.Text (Index) := Text (Text'First - 1 + Index);
+      end loop;
+      return Result;
+   end Named;
+
+   --  [puc ldebug.c:formatvarinfo] " (kind 'name')", or "" for no name.
+   function Formatted (Name : Found_Name) return String
+   is (if Name.Kind = No_Name then ""
+       else " (" & Kind_Word (Name.Kind) & " '" & Name.Text (1 .. Name.Length) & "')")
+   with Post => Formatted'Result'Length <= Maximum_Name + 20;
+
+   --  The text of symbol Symbol, at most Maximum_Name bytes; "?" when there is none.
+   function Symbol_Name (Names : Pyro.Symbols.Symbol_Table; Symbol : Pyro.Symbols.Symbol_Index)
+     return String
    with
      Global => null,
-     Pre    => Core_Valid (M),
-     Post   => Is_Valid (M) and then M.State in Waiting | Done
+     Pre    => Pyro.Symbols.Is_Valid (Names),
+     Post   => Symbol_Name'Result'Length <= Maximum_Name
    is
-      Callee : Positive;
-      F      : Frame;
    begin
-      while M.Depth > 0 loop
-         pragma Loop_Invariant (Core_Valid (M));
-         pragma Loop_Variant (Decreases => M.Depth);
-         Lemma_Frames_Pop (M.Frames.all, M.Depth, M.Stack'Last, M.Program.all);
-         M.Depth := M.Depth - 1;
-         if M.Depth > 0
-           and then M.Frames (M.Depth).Kind = Host_Frame
-           and then M.Frames (M.Depth).Protect
-         then
-            F := M.Frames (M.Depth);
-            Callee := F.Top;
-            Close_Upvalues (M.Heap, M.Open.all, M.Open_Count, M.Stack.all, Callee);
-            if Callee in M.Stack'Range then
-               Lemma_Value (Objects (M), M.Registry.all, Error_Place);
-               Store_Value (M.Stack.all, M.Heap, Callee, M.Registry (Error_Place));
-               M.Results_At := Callee;
-               M.Result_Size := 1;
-               M.Succeeded := False;
-               Lemma_Frame (M, M.Depth);
-               Set_Top_Frame
-                 (M.Frames.all, M.Depth, (F with delta Protect => False), M.Stack'Last,
-                  M.Program.all);
-               M.State := Waiting;
-               return;
-            end if;
-         end if;
-      end loop;
-      Close_Upvalues (M.Heap, M.Open.all, M.Open_Count, M.Stack.all, 1);
-      M.Failed := True;
-      M.State := Done;
-   end Unwind;
+      if Symbol not in 1 .. Pyro.Symbols.Count (Names) then
+         return "?";
+      end if;
+      declare
+         Text : constant String := Pyro.Symbols.Text (Names, Symbol);
+      begin
+         return Text (Text'First .. Text'First - 1 + Natural'Min (Text'Length, Maximum_Name));
+      end;
+   end Symbol_Name;
 
-   --  Raises Error.
-   procedure Throw (M : in out Machine; Error : Value)
+   --  [puc ldebug.c:upvalname] The name of upvalue Number of prototype P.
+   function Upvalue_Text
+     (Program : Chunk; Names : Pyro.Symbols.Symbol_Table; P : Prototype_Index; Number : Natural)
+     return String
+   is (if Number < Upvalue_Count (Program, P)
+       then Symbol_Name (Names, Upvalue_At (Program, P, Number).Name)
+       else "?")
    with
      Global => null,
      Pre    =>
-       Core_Valid (M)
-       and then Is_Canonical (Error)
-       and then Pyro.Heap.Live_In (Objects (M), Error),
-     Post   => Is_Valid (M) and then M.State in Waiting | Done
+       Is_Well_Formed (Program)
+       and then P in 1 .. Prototype_Count (Program)
+       and then Pyro.Symbols.Is_Valid (Names),
+     Post   => Upvalue_Text'Result'Length <= Maximum_Name;
+
+   --  [puc ldebug.c:kname] Constant Number of prototype P as a name: a string's text, else
+   --  no name ("?").
+   function Constant_Text
+     (Program : Chunk; Names : Pyro.Symbols.Symbol_Table; P : Prototype_Index; Number : Natural)
+     return Found_Name
+   with
+     Global => null,
+     Pre    =>
+       Is_Well_Formed (Program)
+       and then P in 1 .. Prototype_Count (Program)
+       and then Pyro.Symbols.Is_Valid (Names)
    is
    begin
-      Store_Value (M.Registry.all, M.Heap, Error_Place, Error);
-      Unwind (M);
-   end Throw;
+      if Number < Constant_Count (Program, P)
+        and then Constant_At (Program, P, Number).Kind
+                 in Short_String_Constant | Long_String_Constant
+      then
+         return Named (Constant_Name, Symbol_Name (Names, Constant_At (Program, P, Number).Symbol));
+      end if;
+      return Named (No_Name, "?");
+   end Constant_Text;
+
+   --  [puc lfunc.c:luaF_getlocalname] The name of the Number-th local variable active at PC
+   --  in prototype P, or no name.
+   function Local_Text
+     (Program : Chunk;
+      Names   : Pyro.Symbols.Symbol_Table;
+      P       : Prototype_Index;
+      Number  : Positive;
+      PC      : Natural) return Found_Name
+   with
+     Global => null,
+     Pre    =>
+       Is_Well_Formed (Program)
+       and then P in 1 .. Prototype_Count (Program)
+       and then Pyro.Symbols.Is_Valid (Names)
+   is
+      Left : Natural := Number;
+   begin
+      for Index in 0 .. Local_Count (Program, P) - 1 loop
+         exit when Local_At (Program, P, Index).Start_PC > PC;
+         if PC < Local_At (Program, P, Index).End_PC then
+            if Left = 1 then
+               return Named (Local_Name, Symbol_Name (Names, Local_At (Program, P, Index).Name));
+            end if;
+            Left := Left - 1;
+         end if;
+         pragma Loop_Invariant (Left >= 1);
+      end loop;
+      return No_Found_Name;
+   end Local_Text;
+
+   --  [puc lopcodes.c:luaP_opmodes] Instruction Code sets its register A (testAMode).
+   function Sets_A (Code : Opcode) return Boolean
+   is (Code in Move .. Get_Upvalue | Get_Table_Upvalue .. Get_Field | New_Table .. Shift_Right
+             | Negate .. Concatenate | Test_Set | Call | Tail_Call | For_Loop | For_Prepare
+             | Generic_For_Loop | Closure | Vararg | Vararg_Prepare);
+
+   --  [puc ldebug.c:findsetreg] The instruction before Last in prototype P that last set
+   --  register Register, or -1 when there is none or it ran only on some paths.
+   function Find_Set_Register
+     (Program : Chunk; P : Prototype_Index; Last : Natural; Register : Natural) return Integer
+   with
+     Global => null,
+     Pre    =>
+       Is_Well_Formed (Program)
+       and then P in 1 .. Prototype_Count (Program)
+       and then Last < Code_Length (Program, P),
+     Post   => Find_Set_Register'Result in -1 .. Last - 1
+   is
+      Stop   : Natural := Last;
+      Set    : Integer := -1;
+      Target : Natural := 0;
+      Item   : Instruction;
+      A      : Natural;
+      Change : Boolean;
+      Goal   : Integer;
+   begin
+      if Opcode_At (Program, P, Last)
+         in Metamethod_Binary .. Metamethod_Binary_Constant
+        and then Stop > 0
+      then
+         --  The arithmetic instruction before it did not run to its end.
+         Stop := Stop - 1;
+      end if;
+      for PC in 0 .. Stop - 1 loop
+         pragma Loop_Invariant (Set in -1 .. PC - 1);
+         Item := Instruction_At (Program, P, PC);
+         A := Natural (Item.A);
+         case Item.Operation is
+            when Load_Nil =>
+               Change := A <= Register and then Register <= A + Natural (Item.B);
+            when Generic_For_Call =>
+               Change := Register >= A + 2;
+            when Call | Tail_Call =>
+               Change := Register >= A;
+            when Jump =>
+               --  Code before the farthest jump target up to Last runs only on some paths.
+               Goal := PC + 1 + Integer (Item.Wide) - Offset_sJ;
+               if Goal <= Stop and then Goal > Target then
+                  Target := Goal;
+               end if;
+               Change := False;
+            when others =>
+               Change := Sets_A (Item.Operation) and then Register = A;
+         end case;
+         if Change then
+            Set := (if PC < Target then -1 else PC);
+         end if;
+      end loop;
+      return Set;
+   end Find_Set_Register;
+
+   --  [puc ldebug.c:basicgetobjname] A name for register Register at instruction PC of
+   --  prototype P: a local's, an upvalue's or a constant's, through moves. PC becomes the
+   --  instruction that set the register, or -1.
+   procedure Basic_Name
+     (Program  : Chunk;
+      Names    : Pyro.Symbols.Symbol_Table;
+      P        : Prototype_Index;
+      PC       : in out Integer;
+      Register : Natural;
+      Result   : out Found_Name)
+   with
+     Global => null,
+     Pre    =>
+       Is_Well_Formed (Program)
+       and then P in 1 .. Prototype_Count (Program)
+       and then Pyro.Symbols.Is_Valid (Names)
+       and then PC in 0 .. Code_Length (Program, P) - 1
+       and then Register <= 255,
+     Post   => PC in -1 .. Code_Length (Program, P) - 1
+   is
+      Current : Natural := Register;
+      Item    : Instruction;
+   begin
+      loop
+         pragma Loop_Invariant (PC in 0 .. Code_Length (Program, P) - 1);
+         pragma Loop_Invariant (Current <= 255);
+         pragma Loop_Variant (Decreases => PC);
+         Result := Local_Text (Program, Names, P, Current + 1, PC);
+         exit when Result.Kind /= No_Name;
+         PC := Find_Set_Register (Program, P, PC, Current);
+         exit when PC < 0;
+         Item := Instruction_At (Program, P, PC);
+         case Item.Operation is
+            when Move =>
+               exit when Natural (Item.B) >= Natural (Item.A);
+               Current := Natural (Item.B);
+            when Get_Upvalue =>
+               Result :=
+                 Named (Upvalue_Name, Upvalue_Text (Program, Names, P, Natural (Item.B)));
+               exit;
+            when Load_Constant =>
+               Result := Constant_Text (Program, Names, P, Natural (Item.Wide));
+               if Result.Kind = No_Name then
+                  Result := No_Found_Name;
+               end if;
+               exit;
+            when Load_Constant_Extra =>
+               if PC + 1 < Code_Length (Program, P) then
+                  Result :=
+                    Constant_Text
+                      (Program, Names, P, Natural (Instruction_At (Program, P, PC + 1).Wide));
+                  if Result.Kind = No_Name then
+                     Result := No_Found_Name;
+                  end if;
+               end if;
+               exit;
+            when others =>
+               exit;
+         end case;
+      end loop;
+   end Basic_Name;
+
+   --  The name Basic_Name finds, without the instruction it found it at.
+   function Basic_Name_At
+     (Program  : Chunk;
+      Names    : Pyro.Symbols.Symbol_Table;
+      P        : Prototype_Index;
+      PC       : Natural;
+      Register : Natural) return Found_Name
+   with
+     Global => null,
+     Pre    =>
+       Is_Well_Formed (Program)
+       and then P in 1 .. Prototype_Count (Program)
+       and then Pyro.Symbols.Is_Valid (Names)
+       and then PC < Code_Length (Program, P)
+       and then Register <= 255
+   is
+      At_PC  : Integer := PC;
+      Result : Found_Name;
+   begin
+      Basic_Name (Program, Names, P, At_PC, Register, Result);
+      pragma Unreferenced (At_PC);
+      return Result;
+   end Basic_Name_At;
+
+   --  [puc ldebug.c:isEnv] Global when table register or upvalue Table, of instruction PC,
+   --  is _ENV; field otherwise.
+   function Table_Kind
+     (Program  : Chunk;
+      Names    : Pyro.Symbols.Symbol_Table;
+      P        : Prototype_Index;
+      PC       : Natural;
+      Table    : Natural;
+      Upvalue  : Boolean) return Name_Kind
+   with
+     Global => null,
+     Pre    =>
+       Is_Well_Formed (Program)
+       and then P in 1 .. Prototype_Count (Program)
+       and then Pyro.Symbols.Is_Valid (Names)
+       and then PC < Code_Length (Program, P)
+       and then Table <= 255
+   is
+   begin
+      if Upvalue then
+         return (if Upvalue_Text (Program, Names, P, Table) = "_ENV" then Global_Name
+                 else Field_Name);
+      end if;
+      declare
+         Name : constant Found_Name := Basic_Name_At (Program, Names, P, PC, Table);
+      begin
+         return (if Name.Kind /= No_Name and then Name.Text (1 .. Name.Length) = "_ENV"
+                 then Global_Name else Field_Name);
+      end;
+   end Table_Kind;
+
+   --  [puc ldebug.c:rname] Register Register as a key's name: a constant's text, else "?".
+   function Key_Name
+     (Program  : Chunk;
+      Names    : Pyro.Symbols.Symbol_Table;
+      P        : Prototype_Index;
+      PC       : Natural;
+      Register : Natural) return Found_Name
+   with
+     Global => null,
+     Pre    =>
+       Is_Well_Formed (Program)
+       and then P in 1 .. Prototype_Count (Program)
+       and then Pyro.Symbols.Is_Valid (Names)
+       and then PC < Code_Length (Program, P)
+       and then Register <= 255
+   is
+      Name : constant Found_Name := Basic_Name_At (Program, Names, P, PC, Register);
+   begin
+      return (if Name.Kind = Constant_Name then Name else Named (No_Name, "?"));
+   end Key_Name;
+
+   --  [puc ldebug.c:getobjname] A name for register Register at instruction Last of
+   --  prototype P, through table accesses too.
+   function Object_Name
+     (Program  : Chunk;
+      Names    : Pyro.Symbols.Symbol_Table;
+      P        : Prototype_Index;
+      Last     : Natural;
+      Register : Natural) return Found_Name
+   with
+     Global => null,
+     Pre    =>
+       Is_Well_Formed (Program)
+       and then P in 1 .. Prototype_Count (Program)
+       and then Pyro.Symbols.Is_Valid (Names)
+       and then Last < Code_Length (Program, P)
+       and then Register <= 255
+   is
+      PC     : Integer := Last;
+      Result : Found_Name;
+      Item   : Instruction;
+      Key    : Found_Name;
+   begin
+      Basic_Name (Program, Names, P, PC, Register, Result);
+      if Result.Kind /= No_Name or else PC < 0 then
+         return Result;
+      end if;
+      Item := Instruction_At (Program, P, PC);
+      case Item.Operation is
+         when Get_Table_Upvalue =>
+            Key := Constant_Text (Program, Names, P, Natural (Item.C));
+            Key.Kind := Table_Kind (Program, Names, P, PC, Natural (Item.B), Upvalue => True);
+            return Key;
+         when Get_Table =>
+            Key := Key_Name (Program, Names, P, PC, Natural (Item.C));
+            Key.Kind := Table_Kind (Program, Names, P, PC, Natural (Item.B), Upvalue => False);
+            return Key;
+         when Get_Integer =>
+            return Named (Field_Name, "integer index");
+         when Get_Field =>
+            Key := Constant_Text (Program, Names, P, Natural (Item.C));
+            Key.Kind := Table_Kind (Program, Names, P, PC, Natural (Item.B), Upvalue => False);
+            return Key;
+         when Self =>
+            Key :=
+              (if Item.K then Constant_Text (Program, Names, P, Natural (Item.C))
+               else Key_Name (Program, Names, P, PC, Natural (Item.C)));
+            Key.Kind := Method_Name;
+            return Key;
+         when others =>
+            return No_Found_Name;
+      end case;
+   end Object_Name;
+
+   --  The running frame's prototype and instruction, when the top frame is a Lua frame.
+   function Lua_Top (M : Machine) return Boolean
+   is (M.Depth >= 1 and then M.Frames (M.Depth).Kind = Lua_Frame)
+   with Pre => Core_Valid (M);
+
+   function Variable_Info (M : Machine; Source : Operand) return String is
+      F : Frame;
+   begin
+      if not Lua_Top (M) or else Source.Kind = Other_Operand then
+         return "";
+      end if;
+      Lemma_Frame (M, M.Depth);
+      F := M.Frames (M.Depth);
+      if Source.Kind = Upvalue_Operand then
+         return Formatted
+                  (Named (Upvalue_Name,
+                          Upvalue_Text (M.Program.all, M.Names.all, F.Prototype, Source.Number)));
+      elsif Source.Number > 255 then
+         return "";
+      end if;
+      return Formatted
+               (Object_Name (M.Program.all, M.Names.all, F.Prototype, F.PC, Source.Number));
+   end Variable_Info;
+
+   --  [puc ldebug.c:funcnamefromcode] A name for the function the running frame calls: through
+   --  the CALL, TAILCALL or TFORCALL that calls it, or a metamethod's event. The frame is
+   --  past that instruction when At_Call.
+   function Call_Info (M : Machine; At_Call : Boolean) return String
+   with Global => null, Pre => Core_Valid (M), Post => Call_Info'Result'Length <= 2 ** 14
+   is
+      F    : Frame;
+      PC   : Natural;
+      Item : Instruction;
+   begin
+      if not Lua_Top (M) then
+         return "";
+      end if;
+      Lemma_Frame (M, M.Depth);
+      F := M.Frames (M.Depth);
+      if At_Call and then F.PC = 0 then
+         return "";
+      end if;
+      PC := (if At_Call then F.PC - 1 else F.PC);
+      Item := Instruction_At (M.Program.all, F.Prototype, PC);
+      case Item.Operation is
+         when Call | Tail_Call =>
+            return Formatted
+                     (Object_Name
+                        (M.Program.all, M.Names.all, F.Prototype, PC, Natural (Item.A)));
+         when Generic_For_Call =>
+            return Formatted (Named (Iterator_Name, "for iterator"));
+         when Self | Get_Table_Upvalue .. Get_Field =>
+            return Formatted (Named (Metamethod_Name, "index"));
+         when Set_Table_Upvalue .. Set_Field =>
+            return Formatted (Named (Metamethod_Name, "newindex"));
+         when Metamethod_Binary .. Metamethod_Binary_Constant =>
+            if Natural (Item.C) in Natural (First_Binary_Event) .. Natural (Last_Binary_Event)
+            then
+               declare
+                  Name : constant String :=
+                    Event_Name
+                      (Event'Val (Event'Pos (Add_Event) + Natural (Item.C)
+                                  - Natural (First_Binary_Event)));
+               begin
+                  return Formatted (Named (Metamethod_Name, Name (Name'First + 2 .. Name'Last)));
+               end;
+            end if;
+            return "";
+         when Negate =>
+            return Formatted (Named (Metamethod_Name, "unm"));
+         when Bitwise_Not =>
+            return Formatted (Named (Metamethod_Name, "bnot"));
+         when Length =>
+            return Formatted (Named (Metamethod_Name, "len"));
+         when Concatenate =>
+            return Formatted (Named (Metamethod_Name, "concat"));
+         when Equal =>
+            return Formatted (Named (Metamethod_Name, "eq"));
+         when Less_Than | Less_Than_Integer | Greater_Than_Integer =>
+            return Formatted (Named (Metamethod_Name, "lt"));
+         when Less_Equal | Less_Equal_Integer | Greater_Equal_Integer =>
+            return Formatted (Named (Metamethod_Name, "le"));
+         when Close | Return_Values =>
+            return Formatted (Named (Metamethod_Name, "close"));
+         when others =>
+            return "";
+      end case;
+   end Call_Info;
+
+   ----------------------------------------------------------------------------------------
+   --  Errors
+   ----------------------------------------------------------------------------------------
 
    --  A string value holding Text, or the "not enough memory" message when Budget cannot pay.
    procedure Make_String
@@ -1494,22 +1926,225 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       end if;
    end Make_String;
 
+   --  How setting up a call went.
+   type Call_Outcome is (Called, Stack_Overflow, Bad_Closure, Not_Callable);
+
+   --  [puc ldo.c:luaD_precall] Sets up a call of the function at stack place Func with
+   --  Arguments arguments after it, its caller wanting Results results (-1: all): a Lua
+   --  function's frame runs next, a host function waits. Outcome says why it could not; the
+   --  machine then still has its frames.
+   procedure Prepare_Call
+     (M         : in out Machine;
+      Budget    : in out Memory_Budget;
+      Func      : Positive;
+      Arguments : Natural;
+      Results   : Integer;
+      Outcome   : out Call_Outcome)
+   with
+     Global => null,
+     Pre    =>
+       Core_Valid (M)
+       and then M.State = Ready
+       and then Func <= M.Stack'Last
+       and then Arguments <= Stack_Limit
+       and then Results in -1 .. 255
+       and then (M.Depth = 0 or else M.Frames (M.Depth).Func < Func),
+     Post   =>
+       Core_Valid (M)
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then M.Closing_Count = M.Closing_Count'Old
+       and then (if Outcome = Called then Is_Valid (M) and then Is_Loaded (M)
+                 else M.State = Ready and then M.Depth = M.Depth'Old);
+
+   --  [puc lfunc.c:luaF_newtbcupval] Adds stack place Place to the to-be-closed variables.
+   --  Success is False when Budget cannot pay for a longer list.
+   procedure Push_Closing
+     (Closing : in out Place_Array_Access;
+      Count   : in out Natural;
+      Budget  : in out Memory_Budget;
+      Place   : Natural;
+      Success : out Boolean)
+   with
+     Global => null,
+     Pre    =>
+       Closing /= null
+       and then Closing'First = 1
+       and then Closing'Last in Initial_Open .. Maximum_Open
+       and then Count <= Closing'Last,
+     Post   =>
+       Closing /= null
+       and then Closing'First = 1
+       and then Closing'Last in Initial_Open .. Maximum_Open
+       and then Count <= Closing'Last
+       and then Limit (Budget) = Limit (Budget)'Old
+   is
+      Larger  : Place_Array_Access;
+      Charged : Boolean;
+   begin
+      Success := False;
+      if Count = Closing'Last then
+         if Closing'Length > Stack_Limit then
+            return;
+         end if;
+         Charge (Budget, Base_Bytes * Byte_Count (Closing'Length), Charged);
+         if not Charged then
+            return;
+         end if;
+         Larger := new Place_Array'(1 .. 2 * Closing'Length => 0);
+         Larger (1 .. Closing'Length) := Closing.all;
+         Free_Places (Closing);
+         Closing := Larger;
+      end if;
+      Count := Count + 1;
+      Closing (Count) := Place;
+      Success := True;
+   end Push_Closing;
+
+   --  [puc ldo.c:luaD_throw, luaD_closeprotected] Unwinds the frames after an error, the
+   --  error value in the registry, down to a host function that asked for a protected call
+   --  (or to the bottom). The to-be-closed variables above that point are closed first, each
+   --  __close called with the error; it runs as a call of that host function, still
+   --  protected, so that an error in it replaces the error, and the unwinding goes on when it
+   --  returns. Then the host function waits with the error; with none, the machine is done
+   --  and failed.
+   procedure Unwind (M : in out Machine; Budget : in out Memory_Budget)
+   with
+     Global => null,
+     Pre    => Core_Valid (M),
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old
+   is
+      Level   : Positive;
+      Place   : Natural;
+      Item    : Value;
+      Handler : Value;
+      F       : Frame;
+      Last    : Stack_Size;
+      Success : Boolean;
+      Outcome : Call_Outcome := Stack_Overflow;
+      Error   : Value;
+      Before  : Pyro.Kind_Sequences.Sequence with Ghost;
+   begin
+      M.State := Ready;
+      while M.Depth > 0
+        and then not (M.Frames (M.Depth).Kind = Host_Frame and then M.Frames (M.Depth).Protect)
+      loop
+         pragma Loop_Invariant (Core_Valid (M) and then M.State = Ready);
+         pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
+         pragma Loop_Variant (Decreases => M.Depth);
+         Lemma_Frames_Pop (M.Frames.all, M.Depth, M.Stack'Last, M.Program.all);
+         M.Depth := M.Depth - 1;
+      end loop;
+      if M.Depth > 0 then
+         Lemma_Frame (M, M.Depth);
+         Level := M.Frames (M.Depth).Top;
+      else
+         Level := 1;
+      end if;
+      Close_Upvalues (M.Heap, M.Open.all, M.Open_Count, M.Stack.all, Level);
+      while M.Closing_Count > 0 and then M.Closing (M.Closing_Count) >= Level loop
+         pragma Loop_Invariant (Core_Valid (M) and then M.State = Ready);
+         pragma Loop_Invariant (M.Depth = M.Depth'Loop_Entry);
+         pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
+         pragma Loop_Variant (Decreases => M.Closing_Count);
+         Place := M.Closing (M.Closing_Count);
+         M.Closing_Count := M.Closing_Count - 1;
+         if Place in M.Stack'Range then
+            Lemma_Value (Objects (M), M.Stack.all, Place);
+            Item := M.Stack (Place);
+            if Item.Kind /= Nil_Value and then Item /= Boolean_Value_Of (False) then
+               --  [puc lfunc.c:prepcallclosemth] __close (Item, error), called above Place: the
+               --  variables left to close are below it, and keep their values.
+               Handler := Field_Of (M, Item, Close_Event);
+               Lemma_Value (Objects (M), M.Registry.all, Error_Place);
+               Error := M.Registry (Error_Place);
+               Last := M.Stack'Last;
+               Reserve (M.Stack, M.Heap, Budget, Place + 3 + Extra_Stack, Success);
+               Lemma_Frames_Larger (M.Frames.all, M.Depth, Last, M.Stack'Last, M.Program.all);
+               if Success then
+                  Store_Value (M.Stack.all, M.Heap, Place + 1, Handler);
+                  Store_Value (M.Stack.all, M.Heap, Place + 2, Item);
+                  Store_Value (M.Stack.all, M.Heap, Place + 3, Error);
+                  if M.Depth > 0 then
+                     F := M.Frames (M.Depth);
+                     Lemma_Frame (M, M.Depth);
+                     Set_Top_Frame
+                       (M.Frames.all, M.Depth, (F with delta Closing => True), M.Stack'Last,
+                        M.Program.all);
+                  else
+                     M.Unwinding := True;
+                  end if;
+                  if M.Depth = 0 or else M.Frames (M.Depth).Func < Place + 1 then
+                     Prepare_Call (M, Budget, Place + 1, 2, 0, Outcome);
+                     if Outcome = Called then
+                        return;
+                     end if;
+                  end if;
+               end if;
+               --  The call could not start: its error replaces the error.
+               Before := Objects (M);
+               Make_String
+                 (M.Heap, M.Registry.all, Budget,
+                  (if not Success or else Outcome = Stack_Overflow then "stack overflow"
+                   elsif Outcome = Bad_Closure then "internal error: bad closure"
+                   else "attempt to call a " & Type_Name (M, Handler) & " value"),
+                  Error);
+               Lemma_Roots_Grow (Before, M);
+               Store_Value (M.Registry.all, M.Heap, Error_Place, Error);
+            end if;
+         end if;
+      end loop;
+      M.Unwinding := False;
+      if M.Depth > 0 and then M.Frames (M.Depth).Kind = Host_Frame then
+         F := M.Frames (M.Depth);
+         Lemma_Frame (M, M.Depth);
+         if Level in M.Stack'Range then
+            Lemma_Value (Objects (M), M.Registry.all, Error_Place);
+            Store_Value (M.Stack.all, M.Heap, Level, M.Registry (Error_Place));
+            M.Results_At := Level;
+            M.Result_Size := 1;
+         else
+            M.Results_At := 1;
+            M.Result_Size := 0;
+         end if;
+         M.Succeeded := False;
+         Set_Top_Frame
+           (M.Frames.all, M.Depth, (F with delta Protect => False, Closing => False),
+            M.Stack'Last, M.Program.all);
+         M.State := Waiting;
+         return;
+      end if;
+      M.Failed := True;
+      M.State := Done;
+   end Unwind;
+
+   --  Raises Error.
+   procedure Throw (M : in out Machine; Budget : in out Memory_Budget; Error : Value)
+   with
+     Global => null,
+     Pre    =>
+       Core_Valid (M)
+       and then Is_Canonical (Error)
+       and then Pyro.Heap.Live_In (Objects (M), Error),
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old
+   is
+   begin
+      Store_Value (M.Registry.all, M.Heap, Error_Place, Error);
+      Unwind (M, Budget);
+   end Throw;
+
    --  Raises the string Text.
    procedure Throw_Message (M : in out Machine; Budget : in out Memory_Budget; Text : String)
    with
      Global => null,
      Pre    => Core_Valid (M),
-     Post   =>
-       Is_Valid (M)
-       and then M.State in Waiting | Done
-       and then Limit (Budget) = Limit (Budget)'Old
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old
    is
       Error  : Value;
       Before : constant Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
    begin
       Make_String (M.Heap, M.Registry.all, Budget, Text, Error);
       Lemma_Roots_Grow (Before, M);
-      Throw (M, Error);
+      Throw (M, Budget, Error);
    end Throw_Message;
 
    procedure Raise_Runtime_Error
@@ -1518,11 +2153,11 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Throw_Message (M, Budget, Position_Of (M, 1) & Text);
    end Raise_Runtime_Error;
 
-   procedure Raise_Memory_Error (M : in out Machine) is
+   procedure Raise_Memory_Error (M : in out Machine; Budget : in out Memory_Budget) is
       Error : constant Value := M.Registry (Memory_Place);
    begin
       Lemma_Value (Objects (M), M.Registry.all, Memory_Place);
-      Throw (M, Error);
+      Throw (M, Budget, Error);
    end Raise_Memory_Error;
 
    function Error_Text (M : Machine) return String is
@@ -1541,9 +2176,64 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    --  Calls and returns
    ----------------------------------------------------------------------------------------
 
+   --  [puc lfunc.c:luaF_close] Calls __close (value, nil) for the latest to-be-closed
+   --  variable at stack place Level or above that is not nil or false, the running frame then
+   --  running its instruction again (Rerun): one variable per pass. Called is False when
+   --  there is none left; the running frame is then as it was. Calls start at Base or above.
+   procedure Close_Pending
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Level  : Positive;
+      Base   : Natural;
+      Called : out Boolean)
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Running (M),
+     Post   =>
+       Is_Valid (M)
+       and then Is_Loaded (M)
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then (if not Called
+                 then Running (M)
+                      and then View (M) = View (M)'Old
+                      and then M.Depth = M.Depth'Old
+                      and then M.Frames (M.Depth) = M.Frames (M.Depth)'Old
+                      and then M.Stack'Last = M.Stack'Last'Old)
+   is
+      Place   : Natural;
+      Item    : Value;
+      Handler : Value;
+      Last    : constant Stack_Size := M.Stack'Last;
+   begin
+      Called := False;
+      while M.Closing_Count > 0 and then M.Closing (M.Closing_Count) >= Level loop
+         pragma Loop_Invariant (Is_Valid (M) and then Running (M));
+         pragma Loop_Invariant (M.Depth = M.Depth'Loop_Entry);
+         pragma Loop_Invariant (M.Frames (M.Depth) = M.Frames (M.Depth)'Loop_Entry);
+         pragma Loop_Invariant (M.Stack'Last = Last);
+         pragma Loop_Variant (Decreases => M.Closing_Count);
+         Place := M.Closing (M.Closing_Count);
+         M.Closing_Count := M.Closing_Count - 1;
+         if Place in M.Stack'Range then
+            Lemma_Value (Objects (M), M.Stack.all, Place);
+            Item := M.Stack (Place);
+            if Item.Kind /= Nil_Value and then Item /= Boolean_Value_Of (False) then
+               Handler := Field_Of (M, Item, Close_Event);
+               Lemma_Live_Heap (M.Heap, Handler);
+               Lemma_Live_Heap (M.Heap, Item);
+               Call_Metamethod
+                 (M, Budget, Handler, [Item, Nil], Rerun, 0, False, Base => Base);
+               Called := True;
+               return;
+            end if;
+         end if;
+      end loop;
+   end Close_Pending;
+
    --  [puc ldo.c:luaD_poscall] The top frame returns Count results, which start at First:
    --  they go to its origin, as many as its caller wanted (nil for the missing ones).
-   procedure Finish_Return (M : in out Machine; First : Positive; Count : Natural)
+   procedure Finish_Return
+     (M : in out Machine; Budget : in out Memory_Budget; First : Positive; Count : Natural)
    with
      Global => null,
      Pre    =>
@@ -1551,7 +2241,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
        and then M.Depth >= 1
        and then First >= M.Frames (M.Depth).Origin
        and then Count <= M.Stack'Last + 1 - First,
-     Post   => Is_Valid (M) and then Is_Loaded (M)
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old
    is
       F      : constant Frame := M.Frames (M.Depth);
       Target : constant Positive := F.Origin;
@@ -1568,9 +2258,21 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       M.Top := Target + Wanted;
       Lemma_Frames_Pop (M.Frames.all, M.Depth, M.Stack'Last, M.Program.all);
       M.Depth := M.Depth - 1;
-      if M.Depth = 0 then
+      if M.Depth = 0 and then M.Unwinding then
+         --  A __close an uncaught error called returned: the unwinding goes on.
+         Unwind (M, Budget);
+      elsif M.Depth = 0 then
          M.State := Done;
+      elsif M.Frames (M.Depth).Kind = Host_Frame and then M.Frames (M.Depth).Closing then
+         --  A __close the host function's protected call called returned: likewise.
+         Unwind (M, Budget);
       elsif M.Frames (M.Depth).Kind = Host_Frame then
+         --  The call the host function asked for returned: it is no longer protected.
+         Caller := M.Frames (M.Depth);
+         Lemma_Frame (M, M.Depth);
+         Set_Top_Frame
+           (M.Frames.all, M.Depth, (Caller with delta Protect => False), M.Stack'Last,
+            M.Program.all);
          M.Results_At := Target;
          M.Result_Size := Wanted;
          M.Succeeded := True;
@@ -1588,6 +2290,11 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
             end if;
             if Caller.Action = Store_Result then
                Store_Value (M.Stack.all, M.Heap, Caller.Func + 1 + Caller.Target, Result);
+               Set_Top_Frame
+                 (M.Frames.all, M.Depth, (Caller with delta Action => No_Action), M.Stack'Last,
+                  M.Program.all);
+            elsif Caller.Action = Rerun then
+               --  A __close returned: the frame's CLOSE or RETURN goes on.
                Set_Top_Frame
                  (M.Frames.all, M.Depth, (Caller with delta Action => No_Action), M.Stack'Last,
                   M.Program.all);
@@ -1619,24 +2326,13 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
        and then Pyro.Heap.Kind_Of (M.Heap, Callee.Object)
                 in Closure_Object | Host_Function_Object);
 
-   --  [puc ldo.c:luaD_precall] Calls the function at stack place Func with Arguments
-   --  arguments after it, its caller wanting Results results (-1: all).
-   procedure Call_At
+   procedure Prepare_Call
      (M         : in out Machine;
       Budget    : in out Memory_Budget;
       Func      : Positive;
       Arguments : Natural;
-      Results   : Integer)
-   with
-     Global => null,
-     Pre    =>
-       Core_Valid (M)
-       and then M.State = Ready
-       and then Func <= M.Stack'Last
-       and then Arguments <= Stack_Limit
-       and then Results in -1 .. 255
-       and then (M.Depth = 0 or else M.Frames (M.Depth).Func < Func),
-     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old
+      Results   : Integer;
+      Outcome   : out Call_Outcome)
    is
       Callee     : Value := M.Stack (Func);
       Count      : Natural := Arguments;
@@ -1647,6 +2343,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Size       : Natural;
       Success    : Boolean;
    begin
+      Outcome := Called;
       Lemma_Value (Objects (M), M.Stack.all, Func);
       if not Is_Function (M, Callee) then
          --  [puc ldo.c:luaD_tryfuncTM] Its __call metamethod, with Callee as first argument.
@@ -1655,7 +2352,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
             Reserve (M.Stack, M.Heap, Budget, Func + Arguments + 1 + Extra_Stack, Success);
             Lemma_Frames_Larger (M.Frames.all, M.Depth, Last, M.Stack'Last, M.Program.all);
             if not Success then
-               Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
+               Outcome := Stack_Overflow;
                return;
             end if;
             Last := M.Stack'Last;
@@ -1671,7 +2368,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          P := Prototype_Index (Natural'Min (Pyro.Heap.Tag_Of (M.Heap, Callee.Object),
                                             Natural (Prototype_Index'Last)));
          if P not in 1 .. Prototype_Count (M.Program.all) then
-            Throw_Message (M, Budget, Position_Of (M, 1) & "internal error: bad closure");
+            Outcome := Bad_Closure;
             return;
          end if;
          Lemma_Valid_Prototype (M.Program.all, P);
@@ -1682,7 +2379,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
             Func + Natural'Max (Size, Natural'Max (Count, Results)) + Extra_Stack, Success);
          Lemma_Frames_Larger (M.Frames.all, M.Depth, Last, M.Stack'Last, M.Program.all);
          if not Success then
-            Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
+            Outcome := Stack_Overflow;
             return;
          end if;
          if Count < Parameters then
@@ -1705,10 +2402,12 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
              Action    => No_Action,
              Target    => 0,
              Expected  => False,
-             Resume    => 0),
+             Resume    => 0,
+             Closing   => False,
+             Saved     => -1),
             M.Stack'Last, M.Program.all, Success);
          if not Success then
-            Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
+            Outcome := Stack_Overflow;
          end if;
       elsif Callee.Kind = Object_Value
         and then Pyro.Heap.Kind_Of (M.Heap, Callee.Object) = Host_Function_Object
@@ -1718,7 +2417,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
             Func + Natural'Max (Count, Results) + Extra_Stack, Success);
          Lemma_Frames_Larger (M.Frames.all, M.Depth, Last, M.Stack'Last, M.Program.all);
          if not Success then
-            Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
+            Outcome := Stack_Overflow;
             return;
          end if;
          Push_Frame
@@ -1739,18 +2438,58 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
              Action    => No_Action,
              Target    => 0,
              Expected  => False,
-             Resume    => 0),
+             Resume    => 0,
+             Closing   => False,
+             Saved     => -1),
             M.Stack'Last, M.Program.all, Success);
          if not Success then
-            Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
+            Outcome := Stack_Overflow;
             return;
          end if;
          M.State := Waiting;
       else
-         Throw_Message
-           (M, Budget, Position_Of (M, 1) & "attempt to call a " & Type_Name (M, Callee)
-                       & " value");
+         Outcome := Not_Callable;
       end if;
+   end Prepare_Call;
+
+   --  [puc ldo.c:luaD_precall] Calls the function at stack place Func with Arguments
+   --  arguments after it, its caller wanting Results results (-1: all).
+   procedure Call_At
+     (M         : in out Machine;
+      Budget    : in out Memory_Budget;
+      Func      : Positive;
+      Arguments : Natural;
+      Results   : Integer)
+   with
+     Global => null,
+     Pre    =>
+       Core_Valid (M)
+       and then M.State = Ready
+       and then Func <= M.Stack'Last
+       and then Arguments <= Stack_Limit
+       and then Results in -1 .. 255
+       and then (M.Depth = 0 or else M.Frames (M.Depth).Func < Func),
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old
+   is
+      Callee  : constant Value := M.Stack (Func);
+      Outcome : Call_Outcome;
+   begin
+      Lemma_Value (Objects (M), M.Stack.all, Func);
+      Prepare_Call (M, Budget, Func, Arguments, Results, Outcome);
+      case Outcome is
+         when Called =>
+            null;
+         when Stack_Overflow =>
+            Throw_Message (M, Budget, Position_Of (M, 1, At_Call => True) & "stack overflow");
+         when Bad_Closure =>
+            Throw_Message
+              (M, Budget, Position_Of (M, 1, At_Call => True) & "internal error: bad closure");
+         when Not_Callable =>
+            Throw_Message
+              (M, Budget,
+               Position_Of (M, 1, At_Call => True) & "attempt to call a " & Type_Name (M, Callee)
+               & " value" & Call_Info (M, At_Call => True));
+      end case;
    end Call_At;
 
    --  The number of arguments of a call of the function at stack place Place: Arguments, or
@@ -1791,7 +2530,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       if not Is_Callable (M, Callee) then
          Throw_Message
            (M, Budget, Position_Of (M, 1) & "attempt to call a " & Type_Name (M, Callee)
-                       & " value");
+                       & " value" & Call_Info (M, At_Call => False));
          return;
       end if;
       Reserve (M.Stack, M.Heap, Budget, Place + Count + Extra_Stack, Success);
@@ -1808,25 +2547,39 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
    end Tail_Call_Register;
 
    procedure Return_Registers
-     (M     : in out Machine;
-      First : Natural;
-      Count : Integer;
-      Close : Boolean)
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      First  : Natural;
+      Count  : Integer;
+      Close  : Boolean)
    is
-      F     : constant Frame := M.Frames (M.Depth);
-      Place : Positive;
-      Size  : Natural;
+      F      : constant Frame := M.Frames (M.Depth);
+      Place  : Positive;
+      Size   : Natural;
+      Called : Boolean;
    begin
       Lemma_Frame (M, M.Depth);
       Place := F.Func + 1 + First;
       Size :=
-        (if Count >= 0 then Natural'Min (Count, M.Stack'Last + 1 - Place)
+        (if F.Saved >= 0 then Natural'Min (F.Saved, M.Stack'Last + 1 - Place)
+         elsif Count >= 0 then Natural'Min (Count, M.Stack'Last + 1 - Place)
          elsif M.Top > Place then M.Top - Place
          else 0);
       if Close then
          Close_Upvalues (M.Heap, M.Open.all, M.Open_Count, M.Stack.all, F.Func + 1);
+         if M.Closing_Count > 0 and then M.Closing (M.Closing_Count) >= F.Func + 1 then
+            --  [puc lvm.c:OP_RETURN] The results stay where they are while the to-be-closed
+            --  variables close, above them; the frame keeps their number.
+            Set_Top_Frame
+              (M.Frames.all, M.Depth, (F with delta Saved => Size), M.Stack'Last,
+               M.Program.all);
+            Close_Pending (M, Budget, F.Func + 1, Place + Size, Called);
+            if Called then
+               return;
+            end if;
+         end if;
       end if;
-      Finish_Return (M, Place, Size);
+      Finish_Return (M, Budget, Place, Size);
    end Return_Registers;
 
    procedure Prepare_Varargs
@@ -1919,7 +2672,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Pyro.Heap.New_Object (M.Heap, Budget, Closure_Object, Natural (Child), Count, Handle);
       Lemma_Roots_Grow (Before, M);
       if Handle = No_Object then
-         Raise_Memory_Error (M);
+         Raise_Memory_Error (M, Budget);
          return;
       end if;
       Lemma_Heap_Live (M.Heap, Object_Value_Of (Handle));
@@ -1937,7 +2690,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
               (M.Heap, M.Open, M.Open_Count, Budget, F.Func + 1 + Natural (Item.Index), Cell);
             Lemma_Roots_Open_Grow (Before, M);
             if Cell = Nil then
-               Raise_Memory_Error (M);
+               Raise_Memory_Error (M, Budget);
                return;
             end if;
          elsif Parent.Kind = Object_Value
@@ -2075,7 +2828,9 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
                Raise_Runtime_Error
                  (M, Budget,
                   "attempt to concatenate a "
-                  & Type_Name (M, (if Joinable (M, Left) then Right else Left)) & " value");
+                  & Type_Name (M, (if Joinable (M, Left) then Right else Left)) & " value"
+                  & Variable_Info
+                      (M, Register_Of (if Joinable (M, Left) then Top - 1 else Top - 2)));
             end if;
             return;
          end if;
@@ -2104,7 +2859,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          end loop;
          Join (M, Budget, Top - Joined, Top - 1, Length, Handle);
          if Handle = No_Object then
-            Raise_Memory_Error (M);
+            Raise_Memory_Error (M, Budget);
             return;
          end if;
          Set_Register (M, Top - Joined, Object_Value_Of (Handle));
@@ -2113,13 +2868,52 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Next (M);
    end Concatenate;
 
-   procedure Close_From (M : in out Machine; First : Natural) is
-      F : constant Frame := M.Frames (M.Depth);
+   procedure Close_From (M : in out Machine; Budget : in out Memory_Budget; First : Natural) is
+      F      : constant Frame := M.Frames (M.Depth);
+      Called : Boolean;
    begin
       Lemma_Frame (M, M.Depth);
       Close_Upvalues (M.Heap, M.Open.all, M.Open_Count, M.Stack.all, F.Func + 1 + First);
-      Advance (M, 0);
+      Close_Pending (M, Budget, F.Func + 1 + First, 0, Called);
+      if not Called then
+         Advance (M, 0);
+      end if;
    end Close_From;
+
+   procedure Mark_To_Close
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Number : Natural;
+      Offset : Integer)
+   is
+      F       : constant Frame := M.Frames (M.Depth);
+      Place   : constant Positive := Register_Place (M, Number);
+      Item    : constant Value := Register (M, Number);
+      Name    : Found_Name;
+      Success : Boolean;
+   begin
+      Lemma_Frame (M, M.Depth);
+      if Item.Kind = Nil_Value or else Item = Boolean_Value_Of (False) then
+         Next (M, Offset);
+         return;
+      end if;
+      Lemma_Live_In (M, Item);
+      if Field_Of (M, Item, Close_Event) = Nil then
+         --  [puc lfunc.c:checkclosemth]
+         Name := Local_Text (M.Program.all, M.Names.all, F.Prototype, Number + 1, F.PC);
+         Raise_Runtime_Error
+           (M, Budget,
+            "variable '" & (if Name.Kind = No_Name then "?" else Name.Text (1 .. Name.Length))
+            & "' got a non-closable value");
+         return;
+      end if;
+      Push_Closing (M.Closing, M.Closing_Count, Budget, Place, Success);
+      if not Success then
+         Raise_Memory_Error (M, Budget);
+         return;
+      end if;
+      Next (M, Offset);
+   end Mark_To_Close;
 
    ----------------------------------------------------------------------------------------
    --  Tables and metamethods
@@ -2140,28 +2934,32 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Action    : Pending_Action;
       Target    : Natural;
       Expected  : Boolean;
-      Resume    : Natural := 0)
+      Resume    : Natural := 0;
+      Base      : Natural := 0)
    is
       F       : constant Frame := M.Frames (M.Depth);
       Last    : constant Stack_Size := M.Stack'Last;
+      Start   : Positive;
       Success : Boolean;
    begin
       Lemma_Frame (M, M.Depth);
-      Reserve (M.Stack, M.Heap, Budget, F.Top + Arguments'Length + Extra_Stack, Success);
+      Start := Positive'Max (F.Top, Natural'Min (Base, Stack_Limit));
+      Reserve (M.Stack, M.Heap, Budget, Start + Arguments'Length + Extra_Stack, Success);
       Lemma_Frames_Larger (M.Frames.all, M.Depth, Last, M.Stack'Last, M.Program.all);
       if not Success then
          Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
          return;
       end if;
       Lemma_Heap_Live (M.Heap, Handler);
-      Store_Value (M.Stack.all, M.Heap, F.Top, Handler);
-      Store_Values (M.Stack.all, M.Heap, F.Top + 1, Arguments);
+      Store_Value (M.Stack.all, M.Heap, Start, Handler);
+      Store_Values (M.Stack.all, M.Heap, Start + 1, Arguments);
       Set_Top_Frame
         (M.Frames.all, M.Depth,
-         (F with delta PC => F.PC + 1, Action => Action, Target => Target,
-                       Expected => Expected, Resume => Resume),
+         (F with delta PC => (if Action = Rerun then F.PC else F.PC + 1), Action => Action,
+                       Target => Target, Expected => Expected, Resume => Resume),
          M.Stack'Last, M.Program.all);
-      Call_At (M, Budget, F.Top, Arguments'Length, (if Action = No_Action then 0 else 1));
+      Call_At
+        (M, Budget, Start, Arguments'Length, (if Action in No_Action | Rerun then 0 else 1));
    end Call_Metamethod;
 
    procedure Get_Index
@@ -2169,7 +2967,8 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Budget : in out Memory_Budget;
       Object : Value;
       Key    : Value;
-      Target : Natural)
+      Target : Natural;
+      Source : Operand)
    is
       T       : Value := Object;
       Result  : Value;
@@ -2194,7 +2993,9 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
             Handler := Metafield (M, T, Index_Event);
             if Handler = Nil then
                Raise_Runtime_Error
-                 (M, Budget, "attempt to index a " & Type_Name (M, T) & " value");
+                 (M, Budget,
+                  "attempt to index a " & Type_Name (M, T) & " value"
+                  & (if Count = 1 then Variable_Info (M, Source) else ""));
                return;
             end if;
          end if;
@@ -2212,7 +3013,8 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Budget : in out Memory_Budget;
       Object : Value;
       Key    : Value;
-      Item   : Value)
+      Item   : Value;
+      Source : Operand)
    is
       T       : Value := Object;
       Handler : Value;
@@ -2234,7 +3036,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
                        (M, Budget, (if Key.Kind = Nil_Value then "table index is nil"
                                     else "table index is NaN"));
                   when Pyro.Tables.Out_Of_Memory =>
-                     Raise_Memory_Error (M);
+                     Raise_Memory_Error (M, Budget);
                end case;
                return;
             end if;
@@ -2242,7 +3044,9 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
             Handler := Metafield (M, T, New_Index_Event);
             if Handler = Nil then
                Raise_Runtime_Error
-                 (M, Budget, "attempt to index a " & Type_Name (M, T) & " value");
+                 (M, Budget,
+                  "attempt to index a " & Type_Name (M, T) & " value"
+                  & (if Count = 1 then Variable_Info (M, Source) else ""));
                return;
             end if;
          end if;
@@ -2267,7 +3071,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Pyro.Heap.New_Table (M.Heap, Budget, Handle);
       Lemma_Roots_Grow (Before, M);
       if Handle = No_Object then
-         Raise_Memory_Error (M);
+         Raise_Memory_Error (M, Budget);
          return;
       end if;
       Lemma_Heap_Live (M.Heap, Object_Value_Of (Handle));
@@ -2307,7 +3111,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          Lemma_Live_Heap (M.Heap, Item);
          Raw_Set (M, Budget, T, Integer_Value_Of (First + Integer_64 (Index)), Item, Status);
          if Status = Pyro.Tables.Out_Of_Memory then
-            Raise_Memory_Error (M);
+            Raise_Memory_Error (M, Budget);
             return;
          end if;
       end loop;
@@ -2357,7 +3161,8 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       end loop;
       Charge (Budget, Value_Bytes * Byte_Count (Total + Registry_Size + Initial_Stack
                                                  + Initial_Open)
-                      + Frame_Bytes * Initial_Frames + Base_Bytes * Byte_Count (Count), Success);
+                      + Frame_Bytes * Initial_Frames + Base_Bytes * Byte_Count (Count)
+                      + Base_Bytes * Initial_Open, Success);
       if not Success then
          return;
       end if;
@@ -2368,6 +3173,9 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       M.Stack := new Root_Array'(1 .. Initial_Stack => Nil);
       M.Frames := new Frame_Array'(1 .. Initial_Frames => (others => <>));
       M.Open := new Root_Array'(1 .. Initial_Open => Nil);
+      M.Closing := new Place_Array'(1 .. Initial_Open => 0);
+      M.Closing_Count := 0;
+      M.Unwinding := False;
       M.State := Done;
       M.Failed := True;
       M.Depth := 0;
@@ -2708,15 +3516,14 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
          return;
       end if;
       Store_Values (M.Stack.all, M.Heap, F.Func, Values);
-      Finish_Return (M, F.Func, Values'Length);
+      Finish_Return (M, Budget, F.Func, Values'Length);
    end Return_Values;
 
    procedure Raise_Error (M : in out Machine; Budget : in out Memory_Budget; Error : Value) is
-      pragma Unreferenced (Budget);
    begin
       Lemma_Heap_Live (M.Heap, Error);
       M.State := Ready;
-      Throw (M, Error);
+      Throw (M, Budget, Error);
    end Raise_Error;
 
    procedure Raise_Message
@@ -2827,12 +3634,16 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       if M.Open /= null then
          Release (Budget, Value_Bytes * Byte_Count (M.Open'Length));
       end if;
+      if M.Closing /= null then
+         Release (Budget, Base_Bytes * Byte_Count (M.Closing'Length));
+      end if;
       Free_Values (M.Constants);
       Free_Bases (M.Bases);
       Free_Values (M.Registry);
       Free_Values (M.Stack);
       Free_Frames (M.Frames);
       Free_Values (M.Open);
+      Free_Places (M.Closing);
       M.State := Unloaded;
       M.Depth := 0;
    end Clear;

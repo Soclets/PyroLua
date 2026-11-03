@@ -506,16 +506,19 @@ private
    --  What a Lua frame does when the metamethod it called returns: nothing, store the result
    --  in register Target, skip the jump after the comparison it ran unless the result's
    --  truth is Expected, or store the result in register Target and run its CONCAT again
-   --  for the Resume values left.
-   type Pending_Action is (No_Action, Store_Result, Test_Result, Concat_Result);
+   --  for the Resume values left, or run its instruction again (a CLOSE or RETURN closing
+   --  its to-be-closed variables one by one).
+   type Pending_Action is (No_Action, Store_Result, Test_Result, Concat_Result, Rerun);
 
    --  [puc lstate.h:CallInfo] A call in progress. The function is at Func in the stack; a Lua
    --  function's registers follow it up to Top (excluded), a host function's arguments up to
    --  its Top. Results is how many results the caller wants (-1: all of them), which go to
    --  Origin, where the function was called. A vararg function's Func moves above its
    --  arguments, Extra of which it keeps below Func. A host function that asked for a call
-   --  waits with Context (its continuation) and Protect. A Lua frame that called a metamethod
-   --  waits with Action, Target and Expected.
+   --  waits with Context (its continuation) and Protect, and is Closing while an error it
+   --  caught closes to-be-closed variables. A Lua frame that called a metamethod waits with
+   --  Action, Target and Expected; a returning one closing its variables keeps its number of
+   --  results in Saved (-1 before).
    type Frame is record
       Kind      : Frame_Kind := Lua_Frame;
       Origin    : Positive := 1;
@@ -532,7 +535,13 @@ private
       Target    : Natural := 0;
       Expected  : Boolean := False;
       Resume    : Natural range 0 .. 255 := 0;
+      Closing   : Boolean := False;
+      Saved     : Integer range -1 .. Maximum_Stack + 5 := -1;
    end record;
+
+   --  [puc lstate.h:tbclist] The stack places of the to-be-closed variables, oldest first.
+   type Place_Array is array (Positive range <>) of Natural;
+   type Place_Array_Access is access Place_Array;
 
    --  [limit LUAI_MAXCCALLS] The deepest nesting of calls, Lua and host.
    Maximum_Frames : constant := 200_000;
@@ -565,6 +574,10 @@ private
       --  The open upvalues (upvalue objects whose variable is still in the stack).
       Open        : Root_Array_Access := null;
       Open_Count  : Natural := 0;
+      --  The to-be-closed variables, and whether an error that no frame caught is closing them.
+      Closing       : Place_Array_Access := null;
+      Closing_Count : Natural := 0;
+      Unwinding     : Boolean := False;
       State       : Machine_State := Unloaded;
       Failed      : Boolean := False;
       --  After a call a host function asked for: where its results are and how many.
@@ -661,6 +674,8 @@ private
               and then V.PC + 1 - Integer (I.Wide) in 0 .. V.Code - 1,
             when Pyro.Bytecode.Concatenate =>
               Integer (I.B) >= 1 and then Is_Register (V, Integer (I.A) + Integer (I.B) - 1),
+            when Pyro.Bytecode.To_Be_Closed =>
+              Is_Register (V, Integer (I.A)),
             when Pyro.Bytecode.Close =>
               Natural (I.A) <= V.Registers,
             when Pyro.Bytecode.Load_Nil =>
@@ -823,10 +838,37 @@ private
      Global => null,
      Pre    => Is_Valid (M) and then Running (M) and then View (M).PC + 1 < View (M).Code;
 
+   --  Where an operand of the running instruction came from, for the name an error message
+   --  gives it: a register or an upvalue of the running frame, or neither.
+   type Operand_Kind is (Other_Operand, Register_Operand, Upvalue_Operand);
+
+   type Operand is record
+      Kind   : Operand_Kind := Other_Operand;
+      Number : Natural := 0;
+   end record;
+
+   function Register_Of (Number : Natural) return Operand
+   is ((Kind => Register_Operand, Number => Number));
+
+   function Upvalue_Of (Number : Natural) return Operand
+   is ((Kind => Upvalue_Operand, Number => Number));
+
+   No_Operand : constant Operand := (Kind => Other_Operand, Number => 0);
+
+   --  [puc ldebug.c:varinfo] What an error message says of operand Source of the running
+   --  frame's instruction: " (global 'x')", " (field 'y')", " (local 'z')", " (upvalue 'w')",
+   --  " (constant 'c')", " (method 'm')", or "" when the bytecode does not name it.
+   function Variable_Info (M : Machine; Source : Operand) return String
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Loaded (M),
+     Post   => Variable_Info'Result'Length <= 2 ** 14;
+
    --  [puc ltm.c:luaT_callTMres] Calls metamethod Handler with Arguments, the running frame
    --  moving on to its next instruction and doing Action when it returns: storing the result
    --  in register Target, or skipping the jump that follows unless the result's truth is
-   --  Expected. Results is 1, or 0 for no action.
+   --  Expected, or running its instruction again (Rerun, the frame staying on it). The
+   --  metamethod's frame starts at the frame's top, or at Base when that is higher.
    procedure Call_Metamethod
      (M         : in out Machine;
       Budget    : in out Memory_Budget;
@@ -835,7 +877,8 @@ private
       Action    : Pending_Action;
       Target    : Natural;
       Expected  : Boolean;
-      Resume    : Natural := 0)
+      Resume    : Natural := 0;
+      Base      : Natural := 0)
    with
      Global => null,
      Pre    =>
@@ -845,20 +888,22 @@ private
        and then Is_Live (M, Handler)
        and then Arguments'Length in 1 .. 3
        and then All_Live (M, Arguments)
-       and then View (M).PC + 1 < View (M).Code
+       and then (if Action /= Rerun then View (M).PC + 1 < View (M).Code)
        and then (if Action in Store_Result | Concat_Result then Target < View (M).Registers)
        and then (if Action = Test_Result then View (M).PC + 2 < View (M).Code)
        and then Resume <= 255,
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  [puc lvm.c:luaV_finishget] Register Target of the running frame gets Object[Key],
-   --  through __index metamethods; the running frame moves on to its next instruction.
+   --  through __index metamethods; the running frame moves on to its next instruction. Source
+   --  is where Object came from, for the error message.
    procedure Get_Index
      (M      : in out Machine;
       Budget : in out Memory_Budget;
       Object : Value;
       Key    : Value;
-      Target : Natural)
+      Target : Natural;
+      Source : Operand)
    with
      Global => null,
      Pre    =>
@@ -873,13 +918,14 @@ private
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  [puc lvm.c:luaV_finishset] Object[Key] = Item, through __newindex metamethods; the
-   --  running frame moves on to its next instruction.
+   --  running frame moves on to its next instruction. Source is where Object came from.
    procedure Set_Index
      (M      : in out Machine;
       Budget : in out Memory_Budget;
       Object : Value;
       Key    : Value;
-      Item   : Value)
+      Item   : Value;
+      Source : Operand)
    with
      Global => null,
      Pre    =>
@@ -954,7 +1000,7 @@ private
 
    --  [puc lvm.c:OP_CLOSE] Closes the open upvalues of the running frame's registers from
    --  First on; the running frame moves on to its next instruction.
-   procedure Close_From (M : in out Machine; First : Natural)
+   procedure Close_From (M : in out Machine; Budget : in out Memory_Budget; First : Natural)
    with
      Global => null,
      Pre    =>
@@ -962,7 +1008,24 @@ private
        and then Running (M)
        and then First <= View (M).Registers
        and then View (M).PC + 1 < View (M).Code,
-     Post   => Is_Valid (M) and then Is_Loaded (M);
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
+
+   --  [puc lfunc.c:luaF_newtbcupval] Register Number of the running frame becomes a
+   --  to-be-closed variable (unless it is nil or false), which must have a __close
+   --  metamethod; the running frame moves on by 1 + Offset instructions.
+   procedure Mark_To_Close
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      Number : Natural;
+      Offset : Integer)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Running (M)
+       and then Number < View (M).Registers
+       and then Offset in -1 - View (M).PC .. View (M).Code - 2 - View (M).PC,
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  Register Number of the running frame.
    function Register (M : Machine; Number : Natural) return Value
@@ -1072,11 +1135,11 @@ private
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  Raises "not enough memory".
-   procedure Raise_Memory_Error (M : in out Machine)
+   procedure Raise_Memory_Error (M : in out Machine; Budget : in out Memory_Budget)
    with
      Global => null,
      Pre    => Is_Valid (M) and then Is_Loaded (M),
-     Post   => Is_Valid (M) and then Is_Loaded (M);
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  [lua §3.4.11] A new closure of nested prototype Number of the running frame's, in
    --  register Target, with its upvalues: the running frame's registers or upvalues, as the
@@ -1134,9 +1197,10 @@ private
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  [puc lvm.c:OP_RETURN] The running frame returns Count values from register First
-   --  (-1: up to the top), closing its upvalues when Close.
+   --  (-1: up to the top), closing its upvalues and to-be-closed variables when Close.
    procedure Return_Registers
      (M      : in out Machine;
+      Budget : in out Memory_Budget;
       First  : Natural;
       Count  : Integer;
       Close  : Boolean)
@@ -1147,7 +1211,7 @@ private
        and then Running (M)
        and then First <= View (M).Registers
        and then Count in -1 .. 254,
-     Post   => Is_Valid (M) and then Is_Loaded (M);
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  [puc ltm.c:luaT_adjustvarargs] Moves the running vararg function above its extra
    --  arguments, Fixed parameters with it.
@@ -1188,7 +1252,8 @@ private
        and then M.Registry = null
        and then M.Stack = null
        and then M.Frames = null
-       and then M.Open = null);
+       and then M.Open = null
+       and then M.Closing = null);
 
    function Is_Loaded (M : Machine) return Boolean
    is (M.State /= Unloaded);

@@ -23,29 +23,30 @@ package body Pyro.Virtual_Machine.Indexing with SPARK_Mode => On is
       Lemma_View (M);
       case Indexing_Instruction (I.Operation) is
          when Get_Table_Upvalue =>
-            Get_Index (M, Budget, Upvalue (M, B), Constant_At (M, C), A);
+            Get_Index (M, Budget, Upvalue (M, B), Constant_At (M, C), A, Upvalue_Of (B));
          when Get_Table =>
-            Get_Index (M, Budget, Register (M, B), Register (M, C), A);
+            Get_Index (M, Budget, Register (M, B), Register (M, C), A, Register_Of (B));
          when Get_Integer =>
-            Get_Index (M, Budget, Register (M, B), Integer_Value_Of (Integer_64 (C)), A);
+            Get_Index
+              (M, Budget, Register (M, B), Integer_Value_Of (Integer_64 (C)), A, Register_Of (B));
          when Get_Field =>
-            Get_Index (M, Budget, Register (M, B), Constant_At (M, C), A);
+            Get_Index (M, Budget, Register (M, B), Constant_At (M, C), A, Register_Of (B));
          when Set_Table_Upvalue =>
             Set_Index
               (M, Budget, Upvalue (M, A), Constant_At (M, B),
-               (if I.K then Constant_At (M, C) else Register (M, C)));
+               (if I.K then Constant_At (M, C) else Register (M, C)), Upvalue_Of (A));
          when Set_Table =>
             Set_Index
               (M, Budget, Register (M, A), Register (M, B),
-               (if I.K then Constant_At (M, C) else Register (M, C)));
+               (if I.K then Constant_At (M, C) else Register (M, C)), Register_Of (A));
          when Set_Integer =>
             Set_Index
               (M, Budget, Register (M, A), Integer_Value_Of (Integer_64 (B)),
-               (if I.K then Constant_At (M, C) else Register (M, C)));
+               (if I.K then Constant_At (M, C) else Register (M, C)), Register_Of (A));
          when Set_Field =>
             Set_Index
               (M, Budget, Register (M, A), Constant_At (M, B),
-               (if I.K then Constant_At (M, C) else Register (M, C)));
+               (if I.K then Constant_At (M, C) else Register (M, C)), Register_Of (A));
          when New_Table =>
             Make_Table (M, Budget, A);
          when Self =>
@@ -60,7 +61,7 @@ package body Pyro.Virtual_Machine.Indexing with SPARK_Mode => On is
                Set_Register (M, A + 1, Object);
                Lemma_Still_Live (Before, M, Object);
                Lemma_Still_Live (Before, M, Key);
-               Get_Index (M, Budget, Object, Key, A);
+               Get_Index (M, Budget, Object, Key, A, Register_Of (B));
             end;
          when Set_List =>
             Store_List
@@ -93,7 +94,7 @@ package body Pyro.Virtual_Machine.Indexing with SPARK_Mode => On is
                else
                   Raise_Runtime_Error
                     (M, Budget, "attempt to get length of a " & Type_Name (M, Operand)
-                                & " value");
+                                & " value" & Variable_Info (M, Register_Of (B)));
                end if;
             end;
       end case;

@@ -1,0 +1,492 @@
+2 keyword local
+2 keyword function
+2 name closer
+2 (
+2 name name
+2 )
+3 keyword return
+3 name setmetatable
+3 (
+3 {
+3 }
+3 ,
+3 {
+3 name __close
+3 =
+3 keyword function
+3 (
+3 name self
+3 ,
+3 name err
+3 )
+3 name print
+3 (
+3 string "close"
+3 ,
+3 name name
+3 ,
+3 name err
+3 )
+3 keyword end
+3 }
+3 )
+4 keyword end
+5 keyword do
+6 keyword local
+6 name a
+6 <
+6 name close
+6 >
+6 =
+6 name closer
+6 (
+6 string "a"
+6 )
+7 keyword local
+7 name b
+7 <
+7 name close
+7 >
+7 =
+7 name closer
+7 (
+7 string "b"
+7 )
+8 keyword local
+8 name c
+8 <
+8 name close
+8 >
+8 =
+8 keyword nil
+9 keyword local
+9 name d
+9 <
+9 name close
+9 >
+9 =
+9 keyword false
+10 name print
+10 (
+10 string "in block"
+10 )
+11 keyword end
+12 keyword local
+12 keyword function
+12 name returns
+12 (
+12 )
+13 keyword local
+13 name x
+13 <
+13 name close
+13 >
+13 =
+13 name closer
+13 (
+13 string "x"
+13 )
+14 keyword return
+14 integer 1
+14 ,
+14 integer 2
+14 ,
+14 integer 3
+15 keyword end
+16 name print
+16 (
+16 name returns
+16 (
+16 )
+16 )
+17 keyword local
+17 keyword function
+17 name open_returns
+17 (
+17 ...
+17 )
+18 keyword local
+18 name y
+18 <
+18 name close
+18 >
+18 =
+18 name closer
+18 (
+18 string "y"
+18 )
+19 keyword return
+19 ...
+20 keyword end
+21 name print
+21 (
+21 name open_returns
+21 (
+21 integer 4
+21 ,
+21 integer 5
+21 ,
+21 integer 6
+21 )
+21 )
+22 keyword for
+22 name i
+22 =
+22 integer 1
+22 ,
+22 integer 3
+22 keyword do
+23 keyword local
+23 name z
+23 <
+23 name close
+23 >
+23 =
+23 name closer
+23 (
+23 string "z"
+23 ..
+23 name i
+23 )
+24 keyword if
+24 name i
+24 ==
+24 integer 2
+24 keyword then
+24 keyword break
+24 keyword end
+25 keyword end
+26 keyword local
+26 name i
+26 =
+26 integer 0
+27 keyword while
+27 keyword true
+27 keyword do
+28 name i
+28 =
+28 name i
+28 +
+28 integer 1
+29 keyword local
+29 name w
+29 <
+29 name close
+29 >
+29 =
+29 name closer
+29 (
+29 string "w"
+29 ..
+29 name i
+29 )
+30 keyword if
+30 name i
+30 ==
+30 integer 2
+30 keyword then
+30 keyword break
+30 keyword end
+31 keyword end
+32 name print
+32 (
+32 name pcall
+32 (
+32 keyword function
+32 (
+32 )
+33 keyword local
+33 name e
+33 <
+33 name close
+33 >
+33 =
+33 name closer
+33 (
+33 string "e"
+33 )
+34 name error
+34 (
+34 string "boom"
+34 )
+35 keyword end
+35 )
+35 )
+36 name print
+36 (
+36 name pcall
+36 (
+36 keyword function
+36 (
+36 )
+37 keyword local
+37 name first
+37 <
+37 name close
+37 >
+37 =
+37 name closer
+37 (
+37 string "first"
+37 )
+38 keyword local
+38 name failing
+38 <
+38 name close
+38 >
+38 =
+38 name setmetatable
+38 (
+38 {
+38 }
+38 ,
+38 {
+38 name __close
+38 =
+38 keyword function
+38 (
+38 name self
+38 ,
+38 name err
+38 )
+39 name print
+39 (
+39 string "failing sees"
+39 ,
+39 name err
+39 )
+40 name error
+40 (
+40 string "from close"
+40 )
+41 keyword end
+41 }
+41 )
+42 name error
+42 (
+42 string "original"
+42 )
+43 keyword end
+43 )
+43 )
+44 name print
+44 (
+44 name pcall
+44 (
+44 keyword function
+44 (
+44 )
+45 keyword local
+45 name ok
+45 <
+45 name close
+45 >
+45 =
+45 name setmetatable
+45 (
+45 {
+45 }
+45 ,
+45 {
+45 name __close
+45 =
+45 keyword function
+45 (
+45 )
+45 name error
+45 (
+45 string "close error on success"
+45 )
+45 keyword end
+45 }
+45 )
+46 keyword return
+46 string "unreached"
+47 keyword end
+47 )
+47 )
+48 keyword local
+48 keyword function
+48 name iter
+48 (
+48 name state
+48 ,
+48 name control
+48 )
+49 keyword if
+49 name control
+49 <
+49 integer 3
+49 keyword then
+49 keyword return
+49 name control
+49 +
+49 integer 1
+49 keyword end
+50 keyword end
+51 keyword for
+51 name k
+51 keyword in
+51 name iter
+51 ,
+51 keyword nil
+51 ,
+51 integer 0
+51 ,
+51 name closer
+51 (
+51 string "for"
+51 )
+51 keyword do
+51 name print
+51 (
+51 string "k"
+51 ,
+51 name k
+51 )
+51 keyword end
+52 keyword for
+52 name k
+52 keyword in
+52 name iter
+52 ,
+52 keyword nil
+52 ,
+52 integer 0
+52 ,
+52 name closer
+52 (
+52 string "for break"
+52 )
+52 keyword do
+52 keyword if
+52 name k
+52 ==
+52 integer 2
+52 keyword then
+52 keyword break
+52 keyword end
+52 keyword end
+53 name print
+53 (
+53 name pcall
+53 (
+53 keyword function
+53 (
+53 )
+53 keyword local
+53 name bad
+53 <
+53 name close
+53 >
+53 =
+53 {
+53 }
+53 keyword end
+53 )
+53 )
+54 name print
+54 (
+54 name pcall
+54 (
+54 keyword function
+54 (
+54 )
+54 keyword local
+54 name bad
+54 <
+54 name close
+54 >
+54 =
+54 integer 42
+54 keyword end
+54 )
+54 )
+55 keyword local
+55 name nested
+55 =
+55 keyword function
+55 (
+55 )
+56 keyword local
+56 name outer
+56 <
+56 name close
+56 >
+56 =
+56 name closer
+56 (
+56 string "outer"
+56 )
+57 keyword do
+58 keyword local
+58 name inner
+58 <
+58 name close
+58 >
+58 =
+58 name closer
+58 (
+58 string "inner"
+58 )
+59 keyword end
+60 name print
+60 (
+60 string "between"
+60 )
+61 keyword end
+62 name nested
+62 (
+62 )
+63 name print
+63 (
+63 name pcall
+63 (
+63 keyword function
+63 (
+63 )
+63 keyword for
+63 name k
+63 keyword in
+63 name iter
+63 ,
+63 keyword nil
+63 ,
+63 integer 0
+63 ,
+63 integer 7
+63 keyword do
+63 keyword end
+63 keyword end
+63 )
+63 )
+65 keyword local
+65 name top
+65 <
+65 name close
+65 >
+65 =
+65 name setmetatable
+65 (
+65 {
+65 }
+65 ,
+65 {
+65 name __close
+65 =
+65 keyword function
+65 (
+65 )
+65 name print
+65 (
+65 string "close top"
+65 )
+65 keyword end
+65 }
+65 )
+66 name error
+66 (
+66 string "at the top"
+66 )
+67 <eof>
+exit 0

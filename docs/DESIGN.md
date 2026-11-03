@@ -533,11 +533,28 @@ when the step limit set at `Load` is reached.
 
 ### Errors
 
-A Lua error (from a failed operation or raised by a host function) is a value. The
-VM unwinds frames until it reaches a protected-call frame, running `__close`
-handlers on the way, and resumes there with the error value. With no protected
-frame, the error is returned to the host. Error messages include the source
-position (`chunk:line:`) as PUC Lua's do.
+A Lua error (from a failed operation or raised by a host function) is a value, kept in the
+registry while the VM unwinds frames down to a host function that asked for a protected
+call (`pcall`'s), which then continues with the error. With none, `Run` returns `Errored`
+and `Error_Text` gives the message.
+
+The to-be-closed variables above the frame that catches the error are closed first
+(`luaD_closeprotected`): each `__close` is called with the error, as a call of the host
+function that caught it, still protected, so that an error in a `__close` replaces the
+error and the next one still runs; the unwinding goes on when each returns. An error no
+frame catches closes every variable the same way before the machine is done. On normal
+exits (CLOSE, a RETURN that closes, the generic for's closing value) the frame runs its
+instruction again after each `__close`, one variable per pass, and a RETURN keeps its
+results where they are while it does.
+
+Error messages are PUC Lua's, with the position of the instruction that failed
+(`chunk:line:`) and, where `ldebug.c` gives one, the name of the value at fault: the
+handlers say which register or upvalue each operand came from, and `getobjname`,
+`findsetreg` and `funcnamefromcode` are ported to read the chunk's debug information
+(locals, upvalue names, constants) and its code, as PUC Lua does: "(global 'x')", "(field
+'y')", "(local 'z')", "(upvalue 'w')", "(constant 'k')", "(method 'm')", "(for iterator
+'for iterator')", "(metamethod 'index')". A frame that called is at the instruction
+before its program counter, as `currentpc` finds it, for the line of `error (msg, 2)`.
 
 ### Semantics to get right
 

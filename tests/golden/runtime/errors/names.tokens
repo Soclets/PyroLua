@@ -1,0 +1,594 @@
+2 keyword local
+2 keyword function
+2 name try
+2 (
+2 name f
+2 ,
+2 ...
+2 )
+2 name print
+2 (
+2 name select
+2 (
+2 integer 2
+2 ,
+2 name pcall
+2 (
+2 name f
+2 ,
+2 ...
+2 )
+2 )
+2 )
+2 keyword end
+3 name try
+3 (
+3 keyword function
+3 (
+3 )
+3 keyword return
+3 name undefined_global
+3 .
+3 name x
+3 keyword end
+3 )
+4 name try
+4 (
+4 keyword function
+4 (
+4 )
+4 keyword local
+4 name t
+4 =
+4 {
+4 }
+4 keyword return
+4 name t
+4 .
+4 name a
+4 .
+4 name b
+4 keyword end
+4 )
+5 name try
+5 (
+5 keyword function
+5 (
+5 )
+5 keyword local
+5 name t
+5 =
+5 {
+5 }
+5 keyword return
+5 name t
+5 [
+5 integer 1
+5 ]
+5 .
+5 name b
+5 keyword end
+5 )
+6 name try
+6 (
+6 keyword function
+6 (
+6 )
+6 keyword local
+6 name t
+6 =
+6 {
+6 }
+6 keyword local
+6 name k
+6 =
+6 string "key"
+6 keyword return
+6 name t
+6 [
+6 name k
+6 ]
+6 .
+6 name b
+6 keyword end
+6 )
+7 name try
+7 (
+7 keyword function
+7 (
+7 )
+7 keyword local
+7 name x
+7 =
+7 keyword nil
+7 ;
+7 name x
+7 .
+7 name y
+7 =
+7 integer 1
+7 keyword end
+7 )
+8 name try
+8 (
+8 keyword function
+8 (
+8 )
+8 keyword local
+8 name f
+8 =
+8 {
+8 }
+8 ;
+8 name f
+8 (
+8 )
+8 keyword end
+8 )
+9 name try
+9 (
+9 keyword function
+9 (
+9 )
+9 name missing_function
+9 (
+9 )
+9 keyword end
+9 )
+10 name try
+10 (
+10 keyword function
+10 (
+10 )
+10 keyword local
+10 name t
+10 =
+10 {
+10 }
+10 ;
+10 name t
+10 .
+10 name method
+10 (
+10 )
+10 keyword end
+10 )
+11 name try
+11 (
+11 keyword function
+11 (
+11 )
+11 keyword local
+11 name t
+11 =
+11 {
+11 }
+11 ;
+11 name t
+11 :
+11 name method
+11 (
+11 )
+11 keyword end
+11 )
+12 name try
+12 (
+12 keyword function
+12 (
+12 )
+12 keyword local
+12 name t
+12 =
+12 {
+12 }
+12 ;
+12 name t
+12 .
+12 name inner
+12 .
+12 name deep
+12 (
+12 )
+12 keyword end
+12 )
+13 keyword local
+13 name up
+13 =
+13 keyword nil
+14 name try
+14 (
+14 keyword function
+14 (
+14 )
+14 keyword return
+14 name up
+14 .
+14 name x
+14 keyword end
+14 )
+15 name try
+15 (
+15 keyword function
+15 (
+15 )
+15 keyword return
+15 name up
+15 +
+15 integer 1
+15 keyword end
+15 )
+16 name try
+16 (
+16 keyword function
+16 (
+16 )
+16 keyword return
+16 integer 1
+16 +
+16 name up
+16 keyword end
+16 )
+17 name try
+17 (
+17 keyword function
+17 (
+17 )
+17 keyword local
+17 name a
+17 =
+17 string "x"
+17 ;
+17 keyword return
+17 name a
+17 +
+17 integer 1
+17 keyword end
+17 )
+18 name try
+18 (
+18 keyword function
+18 (
+18 )
+18 keyword local
+18 name a
+18 =
+18 {
+18 }
+18 ;
+18 keyword return
+18 -
+18 name a
+18 keyword end
+18 )
+19 name try
+19 (
+19 keyword function
+19 (
+19 )
+19 keyword local
+19 name a
+19 =
+19 {
+19 }
+19 ;
+19 keyword return
+19 #
+19 name a
+19 +
+19 #
+19 name up
+19 keyword end
+19 )
+20 name try
+20 (
+20 keyword function
+20 (
+20 )
+20 keyword local
+20 name s
+20 =
+20 string "s"
+20 ;
+20 keyword return
+20 name s
+20 ..
+20 name up
+20 keyword end
+20 )
+21 name try
+21 (
+21 keyword function
+21 (
+21 )
+21 keyword local
+21 name s
+21 =
+21 keyword nil
+21 ;
+21 keyword return
+21 string "a"
+21 ..
+21 name s
+21 ..
+21 string "b"
+21 keyword end
+21 )
+22 name try
+22 (
+22 keyword function
+22 (
+22 )
+22 keyword local
+22 name f
+22 =
+22 float 1.5 0x3FF8000000000000
+22 ;
+22 keyword return
+22 name f
+22 |
+22 integer 1
+22 keyword end
+22 )
+23 name try
+23 (
+23 keyword function
+23 (
+23 )
+23 keyword local
+23 name f
+23 =
+23 float 1.5 0x3FF8000000000000
+23 ;
+23 keyword return
+23 integer 1
+23 |
+23 name f
+23 keyword end
+23 )
+24 name try
+24 (
+24 keyword function
+24 (
+24 )
+24 keyword local
+24 name f
+24 =
+24 float 1.5 0x3FF8000000000000
+24 ;
+24 keyword return
+24 ~
+24 name f
+24 keyword end
+24 )
+25 name try
+25 (
+25 keyword function
+25 (
+25 )
+25 keyword local
+25 name t
+25 =
+25 {
+25 }
+25 ;
+25 keyword return
+25 name t
+25 &
+25 integer 1
+25 keyword end
+25 )
+26 name try
+26 (
+26 keyword function
+26 (
+26 )
+26 keyword return
+26 integer 2
+26 ^
+26 {
+26 }
+26 keyword end
+26 )
+27 name try
+27 (
+27 keyword function
+27 (
+27 )
+27 keyword local
+27 name t
+27 =
+27 {
+27 }
+27 ;
+27 keyword return
+27 name t
+27 .
+27 name x
+27 .
+27 name y
+27 .
+27 name z
+27 keyword end
+27 )
+28 name try
+28 (
+28 keyword function
+28 (
+28 )
+28 keyword local
+28 name t
+28 =
+28 {
+28 name x
+28 =
+28 {
+28 }
+28 }
+28 ;
+28 keyword return
+28 name t
+28 .
+28 name x
+28 .
+28 name y
+28 .
+28 name z
+28 keyword end
+28 )
+29 name try
+29 (
+29 keyword function
+29 (
+29 )
+29 keyword for
+29 name k
+29 keyword in
+29 keyword nil
+29 keyword do
+29 keyword end
+29 keyword end
+29 )
+30 name try
+30 (
+30 keyword function
+30 (
+30 )
+30 keyword for
+30 name k
+30 keyword in
+30 integer 5
+30 keyword do
+30 keyword end
+30 keyword end
+30 )
+31 name try
+31 (
+31 keyword function
+31 (
+31 )
+31 keyword local
+31 name t
+31 =
+31 {
+31 }
+31 ;
+31 keyword return
+31 name t
+31 [
+31 keyword nil
+31 ]
+31 keyword end
+31 )
+32 name try
+32 (
+32 keyword function
+32 (
+32 )
+32 keyword local
+32 name a
+32 ,
+32 name b
+32 =
+32 {
+32 }
+32 ,
+32 {
+32 }
+32 ;
+32 keyword return
+32 name a
+32 <
+32 name b
+32 keyword end
+32 )
+33 name try
+33 (
+33 keyword function
+33 (
+33 )
+33 keyword return
+33 (
+33 string "x"
+33 )
+33 (
+33 )
+33 keyword end
+33 )
+34 name try
+34 (
+34 keyword function
+34 (
+34 )
+34 keyword local
+34 name up2
+34 =
+34 name up
+34 ;
+34 keyword return
+34 name up2
+34 .
+34 name x
+34 keyword end
+34 )
+35 name try
+35 (
+35 keyword function
+35 (
+35 )
+35 name _ENV
+35 .
+35 name missing
+35 .
+35 name x
+35 =
+35 integer 1
+35 keyword end
+35 )
+36 name try
+36 (
+36 keyword function
+36 (
+36 )
+36 name setmetatable
+36 (
+36 {
+36 }
+36 ,
+36 {
+36 name __index
+36 =
+36 keyword function
+36 (
+36 )
+36 keyword return
+36 keyword nil
+36 keyword end
+36 }
+36 )
+36 .
+36 name x
+36 .
+36 name y
+36 =
+36 integer 1
+36 keyword end
+36 )
+37 name print
+37 (
+37 name pcall
+37 (
+37 keyword nil
+37 )
+37 )
+38 name print
+38 (
+38 name pcall
+38 (
+38 name pcall
+38 )
+38 )
+39 name missing_at_top
+39 (
+39 )
+40 <eof>
+exit 0

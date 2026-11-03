@@ -1,0 +1,171 @@
+1 function_body vararg
+  1 block
+    2 local_function
+      2 local_name "f"
+      2 function_body
+        2 name_list
+          2 local_name "level"
+        2 block
+          2 call_statement
+            2 call_expression
+              2 name_expression "error" global
+              2 string_literal "message"
+              2 name_expression "level" local@2
+    3 call_statement
+      3 call_expression
+        3 name_expression "print" global
+        3 call_expression
+          3 name_expression "pcall" global
+          3 name_expression "f" local@1
+          3 integer_literal 1
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 call_expression
+          4 name_expression "pcall" global
+          4 name_expression "f" local@1
+          4 integer_literal 2
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 call_expression
+          5 name_expression "pcall" global
+          5 name_expression "f" local@1
+          5 integer_literal 0
+    6 local_function
+      6 local_name "g"
+      6 function_body
+        6 name_list
+        7 block
+          7 call_statement
+            7 call_expression
+              7 name_expression "f" upvalue@1
+              8 integer_literal 2
+    11 call_statement
+      11 call_expression
+        11 name_expression "print" global
+        11 call_expression
+          11 name_expression "pcall" global
+          11 name_expression "g" local@33
+    12 call_statement
+      12 call_expression
+        12 name_expression "print" global
+        12 call_expression
+          12 name_expression "pcall" global
+          12 name_expression "error" global
+    13 call_statement
+      13 call_expression
+        13 name_expression "print" global
+        13 call_expression
+          13 name_expression "pcall" global
+          13 name_expression "error" global
+          13 nil_literal
+    14 local_statement
+      14 name_list
+        14 local_name "ok2"
+        14 local_name "e2"
+      14 expression_list
+        14 call_expression
+          14 name_expression "pcall" global
+          14 name_expression "error" global
+          14 table_constructor
+            14 named_field name-key
+              14 string_literal "code"
+              14 integer_literal 1
+    15 call_statement
+      15 call_expression
+        15 name_expression "print" global
+        15 name_expression "ok2" local@61
+        15 call_expression
+          15 name_expression "type" global
+          15 name_expression "e2" local@62
+        15 index_expression name-key
+          15 name_expression "e2" local@62
+          15 string_literal "code"
+    16 call_statement
+      16 call_expression
+        16 name_expression "print" global
+        16 call_expression
+          16 name_expression "select" global
+          16 string_literal "#"
+          16 call_expression
+            16 name_expression "pcall" global
+            16 name_expression "error" global
+    17 local_statement
+      17 name_list
+        17 local_name "ok"
+        17 local_name "e"
+      17 expression_list
+        17 call_expression
+          17 name_expression "pcall" global
+          17 name_expression "error" global
+          17 call_expression
+            17 name_expression "setmetatable" global
+            17 table_constructor
+            17 table_constructor
+              17 named_field name-key
+                17 string_literal "__tostring"
+                17 function_expression
+                  17 function_body
+                    17 name_list
+                    17 block
+                      17 return_statement
+                        17 expression_list
+                          17 string_literal "custom"
+    18 call_statement
+      18 call_expression
+        18 name_expression "print" global
+        18 name_expression "ok" local@92
+        18 call_expression
+          18 name_expression "tostring" global
+          18 name_expression "e" local@93
+    19 call_statement
+      19 call_expression
+        19 name_expression "print" global
+        19 call_expression
+          19 name_expression "pcall" global
+          19 name_expression "error" global
+          19 integer_literal 42
+    20 call_statement
+      20 call_expression
+        20 name_expression "print" global
+        20 call_expression
+          20 name_expression "pcall" global
+          20 name_expression "error" global
+          20 string_literal "with level"
+          20 integer_literal 1
+    21 local_function
+      21 local_name "deep"
+      21 function_body
+        21 name_list
+        21 block
+          21 local_statement
+            21 name_list
+              21 local_name "x"
+            21 expression_list
+              21 nil_literal
+          21 return_statement
+            21 expression_list
+              21 index_expression name-key
+                21 name_expression "x" local@137
+                21 string_literal "field"
+    22 local_function
+      22 local_name "middle"
+      22 function_body
+        22 name_list
+        22 block
+          22 return_statement
+            22 expression_list
+              22 call_expression
+                22 name_expression "deep" upvalue@135
+    23 call_statement
+      23 call_expression
+        23 name_expression "print" global
+        23 call_expression
+          23 name_expression "pcall" global
+          23 name_expression "middle" local@150
+    24 call_statement
+      24 call_expression
+        24 name_expression "error" global
+        24 table_constructor
+exit 0

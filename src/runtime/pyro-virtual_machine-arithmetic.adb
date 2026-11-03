@@ -171,28 +171,39 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
       Budget    : in out Memory_Budget;
       Operation : Binary_Operation;
       Left      : Value;
-      Right     : Value)
+      Right     : Value;
+      From_Left : Operand;
+      From_Right : Operand)
    with
      Global => null,
      Pre    => Is_Valid (M) and then Is_Loaded (M),
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old
    is
+      X        : Integer_64;
+      Integral : Boolean;
    begin
       if Operation in Bitwise_Operation and then Is_Number (Left) and then Is_Number (Right)
       then
-         --  [puc ldebug.c:luaG_tointerror]
-         Raise_Runtime_Error (M, Budget, "number has no integer representation");
+         --  [puc ldebug.c:luaG_tointerror] The first operand when it has no integer value.
+         To_Integer (Left, X, Integral);
+         pragma Unreferenced (X);
+         Raise_Runtime_Error
+           (M, Budget,
+            "number" & Variable_Info (M, (if Integral then From_Right else From_Left))
+            & " has no integer representation");
       elsif Operation in Bitwise_Operation then
-         --  [puc ldebug.c:luaG_opinterror]
+         --  [puc ldebug.c:luaG_opinterror] The first operand when it is not a number.
          Raise_Runtime_Error
            (M, Budget,
             "attempt to perform bitwise operation on a "
-            & Type_Name (M, (if Is_Number (Left) then Right else Left)) & " value");
+            & Type_Name (M, (if Is_Number (Left) then Right else Left)) & " value"
+            & Variable_Info (M, (if Is_Number (Left) then From_Right else From_Left)));
       else
          Raise_Runtime_Error
            (M, Budget,
             "attempt to perform arithmetic on a "
-            & Type_Name (M, (if Is_Number (Left) then Right else Left)) & " value");
+            & Type_Name (M, (if Is_Number (Left) then Right else Left)) & " value"
+            & Variable_Info (M, (if Is_Number (Left) then From_Right else From_Left)));
       end if;
    end Binary_Error;
 
@@ -239,16 +250,20 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
    procedure Execute_Metamethod
      (M : in out Machine; Budget : in out Memory_Budget; I : Pyro.Bytecode.Instruction)
    is
-      Left    : Value;
-      Right   : Value;
-      Swapped : Value;
-      Handler : Value;
+      Left        : Value;
+      Right       : Value;
+      Swapped     : Value;
+      Handler     : Value;
+      From_Left   : Operand := Register_Of (Natural (I.A));
+      From_Right  : Operand := No_Operand;
+      Swapped_Source : Operand;
    begin
       Lemma_View (M);
       Left := Register (M, Natural (I.A));
       case I.Operation is
          when Metamethod_Binary =>
             Right := Register (M, Natural (I.B));
+            From_Right := Register_Of (Natural (I.B));
          when Metamethod_Binary_Integer =>
             Right := Integer_Value_Of (Integer_64 (I.B) - Offset_sC);
          when others =>
@@ -259,6 +274,9 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
          Swapped := Left;
          Left := Right;
          Right := Swapped;
+         Swapped_Source := From_Left;
+         From_Left := From_Right;
+         From_Right := Swapped_Source;
       end if;
       --  [puc ltm.c:luaT_trybinTM] The first operand's metamethod, else the second's.
       Handler := Metafield (M, Left, Binary_Event (I.C));
@@ -269,7 +287,7 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
          Call_Metamethod
            (M, Budget, Handler, [Left, Right], Store_Result, Previous_Target (M), False);
       else
-         Binary_Error (M, Budget, Event_Operation (I.C), Left, Right);
+         Binary_Error (M, Budget, Event_Operation (I.C), Left, Right, From_Left, From_Right);
       end if;
    end Execute_Metamethod;
 
@@ -301,7 +319,7 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
             else
                Raise_Runtime_Error
                  (M, Budget, "attempt to perform arithmetic on a " & Type_Name (M, Operand)
-                             & " value");
+                             & " value" & Variable_Info (M, Register_Of (Natural (I.B))));
             end if;
          when Bitwise_Not =>
             To_Integer (Operand, X, Fits);
@@ -313,11 +331,15 @@ package body Pyro.Virtual_Machine.Arithmetic with SPARK_Mode => On is
                  (M, Budget, Metafield (M, Operand, Bitwise_Not_Event), [Operand, Operand],
                   Store_Result, A, False);
             elsif Is_Number (Operand) then
-               Raise_Runtime_Error (M, Budget, "number has no integer representation");
+               Raise_Runtime_Error
+                 (M, Budget,
+                  "number" & Variable_Info (M, Register_Of (Natural (I.B)))
+                  & " has no integer representation");
             else
                Raise_Runtime_Error
                  (M, Budget, "attempt to perform bitwise operation on a "
-                             & Type_Name (M, Operand) & " value");
+                             & Type_Name (M, Operand) & " value"
+                             & Variable_Info (M, Register_Of (Natural (I.B))));
             end if;
          when others =>
             Set_Register

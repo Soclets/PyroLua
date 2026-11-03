@@ -1,0 +1,461 @@
+
+main <tests/corpus/runtime/errors/close.lua:0,0> (133 instructions at #16)
+0+ params, 13 slots, 1 upvalue, 27 locals, 15 constants, 12 functions
+	1	[1]	vararg_prepare	0
+	2	[4]	closure  	0 0	; #2
+	3	[6]	move     	1 0
+	4	[6]	load_constant	2 0	; "a"
+	5	[6]	call     	1 2 2	; 1 in 1 out
+	6	[6]	to_be_closed	1
+	7	[7]	move     	2 0
+	8	[7]	load_constant	3 1	; "b"
+	9	[7]	call     	2 2 2	; 1 in 1 out
+	10	[7]	to_be_closed	2
+	11	[8]	load_nil 	3 0	; 1 out
+	12	[8]	to_be_closed	3
+	13	[9]	load_false	4
+	14	[9]	to_be_closed	4
+	15	[10]	get_table_upvalue	5 0 2	; _ENV "print"
+	16	[10]	load_constant	6 3	; "in block"
+	17	[10]	call     	5 2 1	; 1 in 0 out
+	18	[10]	close    	1
+	19	[15]	closure  	1 1	; #3
+	20	[16]	get_table_upvalue	2 0 2	; _ENV "print"
+	21	[16]	move     	3 1
+	22	[16]	call     	3 1 0	; 0 in all out
+	23	[16]	call     	2 0 1	; all in 0 out
+	24	[20]	closure  	2 2	; #4
+	25	[21]	get_table_upvalue	3 0 2	; _ENV "print"
+	26	[21]	move     	4 2
+	27	[21]	load_integer	5 4
+	28	[21]	load_integer	6 5
+	29	[21]	load_integer	7 6
+	30	[21]	call     	4 4 0	; 3 in all out
+	31	[21]	call     	3 0 1	; all in 0 out
+	32	[22]	load_integer	3 1
+	33	[22]	load_integer	4 3
+	34	[22]	load_integer	5 1
+	35	[22]	for_prepare	3 9	; exit to 46
+	36	[23]	move     	7 0
+	37	[23]	load_constant	8 4	; "z"
+	38	[23]	move     	9 6
+	39	[23]	concatenate	8 2
+	40	[23]	call     	7 2 2	; 1 in 1 out
+	41	[23]	to_be_closed	7
+	42	[24]	equal_integer	6 2 1
+	43	[24]	jump     	2	; to 46
+	44	[24]	close    	7
+	45	[22]	for_loop 	3 10	; to 36
+	46	[25]	close    	3
+	47	[26]	load_integer	3 0
+	48	[28]	add_integer	3 3 1
+	49	[28]	metamethod_binary_integer	3 1 6 0	; __add
+	50	[29]	move     	4 0
+	51	[29]	load_constant	5 5	; "w"
+	52	[29]	move     	6 3
+	53	[29]	concatenate	5 2
+	54	[29]	call     	4 2 2	; 1 in 1 out
+	55	[29]	to_be_closed	4
+	56	[30]	equal_integer	3 2 1
+	57	[30]	jump     	2	; to 60
+	58	[30]	close    	4
+	59	[30]	jump     	-12	; to 48
+	60	[31]	close    	4
+	61	[32]	get_table_upvalue	4 0 2	; _ENV "print"
+	62	[32]	get_table_upvalue	5 0 6	; _ENV "pcall"
+	63	[35]	closure  	6 3	; #5
+	64	[32]	call     	5 2 0	; 1 in all out
+	65	[32]	call     	4 0 1	; all in 0 out
+	66	[36]	get_table_upvalue	4 0 2	; _ENV "print"
+	67	[36]	get_table_upvalue	5 0 6	; _ENV "pcall"
+	68	[43]	closure  	6 4	; #7
+	69	[36]	call     	5 2 0	; 1 in all out
+	70	[36]	call     	4 0 1	; all in 0 out
+	71	[44]	get_table_upvalue	4 0 7	; _ENV "print"
+	72	[44]	get_table_upvalue	5 0 6	; _ENV "pcall"
+	73	[47]	closure  	6 5	; #9
+	74	[44]	call     	5 2 0	; 1 in all out
+	75	[44]	call     	4 0 1	; all in 0 out
+	76	[50]	closure  	4 6	; #10
+	77	[51]	move     	5 4
+	78	[51]	load_nil 	6 0	; 1 out
+	79	[51]	load_integer	7 0
+	80	[51]	move     	8 0
+	81	[51]	load_constant	9 8	; "for"
+	82	[51]	call     	8 2 2	; 1 in 1 out
+	83	[51]	generic_for_prepare	5 4	; to 88
+	84	[51]	get_table_upvalue	10 0 7	; _ENV "print"
+	85	[51]	load_constant	11 9	; "k"
+	86	[51]	move     	12 9
+	87	[51]	call     	10 3 1	; 2 in 0 out
+	88	[51]	generic_for_call	5 1
+	89	[51]	generic_for_loop	5 6	; to 84
+	90	[51]	close    	5
+	91	[52]	move     	5 4
+	92	[52]	load_nil 	6 0	; 1 out
+	93	[52]	load_integer	7 0
+	94	[52]	move     	8 0
+	95	[52]	load_constant	9 10	; "for break"
+	96	[52]	call     	8 2 2	; 1 in 1 out
+	97	[52]	generic_for_prepare	5 2	; to 100
+	98	[52]	equal_integer	9 2 1
+	99	[52]	jump     	2	; to 102
+	100	[52]	generic_for_call	5 1
+	101	[52]	generic_for_loop	5 4	; to 98
+	102	[52]	close    	5
+	103	[53]	get_table_upvalue	5 0 7	; _ENV "print"
+	104	[53]	get_table_upvalue	6 0 6	; _ENV "pcall"
+	105	[53]	closure  	7 7	; #11
+	106	[53]	call     	6 2 0	; 1 in all out
+	107	[53]	call     	5 0 1	; all in 0 out
+	108	[54]	get_table_upvalue	5 0 7	; _ENV "print"
+	109	[54]	get_table_upvalue	6 0 6	; _ENV "pcall"
+	110	[54]	closure  	7 8	; #12
+	111	[54]	call     	6 2 0	; 1 in all out
+	112	[54]	call     	5 0 1	; all in 0 out
+	113	[61]	closure  	5 9	; #13
+	114	[62]	move     	6 5
+	115	[62]	call     	6 1 1	; 0 in 0 out
+	116	[63]	get_table_upvalue	6 0 2	; _ENV "print"
+	117	[63]	get_table_upvalue	7 0 6	; _ENV "pcall"
+	118	[63]	closure  	8 10	; #14
+	119	[63]	call     	7 2 0	; 1 in all out
+	120	[63]	call     	6 0 1	; all in 0 out
+	121	[65]	get_table_upvalue	6 0 11	; _ENV "setmetatable"
+	122	[65]	new_table	7 0 0	; 0
+	123	[65]	extra_argument	0
+	124	[65]	new_table	8 1 0	; 0
+	125	[65]	extra_argument	0
+	126	[65]	closure  	9 11	; #15
+	127	[65]	set_field	8 12 9	; "__close"
+	128	[65]	call     	6 3 2	; 2 in 1 out
+	129	[65]	to_be_closed	6
+	130	[66]	get_table_upvalue	7 0 13	; _ENV "error"
+	131	[66]	load_constant	8 14	; "at the top"
+	132	[66]	call     	7 2 1	; 1 in 0 out
+	133	[66]	return_values	7 1 1k	; 0 out
+constants (15) for #16:
+	0	S	"a"
+	1	S	"b"
+	2	S	"print"
+	3	S	"in block"
+	4	S	"z"
+	5	S	"w"
+	6	S	"pcall"
+	7	S	"print"
+	8	S	"for"
+	9	S	"k"
+	10	S	"for break"
+	11	S	"setmetatable"
+	12	S	"__close"
+	13	S	"error"
+	14	S	"at the top"
+locals (27) for #16:
+	0	closer	3	134
+	1	a	6	18
+	2	b	10	18
+	3	c	12	18
+	4	d	14	18
+	5	returns	20	134
+	6	open_returns	25	134
+	7	(for state)	35	46
+	8	(for state)	35	46
+	9	(for state)	35	46
+	10	i	36	45
+	11	z	41	44
+	12	i	48	134
+	13	w	55	58
+	14	iter	77	134
+	15	(for state)	83	90
+	16	(for state)	83	90
+	17	(for state)	83	90
+	18	(for state)	83	90
+	19	k	84	88
+	20	(for state)	97	102
+	21	(for state)	97	102
+	22	(for state)	97	102
+	23	(for state)	97	102
+	24	k	98	100
+	25	nested	114	134
+	26	top	129	134
+upvalues (1) for #16:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/errors/close.lua:2,4> (10 instructions at #2)
+1 param, 5 slots, 1 upvalue, 1 local, 2 constants, 1 function
+	1	[3]	get_table_upvalue	1 0 0	; _ENV "setmetatable"
+	2	[3]	new_table	2 0 0	; 0
+	3	[3]	extra_argument	0
+	4	[3]	new_table	3 1 0	; 0
+	5	[3]	extra_argument	0
+	6	[3]	closure  	4 0	; #1
+	7	[3]	set_field	3 1 4	; "__close"
+	8	[3]	tail_call	1 3 0k	; 2 in
+	9	[3]	return_values	1 0 0k	; all out
+	10	[4]	return_values	1 1 0k	; 0 out
+constants (2) for #2:
+	0	S	"setmetatable"
+	1	S	"__close"
+locals (1) for #2:
+	0	name	1	11
+upvalues (1) for #2:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/errors/close.lua:3,3> (6 instructions at #1)
+2 params, 6 slots, 2 upvalues, 2 locals, 2 constants, 0 functions
+	1	[3]	get_table_upvalue	2 0 0	; _ENV "print"
+	2	[3]	load_constant	3 1	; "close"
+	3	[3]	get_upvalue	4 1	; name
+	4	[3]	move     	5 1
+	5	[3]	call     	2 4 1	; 3 in 0 out
+	6	[3]	return_none	
+constants (2) for #1:
+	0	S	"print"
+	1	S	"close"
+locals (2) for #1:
+	0	self	1	7
+	1	err	1	7
+upvalues (2) for #1:
+	0	_ENV	0	0
+	1	name	1	0
+
+function <tests/corpus/runtime/errors/close.lua:12,15> (9 instructions at #3)
+0 params, 4 slots, 1 upvalue, 1 local, 1 constant, 0 functions
+	1	[13]	get_upvalue	0 0	; closer
+	2	[13]	load_constant	1 0	; "x"
+	3	[13]	call     	0 2 2	; 1 in 1 out
+	4	[13]	to_be_closed	0
+	5	[14]	load_integer	1 1
+	6	[14]	load_integer	2 2
+	7	[14]	load_integer	3 3
+	8	[14]	return_values	1 4 0k	; 3 out
+	9	[15]	return_values	1 1 0k	; 0 out
+constants (1) for #3:
+	0	S	"x"
+locals (1) for #3:
+	0	x	4	10
+upvalues (1) for #3:
+	0	closer	1	0
+
+function <tests/corpus/runtime/errors/close.lua:17,20> (8 instructions at #4)
+0+ params, 2 slots, 1 upvalue, 1 local, 1 constant, 0 functions
+	1	[17]	vararg_prepare	0
+	2	[18]	get_upvalue	0 0	; closer
+	3	[18]	load_constant	1 0	; "y"
+	4	[18]	call     	0 2 2	; 1 in 1 out
+	5	[18]	to_be_closed	0
+	6	[19]	vararg   	1 0	; all out
+	7	[19]	return_values	1 0 1k	; all out
+	8	[20]	return_values	1 1 1k	; 0 out
+constants (1) for #4:
+	0	S	"y"
+locals (1) for #4:
+	0	y	5	9
+upvalues (1) for #4:
+	0	closer	1	0
+
+function <tests/corpus/runtime/errors/close.lua:32,35> (8 instructions at #5)
+0 params, 3 slots, 2 upvalues, 1 local, 3 constants, 0 functions
+	1	[33]	get_upvalue	0 0	; closer
+	2	[33]	load_constant	1 0	; "e"
+	3	[33]	call     	0 2 2	; 1 in 1 out
+	4	[33]	to_be_closed	0
+	5	[34]	get_table_upvalue	1 1 1	; _ENV "error"
+	6	[34]	load_constant	2 2	; "boom"
+	7	[34]	call     	1 2 1	; 1 in 0 out
+	8	[35]	return_values	1 1 0k	; 0 out
+constants (3) for #5:
+	0	S	"e"
+	1	S	"error"
+	2	S	"boom"
+locals (1) for #5:
+	0	e	4	9
+upvalues (2) for #5:
+	0	closer	1	0
+	1	_ENV	0	0
+
+function <tests/corpus/runtime/errors/close.lua:36,43> (17 instructions at #7)
+0 params, 5 slots, 2 upvalues, 2 locals, 5 constants, 1 function
+	1	[37]	get_upvalue	0 0	; closer
+	2	[37]	load_constant	1 0	; "first"
+	3	[37]	call     	0 2 2	; 1 in 1 out
+	4	[37]	to_be_closed	0
+	5	[38]	get_table_upvalue	1 1 1	; _ENV "setmetatable"
+	6	[38]	new_table	2 0 0	; 0
+	7	[38]	extra_argument	0
+	8	[38]	new_table	3 1 0	; 0
+	9	[38]	extra_argument	0
+	10	[41]	closure  	4 0	; #6
+	11	[41]	set_field	3 2 4	; "__close"
+	12	[38]	call     	1 3 2	; 2 in 1 out
+	13	[41]	to_be_closed	1
+	14	[42]	get_table_upvalue	2 1 3	; _ENV "error"
+	15	[42]	load_constant	3 4	; "original"
+	16	[42]	call     	2 2 1	; 1 in 0 out
+	17	[43]	return_values	2 1 0k	; 0 out
+constants (5) for #7:
+	0	S	"first"
+	1	S	"setmetatable"
+	2	S	"__close"
+	3	S	"error"
+	4	S	"original"
+locals (2) for #7:
+	0	first	4	18
+	1	failing	13	18
+upvalues (2) for #7:
+	0	closer	1	0
+	1	_ENV	0	0
+
+function <tests/corpus/runtime/errors/close.lua:38,41> (8 instructions at #6)
+2 params, 5 slots, 1 upvalue, 2 locals, 4 constants, 0 functions
+	1	[39]	get_table_upvalue	2 0 0	; _ENV "print"
+	2	[39]	load_constant	3 1	; "failing sees"
+	3	[39]	move     	4 1
+	4	[39]	call     	2 3 1	; 2 in 0 out
+	5	[40]	get_table_upvalue	2 0 2	; _ENV "error"
+	6	[40]	load_constant	3 3	; "from close"
+	7	[40]	call     	2 2 1	; 1 in 0 out
+	8	[41]	return_none	
+constants (4) for #6:
+	0	S	"print"
+	1	S	"failing sees"
+	2	S	"error"
+	3	S	"from close"
+locals (2) for #6:
+	0	self	1	9
+	1	err	1	9
+upvalues (1) for #6:
+	0	_ENV	0	1
+
+function <tests/corpus/runtime/errors/close.lua:44,47> (12 instructions at #9)
+0 params, 4 slots, 1 upvalue, 1 local, 3 constants, 1 function
+	1	[45]	get_table_upvalue	0 0 0	; _ENV "setmetatable"
+	2	[45]	new_table	1 0 0	; 0
+	3	[45]	extra_argument	0
+	4	[45]	new_table	2 1 0	; 0
+	5	[45]	extra_argument	0
+	6	[45]	closure  	3 0	; #8
+	7	[45]	set_field	2 1 3	; "__close"
+	8	[45]	call     	0 3 2	; 2 in 1 out
+	9	[45]	to_be_closed	0
+	10	[46]	load_constant	1 2	; "unreached"
+	11	[46]	return_values	1 2 0k	; 1 out
+	12	[47]	return_values	1 1 0k	; 0 out
+constants (3) for #9:
+	0	S	"setmetatable"
+	1	S	"__close"
+	2	S	"unreached"
+locals (1) for #9:
+	0	ok	9	13
+upvalues (1) for #9:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/errors/close.lua:45,45> (4 instructions at #8)
+0 params, 2 slots, 1 upvalue, 0 locals, 2 constants, 0 functions
+	1	[45]	get_table_upvalue	0 0 0	; _ENV "error"
+	2	[45]	load_constant	1 1	; "close error on success"
+	3	[45]	call     	0 2 1	; 1 in 0 out
+	4	[45]	return_none	
+constants (2) for #8:
+	0	S	"error"
+	1	S	"close error on success"
+locals (0) for #8:
+upvalues (1) for #8:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/errors/close.lua:48,50> (6 instructions at #10)
+2 params, 3 slots, 0 upvalues, 2 locals, 0 constants, 0 functions
+	1	[49]	less_than_integer	1 3 0
+	2	[49]	jump     	3	; to 6
+	3	[49]	add_integer	2 1 1
+	4	[49]	metamethod_binary_integer	1 1 6 0	; __add
+	5	[49]	return_one	2
+	6	[50]	return_none	
+constants (0) for #10:
+locals (2) for #10:
+	0	state	1	7
+	1	control	1	7
+upvalues (0) for #10:
+
+function <tests/corpus/runtime/errors/close.lua:53,53> (4 instructions at #11)
+0 params, 2 slots, 0 upvalues, 1 local, 0 constants, 0 functions
+	1	[53]	new_table	0 0 0	; 0
+	2	[53]	extra_argument	0
+	3	[53]	to_be_closed	0
+	4	[53]	return_values	1 1 0k	; 0 out
+constants (0) for #11:
+locals (1) for #11:
+	0	bad	3	5
+upvalues (0) for #11:
+
+function <tests/corpus/runtime/errors/close.lua:54,54> (3 instructions at #12)
+0 params, 2 slots, 0 upvalues, 1 local, 0 constants, 0 functions
+	1	[54]	load_integer	0 42
+	2	[54]	to_be_closed	0
+	3	[54]	return_values	1 1 0k	; 0 out
+constants (0) for #12:
+locals (1) for #12:
+	0	bad	2	4
+upvalues (0) for #12:
+
+function <tests/corpus/runtime/errors/close.lua:55,61> (13 instructions at #13)
+0 params, 3 slots, 2 upvalues, 2 locals, 4 constants, 0 functions
+	1	[56]	get_upvalue	0 0	; closer
+	2	[56]	load_constant	1 0	; "outer"
+	3	[56]	call     	0 2 2	; 1 in 1 out
+	4	[56]	to_be_closed	0
+	5	[58]	get_upvalue	1 0	; closer
+	6	[58]	load_constant	2 1	; "inner"
+	7	[58]	call     	1 2 2	; 1 in 1 out
+	8	[58]	to_be_closed	1
+	9	[58]	close    	1
+	10	[60]	get_table_upvalue	1 1 2	; _ENV "print"
+	11	[60]	load_constant	2 3	; "between"
+	12	[60]	call     	1 2 1	; 1 in 0 out
+	13	[61]	return_values	1 1 0k	; 0 out
+constants (4) for #13:
+	0	S	"outer"
+	1	S	"inner"
+	2	S	"print"
+	3	S	"between"
+locals (2) for #13:
+	0	outer	4	14
+	1	inner	8	9
+upvalues (2) for #13:
+	0	closer	1	0
+	1	_ENV	0	0
+
+function <tests/corpus/runtime/errors/close.lua:63,63> (9 instructions at #14)
+0 params, 7 slots, 1 upvalue, 5 locals, 0 constants, 0 functions
+	1	[63]	get_upvalue	0 0	; iter
+	2	[63]	load_nil 	1 0	; 1 out
+	3	[63]	load_integer	2 0
+	4	[63]	load_integer	3 7
+	5	[63]	generic_for_prepare	0 0	; to 6
+	6	[63]	generic_for_call	0 1
+	7	[63]	generic_for_loop	0 2	; to 6
+	8	[63]	close    	0
+	9	[63]	return_values	0 1 0k	; 0 out
+constants (0) for #14:
+locals (5) for #14:
+	0	(for state)	5	8
+	1	(for state)	5	8
+	2	(for state)	5	8
+	3	(for state)	5	8
+	4	k	6	6
+upvalues (1) for #14:
+	0	iter	1	4
+
+function <tests/corpus/runtime/errors/close.lua:65,65> (4 instructions at #15)
+0 params, 2 slots, 1 upvalue, 0 locals, 2 constants, 0 functions
+	1	[65]	get_table_upvalue	0 0 0	; _ENV "print"
+	2	[65]	load_constant	1 1	; "close top"
+	3	[65]	call     	0 2 1	; 1 in 0 out
+	4	[65]	return_none	
+constants (2) for #15:
+	0	S	"print"
+	1	S	"close top"
+locals (0) for #15:
+upvalues (1) for #15:
+	0	_ENV	0	0
+exit 0

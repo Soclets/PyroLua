@@ -47,7 +47,9 @@ package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
          when Concatenate =>
             Concatenate (M, Budget, A, B);
          when Close =>
-            Close_From (M, A);
+            Close_From (M, Budget, A);
+         when To_Be_Closed =>
+            Mark_To_Close (M, Budget, A, 0);
          when Load_False =>
             Set_Register (M, A, Boolean_Value_Of (False));
             Next (M);
@@ -90,11 +92,11 @@ package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
          when Tail_Call =>
             Tail_Call_Register (M, Budget, A, (if B = 0 then -1 else B - 1));
          when Return_Values =>
-            Return_Registers (M, A, (if B = 0 then -1 else B - 1), I.K);
+            Return_Registers (M, Budget, A, (if B = 0 then -1 else B - 1), I.K);
          when Return_None =>
-            Return_Registers (M, 0, 0, False);
+            Return_Registers (M, Budget, 0, 0, False);
          when Return_One =>
-            Return_Registers (M, A, 1, False);
+            Return_Registers (M, Budget, A, 1, False);
          when Vararg_Prepare =>
             Prepare_Varargs (M, Budget, A);
          when Vararg =>

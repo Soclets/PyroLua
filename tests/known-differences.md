@@ -39,3 +39,13 @@ them: a table's parts grow as keys arrive, sized as PUC Lua's rehash sizes them.
 are the same except for `#t` on a table with holes, where Lua allows any border and the two
 may find different ones, and for speed. Sizing tables in the heap made its proofs, which
 sit close to the steps limit, fail; it can come back once they have more room.
+
+## No stack tracebacks
+
+Source: `cli/src/pyro_program.adb`.
+
+lua.c prints a stack traceback after the message of an error no protected call catches,
+and its message handler adds it to the error before the to-be-closed variables close.
+pyrolua prints the message alone ("pyrolua: file.lua:3: message"), and a `__close` that
+runs then sees the message without a traceback. The runtime corpus compares the first line
+of the standard error, without the program's name.

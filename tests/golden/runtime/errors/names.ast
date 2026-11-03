@@ -1,0 +1,594 @@
+1 function_body vararg
+  1 block
+    2 local_function
+      2 local_name "try"
+      2 function_body vararg
+        2 name_list
+          2 local_name "f"
+        2 block
+          2 call_statement
+            2 call_expression
+              2 name_expression "print" global
+              2 call_expression
+                2 name_expression "select" global
+                2 integer_literal 2
+                2 call_expression
+                  2 name_expression "pcall" global
+                  2 name_expression "f" local@2
+                  2 vararg_expression
+    3 call_statement
+      3 call_expression
+        3 name_expression "try" local@1
+        3 function_expression
+          3 function_body
+            3 name_list
+            3 block
+              3 return_statement
+                3 expression_list
+                  3 index_expression name-key
+                    3 name_expression "undefined_global" global
+                    3 string_literal "x"
+    4 call_statement
+      4 call_expression
+        4 name_expression "try" local@1
+        4 function_expression
+          4 function_body
+            4 name_list
+            4 block
+              4 local_statement
+                4 name_list
+                  4 local_name "t"
+                4 expression_list
+                  4 table_constructor
+              4 return_statement
+                4 expression_list
+                  4 index_expression name-key
+                    4 index_expression name-key
+                      4 name_expression "t" local@31
+                      4 string_literal "a"
+                    4 string_literal "b"
+    5 call_statement
+      5 call_expression
+        5 name_expression "try" local@1
+        5 function_expression
+          5 function_body
+            5 name_list
+            5 block
+              5 local_statement
+                5 name_list
+                  5 local_name "t"
+                5 expression_list
+                  5 table_constructor
+              5 return_statement
+                5 expression_list
+                  5 index_expression name-key
+                    5 index_expression
+                      5 name_expression "t" local@50
+                      5 integer_literal 1
+                    5 string_literal "b"
+    6 call_statement
+      6 call_expression
+        6 name_expression "try" local@1
+        6 function_expression
+          6 function_body
+            6 name_list
+            6 block
+              6 local_statement
+                6 name_list
+                  6 local_name "t"
+                6 expression_list
+                  6 table_constructor
+              6 local_statement
+                6 name_list
+                  6 local_name "k"
+                6 expression_list
+                  6 string_literal "key"
+              6 return_statement
+                6 expression_list
+                  6 index_expression name-key
+                    6 index_expression
+                      6 name_expression "t" local@69
+                      6 name_expression "k" local@74
+                    6 string_literal "b"
+    7 call_statement
+      7 call_expression
+        7 name_expression "try" local@1
+        7 function_expression
+          7 function_body
+            7 name_list
+            7 block
+              7 local_statement
+                7 name_list
+                  7 local_name "x"
+                7 expression_list
+                  7 nil_literal
+              7 assignment
+                7 expression_list
+                  7 assignment_target name-key
+                    7 index_expression name-key
+                      7 name_expression "x" local@93
+                      7 string_literal "y"
+                7 expression_list
+                  7 integer_literal 1
+    8 call_statement
+      8 call_expression
+        8 name_expression "try" local@1
+        8 function_expression
+          8 function_body
+            8 name_list
+            8 block
+              8 local_statement
+                8 name_list
+                  8 local_name "f"
+                8 expression_list
+                  8 table_constructor
+              8 call_statement
+                8 call_expression
+                  8 name_expression "f" local@113
+    9 call_statement
+      9 call_expression
+        9 name_expression "try" local@1
+        9 function_expression
+          9 function_body
+            9 name_list
+            9 block
+              9 call_statement
+                9 call_expression
+                  9 name_expression "missing_function" global
+    10 call_statement
+      10 call_expression
+        10 name_expression "try" local@1
+        10 function_expression
+          10 function_body
+            10 name_list
+            10 block
+              10 local_statement
+                10 name_list
+                  10 local_name "t"
+                10 expression_list
+                  10 table_constructor
+              10 call_statement
+                10 call_expression
+                  10 index_expression name-key
+                    10 name_expression "t" local@138
+                    10 string_literal "method"
+    11 call_statement
+      11 call_expression
+        11 name_expression "try" local@1
+        11 function_expression
+          11 function_body
+            11 name_list
+            11 block
+              11 local_statement
+                11 name_list
+                  11 local_name "t"
+                11 expression_list
+                  11 table_constructor
+              11 call_statement
+                11 method_call "method"
+                  11 name_expression "t" local@155
+    12 call_statement
+      12 call_expression
+        12 name_expression "try" local@1
+        12 function_expression
+          12 function_body
+            12 name_list
+            12 block
+              12 local_statement
+                12 name_list
+                  12 local_name "t"
+                12 expression_list
+                  12 table_constructor
+              12 call_statement
+                12 call_expression
+                  12 index_expression name-key
+                    12 index_expression name-key
+                      12 name_expression "t" local@170
+                      12 string_literal "inner"
+                    12 string_literal "deep"
+    13 local_statement
+      13 name_list
+        13 local_name "up"
+      13 expression_list
+        13 nil_literal
+    14 call_statement
+      14 call_expression
+        14 name_expression "try" local@1
+        14 function_expression
+          14 function_body
+            14 name_list
+            14 block
+              14 return_statement
+                14 expression_list
+                  14 index_expression name-key
+                    14 name_expression "up" upvalue@187
+                    14 string_literal "x"
+    15 call_statement
+      15 call_expression
+        15 name_expression "try" local@1
+        15 function_expression
+          15 function_body
+            15 name_list
+            15 block
+              15 return_statement
+                15 expression_list
+                  15 binary_operation add
+                    15 name_expression "up" upvalue@187
+                    15 integer_literal 1
+    16 call_statement
+      16 call_expression
+        16 name_expression "try" local@1
+        16 function_expression
+          16 function_body
+            16 name_list
+            16 block
+              16 return_statement
+                16 expression_list
+                  16 binary_operation add
+                    16 integer_literal 1
+                    16 name_expression "up" upvalue@187
+    17 call_statement
+      17 call_expression
+        17 name_expression "try" local@1
+        17 function_expression
+          17 function_body
+            17 name_list
+            17 block
+              17 local_statement
+                17 name_list
+                  17 local_name "a"
+                17 expression_list
+                  17 string_literal "x"
+              17 return_statement
+                17 expression_list
+                  17 binary_operation add
+                    17 name_expression "a" local@230
+                    17 integer_literal 1
+    18 call_statement
+      18 call_expression
+        18 name_expression "try" local@1
+        18 function_expression
+          18 function_body
+            18 name_list
+            18 block
+              18 local_statement
+                18 name_list
+                  18 local_name "a"
+                18 expression_list
+                  18 table_constructor
+              18 return_statement
+                18 expression_list
+                  18 unary_operation negate
+                    18 name_expression "a" local@247
+    19 call_statement
+      19 call_expression
+        19 name_expression "try" local@1
+        19 function_expression
+          19 function_body
+            19 name_list
+            19 block
+              19 local_statement
+                19 name_list
+                  19 local_name "a"
+                19 expression_list
+                  19 table_constructor
+              19 return_statement
+                19 expression_list
+                  19 binary_operation add
+                    19 unary_operation length
+                      19 name_expression "a" local@263
+                    19 unary_operation length
+                      19 name_expression "up" upvalue@187
+    20 call_statement
+      20 call_expression
+        20 name_expression "try" local@1
+        20 function_expression
+          20 function_body
+            20 name_list
+            20 block
+              20 local_statement
+                20 name_list
+                  20 local_name "s"
+                20 expression_list
+                  20 string_literal "s"
+              20 return_statement
+                20 expression_list
+                  20 binary_operation concatenate
+                    20 name_expression "s" local@282
+                    20 name_expression "up" upvalue@187
+    21 call_statement
+      21 call_expression
+        21 name_expression "try" local@1
+        21 function_expression
+          21 function_body
+            21 name_list
+            21 block
+              21 local_statement
+                21 name_list
+                  21 local_name "s"
+                21 expression_list
+                  21 nil_literal
+              21 return_statement
+                21 expression_list
+                  21 binary_operation concatenate
+                    21 string_literal "a"
+                    21 binary_operation concatenate
+                      21 name_expression "s" local@299
+                      21 string_literal "b"
+    22 call_statement
+      22 call_expression
+        22 name_expression "try" local@1
+        22 function_expression
+          22 function_body
+            22 name_list
+            22 block
+              22 local_statement
+                22 name_list
+                  22 local_name "f"
+                22 expression_list
+                  22 float_literal 0x3FF8000000000000
+              22 return_statement
+                22 expression_list
+                  22 binary_operation bitwise_or
+                    22 name_expression "f" local@318
+                    22 integer_literal 1
+    23 call_statement
+      23 call_expression
+        23 name_expression "try" local@1
+        23 function_expression
+          23 function_body
+            23 name_list
+            23 block
+              23 local_statement
+                23 name_list
+                  23 local_name "f"
+                23 expression_list
+                  23 float_literal 0x3FF8000000000000
+              23 return_statement
+                23 expression_list
+                  23 binary_operation bitwise_or
+                    23 integer_literal 1
+                    23 name_expression "f" local@335
+    24 call_statement
+      24 call_expression
+        24 name_expression "try" local@1
+        24 function_expression
+          24 function_body
+            24 name_list
+            24 block
+              24 local_statement
+                24 name_list
+                  24 local_name "f"
+                24 expression_list
+                  24 float_literal 0x3FF8000000000000
+              24 return_statement
+                24 expression_list
+                  24 unary_operation bitwise_not
+                    24 name_expression "f" local@352
+    25 call_statement
+      25 call_expression
+        25 name_expression "try" local@1
+        25 function_expression
+          25 function_body
+            25 name_list
+            25 block
+              25 local_statement
+                25 name_list
+                  25 local_name "t"
+                25 expression_list
+                  25 table_constructor
+              25 return_statement
+                25 expression_list
+                  25 binary_operation bitwise_and
+                    25 name_expression "t" local@368
+                    25 integer_literal 1
+    26 call_statement
+      26 call_expression
+        26 name_expression "try" local@1
+        26 function_expression
+          26 function_body
+            26 name_list
+            26 block
+              26 return_statement
+                26 expression_list
+                  26 binary_operation power
+                    26 integer_literal 2
+                    26 table_constructor
+    27 call_statement
+      27 call_expression
+        27 name_expression "try" local@1
+        27 function_expression
+          27 function_body
+            27 name_list
+            27 block
+              27 local_statement
+                27 name_list
+                  27 local_name "t"
+                27 expression_list
+                  27 table_constructor
+              27 return_statement
+                27 expression_list
+                  27 index_expression name-key
+                    27 index_expression name-key
+                      27 index_expression name-key
+                        27 name_expression "t" local@397
+                        27 string_literal "x"
+                      27 string_literal "y"
+                    27 string_literal "z"
+    28 call_statement
+      28 call_expression
+        28 name_expression "try" local@1
+        28 function_expression
+          28 function_body
+            28 name_list
+            28 block
+              28 local_statement
+                28 name_list
+                  28 local_name "t"
+                28 expression_list
+                  28 table_constructor
+                    28 named_field name-key
+                      28 string_literal "x"
+                      28 table_constructor
+              28 return_statement
+                28 expression_list
+                  28 index_expression name-key
+                    28 index_expression name-key
+                      28 index_expression name-key
+                        28 name_expression "t" local@418
+                        28 string_literal "x"
+                      28 string_literal "y"
+                    28 string_literal "z"
+    29 call_statement
+      29 call_expression
+        29 name_expression "try" local@1
+        29 function_expression
+          29 function_body
+            29 name_list
+            29 block
+              29 generic_for
+                29 name_list
+                  29 local_name "k"
+                29 expression_list
+                  29 nil_literal
+                29 block
+    30 call_statement
+      30 call_expression
+        30 name_expression "try" local@1
+        30 function_expression
+          30 function_body
+            30 name_list
+            30 block
+              30 generic_for
+                30 name_list
+                  30 local_name "k"
+                30 expression_list
+                  30 integer_literal 5
+                30 block
+    31 call_statement
+      31 call_expression
+        31 name_expression "try" local@1
+        31 function_expression
+          31 function_body
+            31 name_list
+            31 block
+              31 local_statement
+                31 name_list
+                  31 local_name "t"
+                31 expression_list
+                  31 table_constructor
+              31 return_statement
+                31 expression_list
+                  31 index_expression
+                    31 name_expression "t" local@468
+                    31 nil_literal
+    32 call_statement
+      32 call_expression
+        32 name_expression "try" local@1
+        32 function_expression
+          32 function_body
+            32 name_list
+            32 block
+              32 local_statement
+                32 name_list
+                  32 local_name "a"
+                  32 local_name "b"
+                32 expression_list
+                  32 table_constructor
+                  32 table_constructor
+              32 return_statement
+                32 expression_list
+                  32 binary_operation less
+                    32 name_expression "a" local@485
+                    32 name_expression "b" local@486
+    33 call_statement
+      33 call_expression
+        33 name_expression "try" local@1
+        33 function_expression
+          33 function_body
+            33 name_list
+            33 block
+              33 return_statement
+                33 expression_list
+                  33 call_expression
+                    33 parenthesized
+                      33 string_literal "x"
+    34 call_statement
+      34 call_expression
+        34 name_expression "try" local@1
+        34 function_expression
+          34 function_body
+            34 name_list
+            34 block
+              34 local_statement
+                34 name_list
+                  34 local_name "up2"
+                34 expression_list
+                  34 name_expression "up" upvalue@187
+              34 return_statement
+                34 expression_list
+                  34 index_expression name-key
+                    34 name_expression "up2" local@516
+                    34 string_literal "x"
+    35 call_statement
+      35 call_expression
+        35 name_expression "try" local@1
+        35 function_expression
+          35 function_body
+            35 name_list
+            35 block
+              35 assignment
+                35 expression_list
+                  35 assignment_target name-key
+                    35 index_expression name-key
+                      35 index_expression name-key
+                        35 name_expression "_ENV" global
+                        35 string_literal "missing"
+                      35 string_literal "x"
+                35 expression_list
+                  35 integer_literal 1
+    36 call_statement
+      36 call_expression
+        36 name_expression "try" local@1
+        36 function_expression
+          36 function_body
+            36 name_list
+            36 block
+              36 assignment
+                36 expression_list
+                  36 assignment_target name-key
+                    36 index_expression name-key
+                      36 index_expression name-key
+                        36 call_expression
+                          36 name_expression "setmetatable" global
+                          36 table_constructor
+                          36 table_constructor
+                            36 named_field name-key
+                              36 string_literal "__index"
+                              36 function_expression
+                                36 function_body
+                                  36 name_list
+                                  36 block
+                                    36 return_statement
+                                      36 expression_list
+                                        36 nil_literal
+                        36 string_literal "x"
+                      36 string_literal "y"
+                36 expression_list
+                  36 integer_literal 1
+    37 call_statement
+      37 call_expression
+        37 name_expression "print" global
+        37 call_expression
+          37 name_expression "pcall" global
+          37 nil_literal
+    38 call_statement
+      38 call_expression
+        38 name_expression "print" global
+        38 call_expression
+          38 name_expression "pcall" global
+          38 name_expression "pcall" global
+    39 call_statement
+      39 call_expression
+        39 name_expression "missing_at_top" global
+exit 0

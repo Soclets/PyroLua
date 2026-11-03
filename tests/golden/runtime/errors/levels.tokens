@@ -1,0 +1,207 @@
+2 keyword local
+2 keyword function
+2 name f
+2 (
+2 name level
+2 )
+2 name error
+2 (
+2 string "message"
+2 ,
+2 name level
+2 )
+2 keyword end
+3 name print
+3 (
+3 name pcall
+3 (
+3 name f
+3 ,
+3 integer 1
+3 )
+3 )
+4 name print
+4 (
+4 name pcall
+4 (
+4 name f
+4 ,
+4 integer 2
+4 )
+4 )
+5 name print
+5 (
+5 name pcall
+5 (
+5 name f
+5 ,
+5 integer 0
+5 )
+5 )
+6 keyword local
+6 keyword function
+6 name g
+6 (
+6 )
+7 name f
+7 (
+8 integer 2
+9 )
+10 keyword end
+11 name print
+11 (
+11 name pcall
+11 (
+11 name g
+11 )
+11 )
+12 name print
+12 (
+12 name pcall
+12 (
+12 name error
+12 )
+12 )
+13 name print
+13 (
+13 name pcall
+13 (
+13 name error
+13 ,
+13 keyword nil
+13 )
+13 )
+14 keyword local
+14 name ok2
+14 ,
+14 name e2
+14 =
+14 name pcall
+14 (
+14 name error
+14 ,
+14 {
+14 name code
+14 =
+14 integer 1
+14 }
+14 )
+15 name print
+15 (
+15 name ok2
+15 ,
+15 name type
+15 (
+15 name e2
+15 )
+15 ,
+15 name e2
+15 .
+15 name code
+15 )
+16 name print
+16 (
+16 name select
+16 (
+16 string "#"
+16 ,
+16 name pcall
+16 (
+16 name error
+16 )
+16 )
+16 )
+17 keyword local
+17 name ok
+17 ,
+17 name e
+17 =
+17 name pcall
+17 (
+17 name error
+17 ,
+17 name setmetatable
+17 (
+17 {
+17 }
+17 ,
+17 {
+17 name __tostring
+17 =
+17 keyword function
+17 (
+17 )
+17 keyword return
+17 string "custom"
+17 keyword end
+17 }
+17 )
+17 )
+18 name print
+18 (
+18 name ok
+18 ,
+18 name tostring
+18 (
+18 name e
+18 )
+18 )
+19 name print
+19 (
+19 name pcall
+19 (
+19 name error
+19 ,
+19 integer 42
+19 )
+19 )
+20 name print
+20 (
+20 name pcall
+20 (
+20 name error
+20 ,
+20 string "with level"
+20 ,
+20 integer 1
+20 )
+20 )
+21 keyword local
+21 keyword function
+21 name deep
+21 (
+21 )
+21 keyword local
+21 name x
+21 =
+21 keyword nil
+21 ;
+21 keyword return
+21 name x
+21 .
+21 name field
+21 keyword end
+22 keyword local
+22 keyword function
+22 name middle
+22 (
+22 )
+22 keyword return
+22 name deep
+22 (
+22 )
+22 keyword end
+23 name print
+23 (
+23 name pcall
+23 (
+23 name middle
+23 )
+23 )
+24 name error
+24 (
+24 {
+24 }
+24 )
+25 <eof>
+exit 0

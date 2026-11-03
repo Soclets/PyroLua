@@ -254,7 +254,8 @@ package body Pyro.Virtual_Machine.Loops with SPARK_Mode => On is
             end;
 
          when Generic_For_Prepare =>
-            Next (M, Jump);
+            --  [puc lvm.c:OP_TFORPREP] The closing value becomes a to-be-closed variable.
+            Mark_To_Close (M, Budget, A + 3, Jump);
 
          when Generic_For_Call =>
             --  [puc lvm.c:OP_TFORCALL] The iterator, called with the state and the control,

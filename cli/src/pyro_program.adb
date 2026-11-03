@@ -304,6 +304,7 @@ procedure Pyro_Program is
                exit;
             when Errored =>
                Host_Functions.Flush;
+               --  [differs] No stack traceback follows the message.
                Put_Error ("pyrolua: " & Error_Text (M) & ASCII.LF);
                Set_Exit_Status (Failure);
                exit;

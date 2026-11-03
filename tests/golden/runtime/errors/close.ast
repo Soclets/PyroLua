@@ -1,0 +1,404 @@
+1 function_body vararg
+  1 block
+    2 local_function
+      2 local_name "closer"
+      2 function_body
+        2 name_list
+          2 local_name "name"
+        3 block
+          3 return_statement
+            3 expression_list
+              3 call_expression
+                3 name_expression "setmetatable" global
+                3 table_constructor
+                3 table_constructor
+                  3 named_field name-key
+                    3 string_literal "__close"
+                    3 function_expression
+                      3 function_body
+                        3 name_list
+                          3 local_name "self"
+                          3 local_name "err"
+                        3 block
+                          3 call_statement
+                            3 call_expression
+                              3 name_expression "print" global
+                              3 string_literal "close"
+                              3 name_expression "name" upvalue@2
+                              3 name_expression "err" local@8
+    5 do_statement
+      6 block
+        6 local_statement
+          6 name_list
+            6 local_name "a" close_attribute
+          6 expression_list
+            6 call_expression
+              6 name_expression "closer" local@1
+              6 string_literal "a"
+        7 local_statement
+          7 name_list
+            7 local_name "b" close_attribute
+          7 expression_list
+            7 call_expression
+              7 name_expression "closer" local@1
+              7 string_literal "b"
+        8 local_statement
+          8 name_list
+            8 local_name "c" close_attribute
+          8 expression_list
+            8 nil_literal
+        9 local_statement
+          9 name_list
+            9 local_name "d" close_attribute
+          9 expression_list
+            9 false_literal
+        10 call_statement
+          10 call_expression
+            10 name_expression "print" global
+            10 string_literal "in block"
+    12 local_function
+      12 local_name "returns"
+      12 function_body
+        12 name_list
+        13 block
+          13 local_statement
+            13 name_list
+              13 local_name "x" close_attribute
+            13 expression_list
+              13 call_expression
+                13 name_expression "closer" upvalue@1
+                13 string_literal "x"
+          14 return_statement
+            14 expression_list
+              14 integer_literal 1
+              14 integer_literal 2
+              14 integer_literal 3
+    16 call_statement
+      16 call_expression
+        16 name_expression "print" global
+        16 call_expression
+          16 name_expression "returns" local@57
+    17 local_function
+      17 local_name "open_returns"
+      17 function_body vararg
+        17 name_list
+        18 block
+          18 local_statement
+            18 name_list
+              18 local_name "y" close_attribute
+            18 expression_list
+              18 call_expression
+                18 name_expression "closer" upvalue@1
+                18 string_literal "y"
+          19 return_statement
+            19 expression_list
+              19 vararg_expression
+    21 call_statement
+      21 call_expression
+        21 name_expression "print" global
+        21 call_expression
+          21 name_expression "open_returns" local@79
+          21 integer_literal 4
+          21 integer_literal 5
+          21 integer_literal 6
+    22 numeric_for
+      22 local_name "i"
+      22 expression_list
+        22 integer_literal 1
+        22 integer_literal 3
+      23 block
+        23 local_statement
+          23 name_list
+            23 local_name "z" close_attribute
+          23 expression_list
+            23 call_expression
+              23 name_expression "closer" local@1
+              23 binary_operation concatenate
+                23 string_literal "z"
+                23 name_expression "i" local@102
+        24 if_statement
+          24 if_clause
+            24 binary_operation equal
+              24 name_expression "i" local@102
+              24 integer_literal 2
+            24 block
+              24 break_statement
+    26 local_statement
+      26 name_list
+        26 local_name "i"
+      26 expression_list
+        26 integer_literal 0
+    27 while_statement
+      27 true_literal
+      28 block
+        28 assignment
+          28 expression_list
+            28 assignment_target "i"
+              28 name_expression "i" local@124
+          28 expression_list
+            28 binary_operation add
+              28 name_expression "i" local@124
+              28 integer_literal 1
+        29 local_statement
+          29 name_list
+            29 local_name "w" close_attribute
+          29 expression_list
+            29 call_expression
+              29 name_expression "closer" local@1
+              29 binary_operation concatenate
+                29 string_literal "w"
+                29 name_expression "i" local@124
+        30 if_statement
+          30 if_clause
+            30 binary_operation equal
+              30 name_expression "i" local@124
+              30 integer_literal 2
+            30 block
+              30 break_statement
+    32 call_statement
+      32 call_expression
+        32 name_expression "print" global
+        32 call_expression
+          32 name_expression "pcall" global
+          32 function_expression
+            32 function_body
+              32 name_list
+              33 block
+                33 local_statement
+                  33 name_list
+                    33 local_name "e" close_attribute
+                  33 expression_list
+                    33 call_expression
+                      33 name_expression "closer" upvalue@1
+                      33 string_literal "e"
+                34 call_statement
+                  34 call_expression
+                    34 name_expression "error" global
+                    34 string_literal "boom"
+    36 call_statement
+      36 call_expression
+        36 name_expression "print" global
+        36 call_expression
+          36 name_expression "pcall" global
+          36 function_expression
+            36 function_body
+              36 name_list
+              37 block
+                37 local_statement
+                  37 name_list
+                    37 local_name "first" close_attribute
+                  37 expression_list
+                    37 call_expression
+                      37 name_expression "closer" upvalue@1
+                      37 string_literal "first"
+                38 local_statement
+                  38 name_list
+                    38 local_name "failing" close_attribute
+                  38 expression_list
+                    38 call_expression
+                      38 name_expression "setmetatable" global
+                      38 table_constructor
+                      38 table_constructor
+                        38 named_field name-key
+                          38 string_literal "__close"
+                          38 function_expression
+                            38 function_body
+                              38 name_list
+                                38 local_name "self"
+                                38 local_name "err"
+                              39 block
+                                39 call_statement
+                                  39 call_expression
+                                    39 name_expression "print" global
+                                    39 string_literal "failing sees"
+                                    39 name_expression "err" local@192
+                                40 call_statement
+                                  40 call_expression
+                                    40 name_expression "error" global
+                                    40 string_literal "from close"
+                42 call_statement
+                  42 call_expression
+                    42 name_expression "error" global
+                    42 string_literal "original"
+    44 call_statement
+      44 call_expression
+        44 name_expression "print" global
+        44 call_expression
+          44 name_expression "pcall" global
+          44 function_expression
+            44 function_body
+              44 name_list
+              45 block
+                45 local_statement
+                  45 name_list
+                    45 local_name "ok" close_attribute
+                  45 expression_list
+                    45 call_expression
+                      45 name_expression "setmetatable" global
+                      45 table_constructor
+                      45 table_constructor
+                        45 named_field name-key
+                          45 string_literal "__close"
+                          45 function_expression
+                            45 function_body
+                              45 name_list
+                              45 block
+                                45 call_statement
+                                  45 call_expression
+                                    45 name_expression "error" global
+                                    45 string_literal "close error on success"
+                46 return_statement
+                  46 expression_list
+                    46 string_literal "unreached"
+    48 local_function
+      48 local_name "iter"
+      48 function_body
+        48 name_list
+          48 local_name "state"
+          48 local_name "control"
+        49 block
+          49 if_statement
+            49 if_clause
+              49 binary_operation less
+                49 name_expression "control" local@253
+                49 integer_literal 3
+              49 block
+                49 return_statement
+                  49 expression_list
+                    49 binary_operation add
+                      49 name_expression "control" local@253
+                      49 integer_literal 1
+    51 generic_for
+      51 name_list
+        51 local_name "k"
+      51 expression_list
+        51 name_expression "iter" local@251
+        51 nil_literal
+        51 integer_literal 0
+        51 call_expression
+          51 name_expression "closer" local@1
+          51 string_literal "for"
+      51 block
+        51 call_statement
+          51 call_expression
+            51 name_expression "print" global
+            51 string_literal "k"
+            51 name_expression "k" local@269
+    52 generic_for
+      52 name_list
+        52 local_name "k"
+      52 expression_list
+        52 name_expression "iter" local@251
+        52 nil_literal
+        52 integer_literal 0
+        52 call_expression
+          52 name_expression "closer" local@1
+          52 string_literal "for break"
+      52 block
+        52 if_statement
+          52 if_clause
+            52 binary_operation equal
+              52 name_expression "k" local@285
+              52 integer_literal 2
+            52 block
+              52 break_statement
+    53 call_statement
+      53 call_expression
+        53 name_expression "print" global
+        53 call_expression
+          53 name_expression "pcall" global
+          53 function_expression
+            53 function_body
+              53 name_list
+              53 block
+                53 local_statement
+                  53 name_list
+                    53 local_name "bad" close_attribute
+                  53 expression_list
+                    53 table_constructor
+    54 call_statement
+      54 call_expression
+        54 name_expression "print" global
+        54 call_expression
+          54 name_expression "pcall" global
+          54 function_expression
+            54 function_body
+              54 name_list
+              54 block
+                54 local_statement
+                  54 name_list
+                    54 local_name "bad" close_attribute
+                  54 expression_list
+                    54 integer_literal 42
+    55 local_statement
+      55 name_list
+        55 local_name "nested"
+      55 expression_list
+        55 function_expression
+          55 function_body
+            55 name_list
+            56 block
+              56 local_statement
+                56 name_list
+                  56 local_name "outer" close_attribute
+                56 expression_list
+                  56 call_expression
+                    56 name_expression "closer" upvalue@1
+                    56 string_literal "outer"
+              57 do_statement
+                58 block
+                  58 local_statement
+                    58 name_list
+                      58 local_name "inner" close_attribute
+                    58 expression_list
+                      58 call_expression
+                        58 name_expression "closer" upvalue@1
+                        58 string_literal "inner"
+              60 call_statement
+                60 call_expression
+                  60 name_expression "print" global
+                  60 string_literal "between"
+    62 call_statement
+      62 call_expression
+        62 name_expression "nested" local@331
+    63 call_statement
+      63 call_expression
+        63 name_expression "print" global
+        63 call_expression
+          63 name_expression "pcall" global
+          63 function_expression
+            63 function_body
+              63 name_list
+              63 block
+                63 generic_for
+                  63 name_list
+                    63 local_name "k"
+                  63 expression_list
+                    63 name_expression "iter" upvalue@251
+                    63 nil_literal
+                    63 integer_literal 0
+                    63 integer_literal 7
+                  63 block
+    65 local_statement
+      65 name_list
+        65 local_name "top" close_attribute
+      65 expression_list
+        65 call_expression
+          65 name_expression "setmetatable" global
+          65 table_constructor
+          65 table_constructor
+            65 named_field name-key
+              65 string_literal "__close"
+              65 function_expression
+                65 function_body
+                  65 name_list
+                  65 block
+                    65 call_statement
+                      65 call_expression
+                        65 name_expression "print" global
+                        65 string_literal "close top"
+    66 call_statement
+      66 call_expression
+        66 name_expression "error" global
+        66 string_literal "at the top"
+exit 0
