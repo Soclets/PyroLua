@@ -1,0 +1,151 @@
+1 function_body vararg
+  1 block
+    2 local_statement
+      2 name_list
+        2 local_name "a"
+        2 local_name "b"
+      2 expression_list
+        2 integer_literal 61680
+        2 integer_literal 4080
+    3 call_statement
+      3 call_expression
+        3 name_expression "print" global
+        3 binary_operation bitwise_and
+          3 name_expression "a" local@1
+          3 name_expression "b" local@2
+        3 binary_operation bitwise_or
+          3 name_expression "a" local@1
+          3 name_expression "b" local@2
+        3 binary_operation bitwise_exclusive_or
+          3 name_expression "a" local@1
+          3 name_expression "b" local@2
+        3 unary_operation bitwise_not
+          3 name_expression "a" local@1
+        3 unary_operation bitwise_not
+          3 integer_literal 0
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 binary_operation shift_left
+          4 integer_literal 1
+          4 integer_literal 62
+        4 binary_operation shift_left
+          4 integer_literal 1
+          4 integer_literal 63
+        4 binary_operation shift_left
+          4 integer_literal 1
+          4 integer_literal 64
+        4 binary_operation shift_left
+          4 integer_literal 1
+          4 unary_operation negate
+            4 integer_literal 1
+        4 binary_operation shift_right
+          4 integer_literal 256
+          4 integer_literal 4
+        4 binary_operation shift_right
+          4 integer_literal 256
+          4 unary_operation negate
+            4 integer_literal 4
+        4 binary_operation shift_right
+          4 unary_operation negate
+            4 integer_literal 1
+          4 integer_literal 1
+        4 binary_operation shift_right
+          4 unary_operation negate
+            4 integer_literal 1
+          4 integer_literal 64
+    5 local_statement
+      5 name_list
+        5 local_name "n"
+      5 expression_list
+        5 integer_literal 3
+    6 call_statement
+      6 call_expression
+        6 name_expression "print" global
+        6 binary_operation shift_left
+          6 name_expression "n" local@55
+          6 integer_literal 2
+        6 binary_operation shift_right
+          6 name_expression "n" local@55
+          6 integer_literal 1
+        6 binary_operation shift_left
+          6 integer_literal 2
+          6 name_expression "n" local@55
+        6 binary_operation shift_right
+          6 integer_literal 1024
+          6 name_expression "n" local@55
+        6 binary_operation bitwise_and
+          6 name_expression "n" local@55
+          6 integer_literal 1
+        6 binary_operation bitwise_or
+          6 name_expression "n" local@55
+          6 integer_literal 4
+        6 binary_operation bitwise_exclusive_or
+          6 name_expression "n" local@55
+          6 integer_literal 1
+        6 unary_operation bitwise_not
+          6 name_expression "n" local@55
+    7 call_statement
+      7 call_expression
+        7 name_expression "print" global
+        7 binary_operation bitwise_and
+          7 float_literal 0x4008000000000000
+          7 integer_literal 1
+        7 binary_operation bitwise_or
+          7 float_literal 0x4000000000000000
+          7 float_literal 0x3FF0000000000000
+        7 binary_operation shift_left
+          7 integer_literal 1
+          7 float_literal 0x4000000000000000
+        7 unary_operation bitwise_not
+          7 float_literal 0x4014000000000000
+    8 local_statement
+      8 name_list
+        8 local_name "f"
+      8 expression_list
+        8 float_literal 0x4018000000000000
+    9 call_statement
+      9 call_expression
+        9 name_expression "print" global
+        9 binary_operation bitwise_and
+          9 name_expression "f" local@100
+          9 integer_literal 3
+        9 binary_operation bitwise_or
+          9 name_expression "f" local@100
+          9 integer_literal 1
+        9 binary_operation bitwise_exclusive_or
+          9 name_expression "f" local@100
+          9 integer_literal 2
+        9 binary_operation shift_left
+          9 name_expression "f" local@100
+          9 integer_literal 1
+        9 binary_operation shift_right
+          9 name_expression "f" local@100
+          9 integer_literal 1
+        9 binary_operation shift_left
+          9 integer_literal 1
+          9 name_expression "f" local@100
+        9 unary_operation bitwise_not
+          9 name_expression "f" local@100
+    10 call_statement
+      10 call_expression
+        10 name_expression "print" global
+        10 binary_operation shift_left
+          10 name_expression "n" local@55
+          10 integer_literal 70
+        10 binary_operation shift_right
+          10 name_expression "n" local@55
+          10 integer_literal 70
+        10 binary_operation shift_left
+          10 name_expression "n" local@55
+          10 unary_operation negate
+            10 integer_literal 1
+        10 binary_operation shift_right
+          10 name_expression "n" local@55
+          10 unary_operation negate
+            10 integer_literal 1
+        10 binary_operation shift_left
+          10 unary_operation negate
+            10 integer_literal 1
+          10 integer_literal 63
+exit 0

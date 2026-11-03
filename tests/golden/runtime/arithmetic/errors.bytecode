@@ -1,0 +1,65 @@
+
+main <tests/corpus/runtime/arithmetic/errors.lua:0,0> (24 instructions at #3)
+0+ params, 5 slots, 1 upvalue, 2 locals, 3 constants, 2 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	load_integer	0 7
+	3	[2]	load_integer	1 0
+	4	[3]	get_table_upvalue	2 0 0	; _ENV "print"
+	5	[3]	get_table_upvalue	3 0 1	; _ENV "pcall"
+	6	[3]	closure  	4 0	; #1
+	7	[3]	call     	3 2 0	; 1 in all out
+	8	[3]	call     	2 0 1	; all in 0 out
+	9	[4]	get_table_upvalue	2 0 0	; _ENV "print"
+	10	[4]	get_table_upvalue	3 0 1	; _ENV "pcall"
+	11	[4]	closure  	4 1	; #2
+	12	[4]	call     	3 2 0	; 1 in all out
+	13	[4]	call     	2 0 1	; all in 0 out
+	14	[5]	get_table_upvalue	2 0 0	; _ENV "print"
+	15	[5]	floor_divide_constant	3 0 2	; 0.0
+	16	[5]	metamethod_binary_constant	0 2 12 0	; __idiv 0.0
+	17	[5]	modulo_constant	4 0 2	; 0.0
+	18	[5]	metamethod_binary_constant	0 2 9 0	; __mod 0.0
+	19	[5]	call     	2 3 1	; 2 in 0 out
+	20	[6]	get_table_upvalue	2 0 0	; _ENV "print"
+	21	[6]	floor_divide	3 0 1
+	22	[6]	metamethod_binary	0 1 12	; __idiv
+	23	[6]	call     	2 2 1	; 1 in 0 out
+	24	[6]	return_values	2 1 1k	; 0 out
+constants (3) for #3:
+	0	S	"print"
+	1	S	"pcall"
+	2	F	0.0
+locals (2) for #3:
+	0	a	4	25
+	1	b	4	25
+upvalues (1) for #3:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/arithmetic/errors.lua:3,3> (6 instructions at #1)
+0 params, 2 slots, 2 upvalues, 0 locals, 0 constants, 0 functions
+	1	[3]	get_upvalue	0 0	; a
+	2	[3]	get_upvalue	1 1	; b
+	3	[3]	floor_divide	0 0 1
+	4	[3]	metamethod_binary	0 1 12	; __idiv
+	5	[3]	return_one	0
+	6	[3]	return_none	
+constants (0) for #1:
+locals (0) for #1:
+upvalues (2) for #1:
+	0	a	1	0
+	1	b	1	1
+
+function <tests/corpus/runtime/arithmetic/errors.lua:4,4> (6 instructions at #2)
+0 params, 2 slots, 2 upvalues, 0 locals, 0 constants, 0 functions
+	1	[4]	get_upvalue	0 0	; a
+	2	[4]	get_upvalue	1 1	; b
+	3	[4]	modulo   	0 0 1
+	4	[4]	metamethod_binary	0 1 9	; __mod
+	5	[4]	return_one	0
+	6	[4]	return_none	
+constants (0) for #2:
+locals (0) for #2:
+upvalues (2) for #2:
+	0	a	1	0
+	1	b	1	1
+exit 0

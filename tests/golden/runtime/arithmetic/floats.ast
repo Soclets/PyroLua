@@ -1,0 +1,156 @@
+1 function_body vararg
+  1 block
+    2 local_statement
+      2 name_list
+        2 local_name "zero"
+      2 expression_list
+        2 float_literal 0x0000000000000000
+    3 call_statement
+      3 call_expression
+        3 name_expression "print" global
+        3 binary_operation divide
+          3 integer_literal 1
+          3 name_expression "zero" local@1
+        3 binary_operation divide
+          3 unary_operation negate
+            3 integer_literal 1
+          3 name_expression "zero" local@1
+        3 binary_operation add
+          3 float_literal 0x3FB999999999999A
+          3 float_literal 0x3FC999999999999A
+        3 float_literal 0x430C6BF526340000
+        3 float_literal 0x4341C37937E08000
+        3 binary_operation power
+          3 integer_literal 2
+          3 integer_literal 53
+        3 binary_operation power
+          3 integer_literal 2
+          3 integer_literal 63
+        3 unary_operation negate
+          3 binary_operation power
+            3 integer_literal 2
+            3 integer_literal 63
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 float_literal 0x4008000000000000
+        4 unary_operation negate
+          4 float_literal 0x0000000000000000
+        4 binary_operation divide
+          4 integer_literal 100
+          4 integer_literal 3
+        4 binary_operation divide
+          4 integer_literal 1
+          4 integer_literal 3
+        4 binary_operation multiply
+          4 float_literal 0x7E37E43C8800759C
+          4 float_literal 0x4202A05F20000000
+        4 binary_operation multiply
+          4 unary_operation negate
+            4 float_literal 0x7E37E43C8800759C
+          4 float_literal 0x4202A05F20000000
+    5 local_statement
+      5 name_list
+        5 local_name "x"
+      5 expression_list
+        5 float_literal 0x4004000000000000
+    6 call_statement
+      6 call_expression
+        6 name_expression "print" global
+        6 unary_operation negate
+          6 name_expression "x" local@50
+        6 binary_operation floor_divide
+          6 name_expression "x" local@50
+          6 integer_literal 1
+        6 binary_operation modulo
+          6 name_expression "x" local@50
+          6 integer_literal 1
+        6 binary_operation floor_divide
+          6 unary_operation negate
+            6 name_expression "x" local@50
+          6 integer_literal 1
+        6 binary_operation modulo
+          6 unary_operation negate
+            6 name_expression "x" local@50
+          6 integer_literal 1
+        6 binary_operation power
+          6 name_expression "x" local@50
+          6 float_literal 0x3FE0000000000000
+        6 binary_operation power
+          6 integer_literal 8
+          6 parenthesized
+            6 binary_operation divide
+              6 integer_literal 1
+              6 integer_literal 3
+    7 call_statement
+      7 call_expression
+        7 name_expression "print" global
+        7 binary_operation floor_divide
+          7 integer_literal 5
+          7 name_expression "zero" local@1
+        7 binary_operation floor_divide
+          7 unary_operation negate
+            7 integer_literal 5
+          7 name_expression "zero" local@1
+        7 binary_operation modulo
+          7 integer_literal 5
+          7 parenthesized
+            7 binary_operation divide
+              7 integer_literal 1
+              7 name_expression "zero" local@1
+        7 binary_operation modulo
+          7 unary_operation negate
+            7 integer_literal 5
+          7 parenthesized
+            7 binary_operation divide
+              7 integer_literal 1
+              7 name_expression "zero" local@1
+    8 call_statement
+      8 call_expression
+        8 name_expression "print" global
+        8 binary_operation floor_divide
+          8 float_literal 0x401E000000000000
+          8 integer_literal 2
+        8 binary_operation modulo
+          8 float_literal 0x401E000000000000
+          8 integer_literal 2
+        8 binary_operation floor_divide
+          8 unary_operation negate
+            8 float_literal 0x401E000000000000
+          8 integer_literal 2
+        8 binary_operation modulo
+          8 unary_operation negate
+            8 float_literal 0x401E000000000000
+          8 integer_literal 2
+        8 binary_operation modulo
+          8 float_literal 0x401E000000000000
+          8 unary_operation negate
+            8 integer_literal 2
+    9 call_statement
+      9 call_expression
+        9 name_expression "print" global
+        9 binary_operation add
+          9 name_expression "x" local@50
+          9 integer_literal 1
+        9 binary_operation subtract
+          9 name_expression "x" local@50
+          9 integer_literal 1
+        9 binary_operation multiply
+          9 name_expression "x" local@50
+          9 integer_literal 2
+        9 binary_operation divide
+          9 name_expression "x" local@50
+          9 integer_literal 2
+        9 binary_operation floor_divide
+          9 name_expression "x" local@50
+          9 integer_literal 2
+        9 binary_operation modulo
+          9 name_expression "x" local@50
+          9 integer_literal 2
+        9 binary_operation power
+          9 name_expression "x" local@50
+          9 integer_literal 2
+        9 binary_operation power
+          9 integer_literal 2
+          9 name_expression "x" local@50
+exit 0

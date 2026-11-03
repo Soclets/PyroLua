@@ -1,0 +1,188 @@
+2 keyword local
+2 name zero
+2 =
+2 float 0.0 0x0000000000000000
+3 name print
+3 (
+3 integer 1
+3 /
+3 name zero
+3 ,
+3 -
+3 integer 1
+3 /
+3 name zero
+3 ,
+3 float 0.1 0x3FB999999999999A
+3 +
+3 float 0.2 0x3FC999999999999A
+3 ,
+3 float 1e15 0x430C6BF526340000
+3 ,
+3 float 1e16 0x4341C37937E08000
+3 ,
+3 integer 2
+3 ^
+3 integer 53
+3 ,
+3 integer 2
+3 ^
+3 integer 63
+3 ,
+3 -
+3 integer 2
+3 ^
+3 integer 63
+3 )
+4 name print
+4 (
+4 float 3.0 0x4008000000000000
+4 ,
+4 -
+4 float 0.0 0x0000000000000000
+4 ,
+4 integer 100
+4 /
+4 integer 3
+4 ,
+4 integer 1
+4 /
+4 integer 3
+4 ,
+4 float 1e300 0x7E37E43C8800759C
+4 *
+4 float 1e10 0x4202A05F20000000
+4 ,
+4 -
+4 float 1e300 0x7E37E43C8800759C
+4 *
+4 float 1e10 0x4202A05F20000000
+4 )
+5 keyword local
+5 name x
+5 =
+5 float 2.5 0x4004000000000000
+6 name print
+6 (
+6 -
+6 name x
+6 ,
+6 name x
+6 //
+6 integer 1
+6 ,
+6 name x
+6 %
+6 integer 1
+6 ,
+6 -
+6 name x
+6 //
+6 integer 1
+6 ,
+6 -
+6 name x
+6 %
+6 integer 1
+6 ,
+6 name x
+6 ^
+6 float 0.5 0x3FE0000000000000
+6 ,
+6 integer 8
+6 ^
+6 (
+6 integer 1
+6 /
+6 integer 3
+6 )
+6 )
+7 name print
+7 (
+7 integer 5
+7 //
+7 name zero
+7 ,
+7 -
+7 integer 5
+7 //
+7 name zero
+7 ,
+7 integer 5
+7 %
+7 (
+7 integer 1
+7 /
+7 name zero
+7 )
+7 ,
+7 -
+7 integer 5
+7 %
+7 (
+7 integer 1
+7 /
+7 name zero
+7 )
+7 )
+8 name print
+8 (
+8 float 7.5 0x401E000000000000
+8 //
+8 integer 2
+8 ,
+8 float 7.5 0x401E000000000000
+8 %
+8 integer 2
+8 ,
+8 -
+8 float 7.5 0x401E000000000000
+8 //
+8 integer 2
+8 ,
+8 -
+8 float 7.5 0x401E000000000000
+8 %
+8 integer 2
+8 ,
+8 float 7.5 0x401E000000000000
+8 %
+8 -
+8 integer 2
+8 )
+9 name print
+9 (
+9 name x
+9 +
+9 integer 1
+9 ,
+9 name x
+9 -
+9 integer 1
+9 ,
+9 name x
+9 *
+9 integer 2
+9 ,
+9 name x
+9 /
+9 integer 2
+9 ,
+9 name x
+9 //
+9 integer 2
+9 ,
+9 name x
+9 %
+9 integer 2
+9 ,
+9 name x
+9 ^
+9 integer 2
+9 ,
+9 integer 2
+9 ^
+9 name x
+9 )
+10 <eof>
+exit 0

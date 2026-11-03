@@ -470,6 +470,34 @@ private
               Is_Register (V, Integer (I.A))
               and then Natural (I.B) < V.Upvalues
               and then Natural (I.C) < V.Constants,
+            when Pyro.Bytecode.Add_Integer | Pyro.Bytecode.Shift_Right_Integer
+               | Pyro.Bytecode.Shift_Left_Integer =>
+              Is_Register (V, Integer (I.A))
+              and then Is_Register (V, Integer (I.B))
+              and then V.PC + 2 < V.Code,
+            when Pyro.Bytecode.Add_Constant .. Pyro.Bytecode.Bitwise_Exclusive_Or_Constant =>
+              Is_Register (V, Integer (I.A))
+              and then Is_Register (V, Integer (I.B))
+              and then Natural (I.C) < V.Constants
+              and then V.PC + 2 < V.Code,
+            when Pyro.Bytecode.Add .. Pyro.Bytecode.Shift_Right =>
+              Is_Register (V, Integer (I.A))
+              and then Is_Register (V, Integer (I.B))
+              and then Is_Register (V, Integer (I.C))
+              and then V.PC + 2 < V.Code,
+            when Pyro.Bytecode.Metamethod_Binary =>
+              Is_Register (V, Integer (I.A))
+              and then Is_Register (V, Integer (I.B))
+              and then V.PC > 0,
+            when Pyro.Bytecode.Metamethod_Binary_Integer =>
+              Is_Register (V, Integer (I.A)) and then V.PC > 0,
+            when Pyro.Bytecode.Metamethod_Binary_Constant =>
+              Is_Register (V, Integer (I.A))
+              and then Natural (I.B) < V.Constants
+              and then V.PC > 0,
+            when Pyro.Bytecode.Negate | Pyro.Bytecode.Bitwise_Not | Pyro.Bytecode.Logical_Not
+               | Pyro.Bytecode.Length =>
+              Is_Register (V, Integer (I.A)) and then Is_Register (V, Integer (I.B)),
             when Pyro.Bytecode.Set_Table_Upvalue =>
               Natural (I.A) < V.Upvalues
               and then Natural (I.B) < V.Constants
@@ -521,6 +549,18 @@ private
      Global => null,
      Pre    => Is_Live (M, Item),
      Post   => Pyro.Heap.Live_In (Objects (M), Item);
+
+   --  [puc lvm.c:OP_MMBIN] The register the arithmetic instruction before the running one
+   --  (a metamethod instruction) sets.
+   function Previous_Target (M : Machine) return Natural
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Running (M)
+       and then Current (M).Operation
+                in Pyro.Bytecode.Metamethod_Binary .. Pyro.Bytecode.Metamethod_Binary_Constant,
+     Post   => Previous_Target'Result < View (M).Registers;
 
    --  Register Number of the running frame.
    function Register (M : Machine; Number : Natural) return Value

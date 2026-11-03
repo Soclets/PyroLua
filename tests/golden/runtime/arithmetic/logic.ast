@@ -1,0 +1,63 @@
+1 function_body vararg
+  1 block
+    2 local_statement
+      2 name_list
+        2 local_name "t"
+        2 local_name "f"
+        2 local_name "n"
+      2 expression_list
+        2 true_literal
+        2 false_literal
+        2 nil_literal
+    3 call_statement
+      3 call_expression
+        3 name_expression "print" global
+        3 unary_operation logical_not
+          3 name_expression "t" local@1
+        3 unary_operation logical_not
+          3 name_expression "f" local@2
+        3 unary_operation logical_not
+          3 name_expression "n" local@3
+        3 unary_operation logical_not
+          3 integer_literal 0
+        3 unary_operation logical_not
+          3 string_literal ""
+    4 local_statement
+      4 name_list
+        4 local_name "i"
+        4 local_name "x"
+      4 expression_list
+        4 integer_literal 42
+        4 float_literal 0x4012000000000000
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 unary_operation negate
+          5 name_expression "i" local@23
+        5 unary_operation negate
+          5 name_expression "x" local@24
+        5 unary_operation negate
+          5 unary_operation negate
+            5 name_expression "i" local@23
+        5 unary_operation negate
+          5 parenthesized
+            5 unary_operation negate
+              5 name_expression "x" local@24
+        5 unary_operation negate
+          5 integer_literal 0
+        5 unary_operation negate
+          5 float_literal 0x0000000000000000
+    6 local_statement
+      6 name_list
+        6 local_name "z"
+      6 expression_list
+        6 float_literal 0x0000000000000000
+    7 call_statement
+      7 call_expression
+        7 name_expression "print" global
+        7 unary_operation negate
+          7 name_expression "z" local@48
+        7 unary_operation negate
+          7 unary_operation negate
+            7 name_expression "z" local@48
+exit 0

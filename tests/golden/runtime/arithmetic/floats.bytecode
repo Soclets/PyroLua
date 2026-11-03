@@ -1,0 +1,116 @@
+
+main <tests/corpus/runtime/arithmetic/floats.lua:0,0> (89 instructions at #1)
+0+ params, 11 slots, 1 upvalue, 2 locals, 17 constants, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	load_float	0 0
+	3	[3]	get_table_upvalue	1 0 0	; _ENV "print"
+	4	[3]	load_integer	2 1
+	5	[3]	divide   	2 2 0
+	6	[3]	metamethod_binary	2 0 11	; __div
+	7	[3]	load_integer	3 -1
+	8	[3]	divide   	3 3 0
+	9	[3]	metamethod_binary	3 0 11	; __div
+	10	[3]	load_constant	4 1	; 0.3
+	11	[3]	load_constant	5 2	; 1e+15
+	12	[3]	load_constant	6 3	; 1e+16
+	13	[3]	load_constant	7 4	; 9.007199254741e+15
+	14	[3]	load_constant	8 5	; 9.2233720368548e+18
+	15	[3]	load_constant	9 6	; -9.2233720368548e+18
+	16	[3]	call     	1 9 1	; 8 in 0 out
+	17	[4]	get_table_upvalue	1 0 0	; _ENV "print"
+	18	[4]	load_float	2 3
+	19	[4]	load_float	3 0
+	20	[4]	negate   	3 3
+	21	[4]	load_constant	4 7	; 33.333333333333
+	22	[4]	load_constant	5 8	; 0.33333333333333
+	23	[4]	load_constant	6 9	; inf
+	24	[4]	load_constant	7 10	; -inf
+	25	[4]	call     	1 7 1	; 6 in 0 out
+	26	[5]	load_constant	1 11	; 2.5
+	27	[6]	get_table_upvalue	2 0 0	; _ENV "print"
+	28	[6]	negate   	3 1
+	29	[6]	floor_divide_constant	4 1 12	; 1
+	30	[6]	metamethod_binary_constant	1 12 12 0	; __idiv 1
+	31	[6]	modulo_constant	5 1 12	; 1
+	32	[6]	metamethod_binary_constant	1 12 9 0	; __mod 1
+	33	[6]	negate   	6 1
+	34	[6]	floor_divide_constant	6 6 12	; 1
+	35	[6]	metamethod_binary_constant	6 12 12 0	; __idiv 1
+	36	[6]	negate   	7 1
+	37	[6]	modulo_constant	7 7 12	; 1
+	38	[6]	metamethod_binary_constant	7 12 9 0	; __mod 1
+	39	[6]	power_constant	8 1 13	; 0.5
+	40	[6]	metamethod_binary_constant	1 13 10 0	; __pow 0.5
+	41	[6]	load_float	9 2
+	42	[6]	call     	2 8 1	; 7 in 0 out
+	43	[7]	get_table_upvalue	2 0 0	; _ENV "print"
+	44	[7]	load_integer	3 5
+	45	[7]	floor_divide	3 3 0
+	46	[7]	metamethod_binary	3 0 12	; __idiv
+	47	[7]	load_integer	4 -5
+	48	[7]	floor_divide	4 4 0
+	49	[7]	metamethod_binary	4 0 12	; __idiv
+	50	[7]	load_integer	5 1
+	51	[7]	divide   	5 5 0
+	52	[7]	metamethod_binary	5 0 11	; __div
+	53	[7]	load_integer	6 5
+	54	[7]	modulo   	5 6 5
+	55	[7]	metamethod_binary	6 5 9	; __mod
+	56	[7]	load_integer	6 1
+	57	[7]	divide   	6 6 0
+	58	[7]	metamethod_binary	6 0 11	; __div
+	59	[7]	load_integer	7 -5
+	60	[7]	modulo   	6 7 6
+	61	[7]	metamethod_binary	7 6 9	; __mod
+	62	[7]	call     	2 5 1	; 4 in 0 out
+	63	[8]	get_table_upvalue	2 0 0	; _ENV "print"
+	64	[8]	load_float	3 3
+	65	[8]	load_constant	4 14	; 1.5
+	66	[8]	load_float	5 -4
+	67	[8]	load_constant	6 13	; 0.5
+	68	[8]	load_constant	7 15	; -0.5
+	69	[8]	call     	2 6 1	; 5 in 0 out
+	70	[9]	get_table_upvalue	2 0 0	; _ENV "print"
+	71	[9]	add_integer	3 1 1
+	72	[9]	metamethod_binary_integer	1 1 6 0	; __add
+	73	[9]	add_integer	4 1 -1
+	74	[9]	metamethod_binary_integer	1 1 7 0	; __sub
+	75	[9]	multiply_constant	5 1 16	; 2
+	76	[9]	metamethod_binary_constant	1 16 8 0	; __mul 2
+	77	[9]	divide_constant	6 1 16	; 2
+	78	[9]	metamethod_binary_constant	1 16 11 0	; __div 2
+	79	[9]	floor_divide_constant	7 1 16	; 2
+	80	[9]	metamethod_binary_constant	1 16 12 0	; __idiv 2
+	81	[9]	modulo_constant	8 1 16	; 2
+	82	[9]	metamethod_binary_constant	1 16 9 0	; __mod 2
+	83	[9]	power_constant	9 1 16	; 2
+	84	[9]	metamethod_binary_constant	1 16 10 0	; __pow 2
+	85	[9]	load_integer	10 2
+	86	[9]	power    	10 10 1
+	87	[9]	metamethod_binary	10 1 10	; __pow
+	88	[9]	call     	2 9 1	; 8 in 0 out
+	89	[9]	return_values	2 1 1	; 0 out
+constants (17) for #1:
+	0	S	"print"
+	1	F	0.3
+	2	F	1e+15
+	3	F	1e+16
+	4	F	9.007199254741e+15
+	5	F	9.2233720368548e+18
+	6	F	-9.2233720368548e+18
+	7	F	33.333333333333
+	8	F	0.33333333333333
+	9	F	inf
+	10	F	-inf
+	11	F	2.5
+	12	I	1
+	13	F	0.5
+	14	F	1.5
+	15	F	-0.5
+	16	I	2
+locals (2) for #1:
+	0	zero	3	90
+	1	x	27	90
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0

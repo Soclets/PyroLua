@@ -1,0 +1,76 @@
+2 keyword local
+2 name t
+2 ,
+2 name f
+2 ,
+2 name n
+2 =
+2 keyword true
+2 ,
+2 keyword false
+2 ,
+2 keyword nil
+3 name print
+3 (
+3 keyword not
+3 name t
+3 ,
+3 keyword not
+3 name f
+3 ,
+3 keyword not
+3 name n
+3 ,
+3 keyword not
+3 integer 0
+3 ,
+3 keyword not
+3 string ""
+3 )
+4 keyword local
+4 name i
+4 ,
+4 name x
+4 =
+4 integer 42
+4 ,
+4 float 4.5 0x4012000000000000
+5 name print
+5 (
+5 -
+5 name i
+5 ,
+5 -
+5 name x
+5 ,
+5 -
+5 -
+5 name i
+5 ,
+5 -
+5 (
+5 -
+5 name x
+5 )
+5 ,
+5 -
+5 integer 0
+5 ,
+5 -
+5 float 0.0 0x0000000000000000
+5 )
+6 keyword local
+6 name z
+6 =
+6 float 0.0 0x0000000000000000
+7 name print
+7 (
+7 -
+7 name z
+7 ,
+7 -
+7 -
+7 name z
+7 )
+8 <eof>
+exit 0

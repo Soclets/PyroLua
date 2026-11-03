@@ -1,0 +1,269 @@
+2 keyword local
+2 name max
+2 =
+2 integer 9223372036854775807
+3 keyword local
+3 name min
+3 =
+3 -
+3 name max
+3 -
+3 integer 1
+4 name print
+4 (
+4 integer 1
+4 +
+4 integer 2
+4 ,
+4 integer 7
+4 -
+4 integer 10
+4 ,
+4 integer 6
+4 *
+4 integer 7
+4 ,
+4 name max
+4 +
+4 integer 1
+4 ,
+4 name min
+4 -
+4 integer 1
+4 ,
+4 name max
+4 *
+4 integer 2
+4 )
+5 keyword local
+5 keyword function
+5 name show
+5 (
+5 name a
+5 ,
+5 name b
+5 )
+6 name print
+6 (
+6 name a
+6 ,
+6 name b
+6 ,
+6 name a
+6 //
+6 name b
+6 ,
+6 name a
+6 %
+6 name b
+6 ,
+6 name a
+6 /
+6 name b
+6 )
+7 keyword end
+8 name show
+8 (
+8 integer 7
+8 ,
+8 integer 3
+8 )
+8 name show
+8 (
+8 -
+8 integer 7
+8 ,
+8 integer 3
+8 )
+8 name show
+8 (
+8 integer 7
+8 ,
+8 -
+8 integer 3
+8 )
+8 name show
+8 (
+8 -
+8 integer 7
+8 ,
+8 -
+8 integer 3
+8 )
+8 name show
+8 (
+8 integer 0
+8 ,
+8 integer 5
+8 )
+8 name show
+8 (
+8 name min
+8 ,
+8 -
+8 integer 1
+8 )
+9 name print
+9 (
+9 name min
+9 //
+9 -
+9 integer 1
+9 ,
+9 name min
+9 %
+9 -
+9 integer 1
+9 ,
+9 -
+9 name min
+9 ,
+9 -
+9 -
+9 integer 5
+9 )
+10 name print
+10 (
+10 integer 2
+10 ^
+10 integer 10
+10 ,
+10 integer 10
+10 /
+10 integer 2
+10 ,
+10 integer 3
+10 //
+10 float 0.0 0x0000000000000000
+10 ,
+10 -
+10 integer 3
+10 //
+10 float 0.0 0x0000000000000000
+10 )
+11 keyword local
+11 name x
+11 =
+11 integer 5
+12 name print
+12 (
+12 name x
+12 +
+12 integer 1
+12 ,
+12 name x
+12 -
+12 integer 1
+12 ,
+12 name x
+12 *
+12 name x
+12 ,
+12 name x
+12 //
+12 integer 2
+12 ,
+12 name x
+12 %
+12 integer 2
+12 ,
+12 name x
+12 /
+12 integer 2
+12 ,
+12 name x
+12 ^
+12 integer 2
+12 )
+13 name print
+13 (
+13 name x
+13 +
+13 float 0.5 0x3FE0000000000000
+13 ,
+13 name x
+13 -
+13 float 0.5 0x3FE0000000000000
+13 ,
+13 name x
+13 *
+13 float 0.5 0x3FE0000000000000
+13 ,
+13 name x
+13 //
+13 float 0.5 0x3FE0000000000000
+13 ,
+13 name x
+13 %
+13 float 0.5 0x3FE0000000000000
+13 )
+14 name print
+14 (
+14 integer 1
+14 +
+14 float 1.0 0x3FF0000000000000
+14 ,
+14 integer 3
+14 -
+14 float 1.0 0x3FF0000000000000
+14 ,
+14 integer 2
+14 *
+14 float 2.5 0x4004000000000000
+14 ,
+14 integer 7
+14 //
+14 float 2.0 0x4000000000000000
+14 ,
+14 integer 7
+14 %
+14 float 2.5 0x4004000000000000
+14 ,
+14 -
+14 integer 7
+14 %
+14 float 2.5 0x4004000000000000
+14 ,
+14 integer 7
+14 %
+14 -
+14 float 2.5 0x4004000000000000
+14 )
+15 name print
+15 (
+15 name x
+15 +
+15 integer 300
+15 ,
+15 name x
+15 -
+15 integer 300
+15 ,
+15 integer 300
+15 -
+15 name x
+15 ,
+15 name x
+15 *
+15 integer 1000
+15 ,
+15 name x
+15 //
+15 integer 7
+15 ,
+15 integer 7
+15 //
+15 name x
+15 ,
+15 name x
+15 %
+15 -
+15 integer 3
+15 ,
+15 -
+15 integer 3
+15 %
+15 name x
+15 )
+16 <eof>
+exit 0

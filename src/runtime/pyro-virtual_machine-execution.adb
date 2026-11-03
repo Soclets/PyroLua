@@ -3,6 +3,7 @@
 --  The dispatch loop's step: decodes the running frame's instruction and runs its handler.
 
 with Pyro.Floats;
+with Pyro.Virtual_Machine.Arithmetic;
 
 package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
 
@@ -90,6 +91,12 @@ package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
                end if;
                Next (M);
             end;
+         when Add_Integer .. Shift_Right =>
+            Pyro.Virtual_Machine.Arithmetic.Execute_Binary (M, Budget, I);
+         when Metamethod_Binary .. Metamethod_Binary_Constant =>
+            Pyro.Virtual_Machine.Arithmetic.Execute_Metamethod (M, Budget, I);
+         when Negate .. Logical_Not =>
+            Pyro.Virtual_Machine.Arithmetic.Execute_Unary (M, Budget, I);
          when Jump =>
             Next (M, Integer (I.Wide) - Offset_sJ);
          when Closure =>

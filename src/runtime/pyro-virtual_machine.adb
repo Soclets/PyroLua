@@ -725,6 +725,18 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
         (Instruction_Valid (M.Program.all, P, M.Frames (M.Depth).PC, Current (M)));
    end Lemma_Fits;
 
+   function Previous_Target (M : Machine) return Natural is
+      pragma Annotate (GNATprove, Unhide_Info, "Expression_Function_Body", Instruction_Valid);
+      P : constant Prototype_Index := M.Frames (M.Depth).Prototype;
+   begin
+      Lemma_Frame (M, M.Depth);
+      Lemma_Valid_Prototype (M.Program.all, P);
+      pragma Assert
+        (Instruction_Valid (M.Program.all, P, M.Frames (M.Depth).PC, Current (M)));
+      pragma Assert (M.Frames (M.Depth).PC > 0);
+      return Natural (Instruction_At (M.Program.all, P, M.Frames (M.Depth).PC - 1).A);
+   end Previous_Target;
+
    --  The place in the stack of register Number of the running frame.
    function Register_Place (M : Machine; Number : Natural) return Positive
    with

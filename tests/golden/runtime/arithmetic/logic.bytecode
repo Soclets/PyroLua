@@ -1,0 +1,47 @@
+
+main <tests/corpus/runtime/arithmetic/logic.lua:0,0> (31 instructions at #1)
+0+ params, 12 slots, 1 upvalue, 6 locals, 2 constants, 0 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	load_true	0
+	3	[2]	load_false	1
+	4	[2]	load_nil 	2 0	; 1 out
+	5	[3]	get_table_upvalue	3 0 0	; _ENV "print"
+	6	[3]	logical_not	4 0
+	7	[3]	logical_not	5 1
+	8	[3]	logical_not	6 2
+	9	[3]	load_false	7
+	10	[3]	load_false	8
+	11	[3]	call     	3 6 1	; 5 in 0 out
+	12	[4]	load_integer	3 42
+	13	[4]	load_constant	4 1	; 4.5
+	14	[5]	get_table_upvalue	5 0 0	; _ENV "print"
+	15	[5]	negate   	6 3
+	16	[5]	negate   	7 4
+	17	[5]	negate   	8 3
+	18	[5]	negate   	8 8
+	19	[5]	negate   	9 4
+	20	[5]	negate   	9 9
+	21	[5]	load_integer	10 0
+	22	[5]	load_float	11 0
+	23	[5]	negate   	11 11
+	24	[5]	call     	5 7 1	; 6 in 0 out
+	25	[6]	load_float	5 0
+	26	[7]	get_table_upvalue	6 0 0	; _ENV "print"
+	27	[7]	negate   	7 5
+	28	[7]	negate   	8 5
+	29	[7]	negate   	8 8
+	30	[7]	call     	6 3 1	; 2 in 0 out
+	31	[7]	return_values	6 1 1	; 0 out
+constants (2) for #1:
+	0	S	"print"
+	1	F	4.5
+locals (6) for #1:
+	0	t	5	32
+	1	f	5	32
+	2	n	5	32
+	3	i	14	32
+	4	x	14	32
+	5	z	26	32
+upvalues (1) for #1:
+	0	_ENV	1	0
+exit 0
