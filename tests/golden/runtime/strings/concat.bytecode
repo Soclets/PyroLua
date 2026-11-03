@@ -1,0 +1,305 @@
+
+main <tests/corpus/runtime/strings/concat.lua:0,0> (162 instructions at #8)
+0+ params, 14 slots, 1 upvalue, 17 locals, 18 constants, 6 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	load_constant	0 0	; "x"
+	3	[2]	load_constant	1 1	; "y"
+	4	[2]	load_constant	2 2	; "z"
+	5	[3]	get_table_upvalue	3 0 3	; _ENV "print"
+	6	[3]	move     	4 0
+	7	[3]	move     	5 1
+	8	[3]	concatenate	4 2
+	9	[3]	move     	5 0
+	10	[3]	move     	6 1
+	11	[3]	move     	7 2
+	12	[3]	concatenate	5 3
+	13	[3]	move     	6 0
+	14	[3]	load_integer	7 1
+	15	[3]	load_constant	8 4	; 2.5
+	16	[3]	concatenate	6 3
+	17	[3]	load_integer	7 1
+	18	[3]	load_integer	8 2
+	19	[3]	concatenate	7 2
+	20	[3]	load_float	8 0
+	21	[3]	negate   	8 8
+	22	[3]	load_constant	9 5	; ""
+	23	[3]	concatenate	8 2
+	24	[3]	load_constant	9 6	; 9.2233720368548e+18
+	25	[3]	load_constant	10 5	; ""
+	26	[3]	concatenate	9 2
+	27	[3]	load_integer	10 3
+	28	[3]	load_constant	11 5	; ""
+	29	[3]	concatenate	10 2
+	30	[3]	call     	3 8 1	; 7 in 0 out
+	31	[4]	load_constant	3 5	; ""
+	32	[5]	load_integer	4 1
+	33	[6]	less_equal_integer	4 10 0
+	34	[6]	jump     	8	; to 43
+	35	[6]	move     	5 3
+	36	[6]	move     	6 4
+	37	[6]	load_constant	7 7	; ","
+	38	[6]	concatenate	5 3
+	39	[6]	move     	3 5
+	40	[6]	add_integer	4 4 1
+	41	[6]	metamethod_binary_integer	4 1 6 0	; __add
+	42	[6]	jump     	-10	; to 33
+	43	[7]	get_table_upvalue	5 0 3	; _ENV "print"
+	44	[7]	move     	6 3
+	45	[7]	length   	7 3
+	46	[7]	call     	5 3 1	; 2 in 0 out
+	47	[8]	get_table_upvalue	5 0 3	; _ENV "print"
+	48	[8]	load_constant	6 5	; ""
+	49	[8]	load_constant	7 5	; ""
+	50	[8]	concatenate	6 2
+	51	[8]	load_constant	7 5	; ""
+	52	[8]	load_constant	8 5	; ""
+	53	[8]	concatenate	7 2
+	54	[8]	length   	7 7
+	55	[8]	call     	5 3 1	; 2 in 0 out
+	56	[9]	get_table_upvalue	5 0 8	; _ENV "setmetatable"
+	57	[9]	new_table	6 0 0	; 0
+	58	[9]	extra_argument	0
+	59	[9]	new_table	7 1 0	; 0
+	60	[9]	extra_argument	0
+	61	[12]	closure  	8 0	; #2
+	62	[12]	set_field	7 9 8	; "__concat"
+	63	[9]	call     	5 3 2	; 2 in 1 out
+	64	[13]	get_table_upvalue	6 0 3	; _ENV "print"
+	65	[13]	move     	7 5
+	66	[13]	load_constant	8 10	; "s"
+	67	[13]	concatenate	7 2
+	68	[13]	load_constant	8 10	; "s"
+	69	[13]	move     	9 5
+	70	[13]	concatenate	8 2
+	71	[13]	load_integer	9 1
+	72	[13]	move     	10 5
+	73	[13]	concatenate	9 2
+	74	[13]	move     	10 5
+	75	[13]	move     	11 5
+	76	[13]	concatenate	10 2
+	77	[13]	call     	6 5 1	; 4 in 0 out
+	78	[14]	get_table_upvalue	6 0 3	; _ENV "print"
+	79	[14]	load_constant	7 11	; "a"
+	80	[14]	load_constant	8 12	; "b"
+	81	[14]	move     	9 5
+	82	[14]	load_constant	10 13	; "c"
+	83	[14]	load_constant	11 14	; "d"
+	84	[14]	concatenate	7 5
+	85	[14]	call     	6 2 1	; 1 in 0 out
+	86	[15]	get_table_upvalue	6 0 3	; _ENV "print"
+	87	[15]	load_constant	7 11	; "a"
+	88	[15]	move     	8 5
+	89	[15]	load_constant	9 12	; "b"
+	90	[15]	move     	10 5
+	91	[15]	load_constant	11 13	; "c"
+	92	[15]	concatenate	7 5
+	93	[15]	call     	6 2 1	; 1 in 0 out
+	94	[16]	new_table	6 0 0	; 0
+	95	[16]	extra_argument	0
+	96	[17]	load_integer	7 1
+	97	[17]	load_integer	8 5
+	98	[17]	load_integer	9 1
+	99	[17]	for_prepare	7 4	; exit to 105
+	100	[17]	load_constant	11 15	; "p"
+	101	[17]	move     	12 10
+	102	[17]	concatenate	11 2
+	103	[17]	set_table	6 10 11
+	104	[17]	for_loop 	7 5	; to 100
+	105	[18]	get_table_upvalue	7 0 3	; _ENV "print"
+	106	[18]	get_integer	8 6 1
+	107	[18]	get_integer	9 6 2
+	108	[18]	get_integer	10 6 3
+	109	[18]	get_integer	11 6 4
+	110	[18]	get_integer	12 6 5
+	111	[18]	concatenate	8 5
+	112	[18]	call     	7 2 1	; 1 in 0 out
+	113	[19]	load_constant	7 16	; "abc"
+	114	[20]	load_integer	8 1
+	115	[20]	load_integer	9 10
+	116	[20]	load_integer	10 1
+	117	[20]	for_prepare	8 4	; exit to 123
+	118	[20]	move     	12 7
+	119	[20]	move     	13 7
+	120	[20]	concatenate	12 2
+	121	[20]	move     	7 12
+	122	[20]	for_loop 	8 5	; to 118
+	123	[21]	get_table_upvalue	8 0 3	; _ENV "print"
+	124	[21]	length   	9 7
+	125	[21]	call     	8 2 1	; 1 in 0 out
+	126	[22]	get_table_upvalue	8 0 8	; _ENV "setmetatable"
+	127	[22]	new_table	9 0 0	; 0
+	128	[22]	extra_argument	0
+	129	[22]	new_table	10 1 0	; 0
+	130	[22]	extra_argument	0
+	131	[22]	closure  	11 1	; #3
+	132	[22]	set_field	10 9 11	; "__concat"
+	133	[22]	call     	8 3 2	; 2 in 1 out
+	134	[23]	get_table_upvalue	9 0 3	; _ENV "print"
+	135	[23]	move     	10 8
+	136	[23]	load_constant	11 0	; "x"
+	137	[23]	concatenate	10 2
+	138	[23]	load_constant	11 0	; "x"
+	139	[23]	move     	12 8
+	140	[23]	concatenate	11 2
+	141	[23]	call     	9 3 1	; 2 in 0 out
+	142	[24]	get_table_upvalue	9 0 3	; _ENV "print"
+	143	[24]	get_table_upvalue	10 0 17	; _ENV "pcall"
+	144	[24]	closure  	11 2	; #4
+	145	[24]	call     	10 2 0	; 1 in all out
+	146	[24]	call     	9 0 1	; all in 0 out
+	147	[25]	get_table_upvalue	9 0 3	; _ENV "print"
+	148	[25]	get_table_upvalue	10 0 17	; _ENV "pcall"
+	149	[25]	closure  	11 3	; #5
+	150	[25]	call     	10 2 0	; 1 in all out
+	151	[25]	call     	9 0 1	; all in 0 out
+	152	[26]	get_table_upvalue	9 0 3	; _ENV "print"
+	153	[26]	get_table_upvalue	10 0 17	; _ENV "pcall"
+	154	[26]	closure  	11 4	; #6
+	155	[26]	call     	10 2 0	; 1 in all out
+	156	[26]	call     	9 0 1	; all in 0 out
+	157	[27]	get_table_upvalue	9 0 3	; _ENV "print"
+	158	[27]	get_table_upvalue	10 0 17	; _ENV "pcall"
+	159	[27]	closure  	11 5	; #7
+	160	[27]	call     	10 2 0	; 1 in all out
+	161	[27]	call     	9 0 1	; all in 0 out
+	162	[27]	return_values	9 1 1	; 0 out
+constants (18) for #8:
+	0	S	"x"
+	1	S	"y"
+	2	S	"z"
+	3	S	"print"
+	4	F	2.5
+	5	S	""
+	6	F	9.2233720368548e+18
+	7	S	","
+	8	S	"setmetatable"
+	9	S	"__concat"
+	10	S	"s"
+	11	S	"a"
+	12	S	"b"
+	13	S	"c"
+	14	S	"d"
+	15	S	"p"
+	16	S	"abc"
+	17	S	"pcall"
+locals (17) for #8:
+	0	a	5	163
+	1	b	5	163
+	2	c	5	163
+	3	s	32	163
+	4	i	33	163
+	5	V	64	163
+	6	parts	96	163
+	7	(for state)	99	105
+	8	(for state)	99	105
+	9	(for state)	99	105
+	10	k	100	104
+	11	long	114	163
+	12	(for state)	117	123
+	13	(for state)	117	123
+	14	(for state)	117	123
+	15	k	118	122
+	16	t	134	163
+upvalues (1) for #8:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/strings/concat.lua:9,12> (11 instructions at #2)
+2 params, 7 slots, 1 upvalue, 3 locals, 1 constant, 1 function
+	1	[10]	closure  	2 0	; #1
+	2	[11]	move     	3 2
+	3	[11]	move     	4 0
+	4	[11]	call     	3 2 2	; 1 in 1 out
+	5	[11]	load_constant	4 0	; "+"
+	6	[11]	move     	5 2
+	7	[11]	move     	6 1
+	8	[11]	call     	5 2 2	; 1 in 1 out
+	9	[11]	concatenate	3 3
+	10	[11]	return_one	3
+	11	[12]	return_none	
+constants (1) for #2:
+	0	S	"+"
+locals (3) for #2:
+	0	l	1	12
+	1	r	1	12
+	2	name	2	12
+upvalues (1) for #2:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/strings/concat.lua:10,10> (9 instructions at #1)
+1 param, 3 slots, 1 upvalue, 1 local, 3 constants, 0 functions
+	1	[10]	get_table_upvalue	1 0 0	; _ENV "type"
+	2	[10]	move     	2 0
+	3	[10]	call     	1 2 2	; 1 in 1 out
+	4	[10]	equal_constant	1 1 0	; "table"
+	5	[10]	jump     	2	; to 8
+	6	[10]	load_constant	1 2	; "V"
+	7	[10]	return_one	1
+	8	[10]	return_one	0
+	9	[10]	return_none	
+constants (3) for #1:
+	0	S	"type"
+	1	S	"table"
+	2	S	"V"
+locals (1) for #1:
+	0	x	1	10
+upvalues (1) for #1:
+	0	_ENV	0	0
+
+function <tests/corpus/runtime/strings/concat.lua:22,22> (3 instructions at #3)
+0 params, 2 slots, 0 upvalues, 0 locals, 0 constants, 0 functions
+	1	[22]	load_integer	0 42
+	2	[22]	return_one	0
+	3	[22]	return_none	
+constants (0) for #3:
+locals (0) for #3:
+upvalues (0) for #3:
+
+function <tests/corpus/runtime/strings/concat.lua:24,24> (6 instructions at #4)
+0 params, 2 slots, 0 upvalues, 0 locals, 1 constant, 0 functions
+	1	[24]	load_constant	0 0	; "a"
+	2	[24]	new_table	1 0 0	; 0
+	3	[24]	extra_argument	0
+	4	[24]	concatenate	0 2
+	5	[24]	return_one	0
+	6	[24]	return_none	
+constants (1) for #4:
+	0	S	"a"
+locals (0) for #4:
+upvalues (0) for #4:
+
+function <tests/corpus/runtime/strings/concat.lua:25,25> (6 instructions at #5)
+0 params, 2 slots, 0 upvalues, 0 locals, 1 constant, 0 functions
+	1	[25]	new_table	0 0 0	; 0
+	2	[25]	extra_argument	0
+	3	[25]	load_constant	1 0	; "a"
+	4	[25]	concatenate	0 2
+	5	[25]	return_one	0
+	6	[25]	return_none	
+constants (1) for #5:
+	0	S	"a"
+locals (0) for #5:
+upvalues (0) for #5:
+
+function <tests/corpus/runtime/strings/concat.lua:26,26> (5 instructions at #6)
+0 params, 2 slots, 0 upvalues, 0 locals, 0 constants, 0 functions
+	1	[26]	load_integer	0 1
+	2	[26]	load_nil 	1 0	; 1 out
+	3	[26]	concatenate	0 2
+	4	[26]	return_one	0
+	5	[26]	return_none	
+constants (0) for #6:
+locals (0) for #6:
+upvalues (0) for #6:
+
+function <tests/corpus/runtime/strings/concat.lua:27,27> (5 instructions at #7)
+0 params, 2 slots, 0 upvalues, 0 locals, 1 constant, 0 functions
+	1	[27]	load_true	0
+	2	[27]	load_constant	1 0	; "x"
+	3	[27]	concatenate	0 2
+	4	[27]	return_one	0
+	5	[27]	return_none	
+constants (1) for #7:
+	0	S	"x"
+locals (0) for #7:
+upvalues (0) for #7:
+exit 0

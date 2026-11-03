@@ -504,9 +504,10 @@ private
    type Frame_Kind is (Lua_Frame, Host_Frame);
 
    --  What a Lua frame does when the metamethod it called returns: nothing, store the result
-   --  in register Target, or skip the jump after the comparison it ran unless the result's
-   --  truth is Expected.
-   type Pending_Action is (No_Action, Store_Result, Test_Result);
+   --  in register Target, skip the jump after the comparison it ran unless the result's
+   --  truth is Expected, or store the result in register Target and run its CONCAT again
+   --  for the Resume values left.
+   type Pending_Action is (No_Action, Store_Result, Test_Result, Concat_Result);
 
    --  [puc lstate.h:CallInfo] A call in progress. The function is at Func in the stack; a Lua
    --  function's registers follow it up to Top (excluded), a host function's arguments up to
@@ -530,6 +531,7 @@ private
       Action    : Pending_Action := No_Action;
       Target    : Natural := 0;
       Expected  : Boolean := False;
+      Resume    : Natural range 0 .. 255 := 0;
    end record;
 
    --  [limit LUAI_MAXCCALLS] The deepest nesting of calls, Lua and host.
@@ -657,6 +659,8 @@ private
             when Pyro.Bytecode.Generic_For_Loop =>
               Is_Register (V, Integer (I.A) + 4)
               and then V.PC + 1 - Integer (I.Wide) in 0 .. V.Code - 1,
+            when Pyro.Bytecode.Concatenate =>
+              Integer (I.B) >= 1 and then Is_Register (V, Integer (I.A) + Integer (I.B) - 1),
             when Pyro.Bytecode.Close =>
               Natural (I.A) <= V.Registers,
             when Pyro.Bytecode.Load_Nil =>
@@ -830,7 +834,8 @@ private
       Arguments : Value_List;
       Action    : Pending_Action;
       Target    : Natural;
-      Expected  : Boolean)
+      Expected  : Boolean;
+      Resume    : Natural := 0)
    with
      Global => null,
      Pre    =>
@@ -841,8 +846,9 @@ private
        and then Arguments'Length in 1 .. 3
        and then All_Live (M, Arguments)
        and then View (M).PC + 1 < View (M).Code
-       and then (if Action = Store_Result then Target < View (M).Registers)
-       and then (if Action = Test_Result then View (M).PC + 2 < View (M).Code),
+       and then (if Action in Store_Result | Concat_Result then Target < View (M).Registers)
+       and then (if Action = Test_Result then View (M).PC + 2 < View (M).Code)
+       and then Resume <= 255,
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  [puc lvm.c:luaV_finishget] Register Target of the running frame gets Object[Key],
@@ -924,6 +930,26 @@ private
        and then First in 0 .. 2 ** 40
        and then Skip <= 1
        and then View (M).PC + 1 + Skip < View (M).Code,
+     Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
+
+   --  [puc lvm.c:luaV_concat] Register First gets the concatenation of the Count registers
+   --  from First (or of the values a __concat metamethod left, when the frame resumes its
+   --  CONCAT): strings and numbers joined right to left, __concat for anything else. The
+   --  running frame moves on to its next instruction, or calls the metamethod.
+   procedure Concatenate
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      First  : Natural;
+      Count  : Positive)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Running (M)
+       and then Count <= 255
+       and then First < View (M).Registers
+       and then Count <= View (M).Registers - First
+       and then View (M).PC + 1 < View (M).Code,
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
 
    --  [puc lvm.c:OP_CLOSE] Closes the open upvalues of the running frame's registers from

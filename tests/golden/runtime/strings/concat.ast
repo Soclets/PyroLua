@@ -1,0 +1,330 @@
+1 function_body vararg
+  1 block
+    2 local_statement
+      2 name_list
+        2 local_name "a"
+        2 local_name "b"
+        2 local_name "c"
+      2 expression_list
+        2 string_literal "x"
+        2 string_literal "y"
+        2 string_literal "z"
+    3 call_statement
+      3 call_expression
+        3 name_expression "print" global
+        3 binary_operation concatenate
+          3 name_expression "a" local@1
+          3 name_expression "b" local@2
+        3 binary_operation concatenate
+          3 name_expression "a" local@1
+          3 binary_operation concatenate
+            3 name_expression "b" local@2
+            3 name_expression "c" local@3
+        3 binary_operation concatenate
+          3 name_expression "a" local@1
+          3 binary_operation concatenate
+            3 integer_literal 1
+            3 float_literal 0x4004000000000000
+        3 binary_operation concatenate
+          3 integer_literal 1
+          3 integer_literal 2
+        3 binary_operation concatenate
+          3 unary_operation negate
+            3 float_literal 0x0000000000000000
+          3 string_literal ""
+        3 binary_operation concatenate
+          3 binary_operation power
+            3 integer_literal 2
+            3 integer_literal 63
+          3 string_literal ""
+        3 binary_operation concatenate
+          3 binary_operation floor_divide
+            3 integer_literal 10
+            3 integer_literal 3
+          3 string_literal ""
+    4 local_statement
+      4 name_list
+        4 local_name "s"
+      4 expression_list
+        4 string_literal ""
+    5 local_statement
+      5 name_list
+        5 local_name "i"
+      5 expression_list
+        5 integer_literal 1
+    6 while_statement
+      6 binary_operation less_equal
+        6 name_expression "i" local@48
+        6 integer_literal 10
+      6 block
+        6 assignment
+          6 expression_list
+            6 assignment_target "s"
+              6 name_expression "s" local@43
+          6 expression_list
+            6 binary_operation concatenate
+              6 name_expression "s" local@43
+              6 binary_operation concatenate
+                6 name_expression "i" local@48
+                6 string_literal ","
+        6 assignment
+          6 expression_list
+            6 assignment_target "i"
+              6 name_expression "i" local@48
+          6 expression_list
+            6 binary_operation add
+              6 name_expression "i" local@48
+              6 integer_literal 1
+    7 call_statement
+      7 call_expression
+        7 name_expression "print" global
+        7 name_expression "s" local@43
+        7 unary_operation length
+          7 name_expression "s" local@43
+    8 call_statement
+      8 call_expression
+        8 name_expression "print" global
+        8 binary_operation concatenate
+          8 string_literal ""
+          8 string_literal ""
+        8 unary_operation length
+          8 parenthesized
+            8 binary_operation concatenate
+              8 string_literal ""
+              8 string_literal ""
+    9 local_statement
+      9 name_list
+        9 local_name "V"
+      9 expression_list
+        9 call_expression
+          9 name_expression "setmetatable" global
+          9 table_constructor
+          9 table_constructor
+            9 named_field name-key
+              9 string_literal "__concat"
+              9 function_expression
+                9 function_body
+                  9 name_list
+                    9 local_name "l"
+                    9 local_name "r"
+                  10 block
+                    10 local_function
+                      10 local_name "name"
+                      10 function_body
+                        10 name_list
+                          10 local_name "x"
+                        10 block
+                          10 if_statement
+                            10 if_clause
+                              10 binary_operation equal
+                                10 call_expression
+                                  10 name_expression "type" global
+                                  10 name_expression "x" local@102
+                                10 string_literal "table"
+                              10 block
+                                10 return_statement
+                                  10 expression_list
+                                    10 string_literal "V"
+                          10 return_statement
+                            10 expression_list
+                              10 name_expression "x" local@102
+                    11 return_statement
+                      11 expression_list
+                        11 binary_operation concatenate
+                          11 call_expression
+                            11 name_expression "name" local@101
+                            11 name_expression "l" local@98
+                          11 binary_operation concatenate
+                            11 string_literal "+"
+                            11 call_expression
+                              11 name_expression "name" local@101
+                              11 name_expression "r" local@99
+    13 call_statement
+      13 call_expression
+        13 name_expression "print" global
+        13 binary_operation concatenate
+          13 name_expression "V" local@93
+          13 string_literal "s"
+        13 binary_operation concatenate
+          13 string_literal "s"
+          13 name_expression "V" local@93
+        13 binary_operation concatenate
+          13 integer_literal 1
+          13 name_expression "V" local@93
+        13 binary_operation concatenate
+          13 name_expression "V" local@93
+          13 name_expression "V" local@93
+    14 call_statement
+      14 call_expression
+        14 name_expression "print" global
+        14 binary_operation concatenate
+          14 string_literal "a"
+          14 binary_operation concatenate
+            14 string_literal "b"
+            14 binary_operation concatenate
+              14 name_expression "V" local@93
+              14 binary_operation concatenate
+                14 string_literal "c"
+                14 string_literal "d"
+    15 call_statement
+      15 call_expression
+        15 name_expression "print" global
+        15 binary_operation concatenate
+          15 string_literal "a"
+          15 binary_operation concatenate
+            15 name_expression "V" local@93
+            15 binary_operation concatenate
+              15 string_literal "b"
+              15 binary_operation concatenate
+                15 name_expression "V" local@93
+                15 string_literal "c"
+    16 local_statement
+      16 name_list
+        16 local_name "parts"
+      16 expression_list
+        16 table_constructor
+    17 numeric_for
+      17 local_name "k"
+      17 expression_list
+        17 integer_literal 1
+        17 integer_literal 5
+      17 block
+        17 assignment
+          17 expression_list
+            17 assignment_target
+              17 index_expression
+                17 name_expression "parts" local@179
+                17 name_expression "k" local@184
+          17 expression_list
+            17 binary_operation concatenate
+              17 string_literal "p"
+              17 name_expression "k" local@184
+    18 call_statement
+      18 call_expression
+        18 name_expression "print" global
+        18 binary_operation concatenate
+          18 index_expression
+            18 name_expression "parts" local@179
+            18 integer_literal 1
+          18 binary_operation concatenate
+            18 index_expression
+              18 name_expression "parts" local@179
+              18 integer_literal 2
+            18 binary_operation concatenate
+              18 index_expression
+                18 name_expression "parts" local@179
+                18 integer_literal 3
+              18 binary_operation concatenate
+                18 index_expression
+                  18 name_expression "parts" local@179
+                  18 integer_literal 4
+                18 index_expression
+                  18 name_expression "parts" local@179
+                  18 integer_literal 5
+    19 local_statement
+      19 name_list
+        19 local_name "long"
+      19 expression_list
+        19 string_literal "abc"
+    20 numeric_for
+      20 local_name "k"
+      20 expression_list
+        20 integer_literal 1
+        20 integer_literal 10
+      20 block
+        20 assignment
+          20 expression_list
+            20 assignment_target "long"
+              20 name_expression "long" local@222
+          20 expression_list
+            20 binary_operation concatenate
+              20 name_expression "long" local@222
+              20 name_expression "long" local@222
+    21 call_statement
+      21 call_expression
+        21 name_expression "print" global
+        21 unary_operation length
+          21 name_expression "long" local@222
+    22 local_statement
+      22 name_list
+        22 local_name "t"
+      22 expression_list
+        22 call_expression
+          22 name_expression "setmetatable" global
+          22 table_constructor
+          22 table_constructor
+            22 named_field name-key
+              22 string_literal "__concat"
+              22 function_expression
+                22 function_body
+                  22 name_list
+                  22 block
+                    22 return_statement
+                      22 expression_list
+                        22 integer_literal 42
+    23 call_statement
+      23 call_expression
+        23 name_expression "print" global
+        23 binary_operation concatenate
+          23 name_expression "t" local@246
+          23 string_literal "x"
+        23 binary_operation concatenate
+          23 string_literal "x"
+          23 name_expression "t" local@246
+    24 call_statement
+      24 call_expression
+        24 name_expression "print" global
+        24 call_expression
+          24 name_expression "pcall" global
+          24 function_expression
+            24 function_body
+              24 name_list
+              24 block
+                24 return_statement
+                  24 expression_list
+                    24 binary_operation concatenate
+                      24 string_literal "a"
+                      24 table_constructor
+    25 call_statement
+      25 call_expression
+        25 name_expression "print" global
+        25 call_expression
+          25 name_expression "pcall" global
+          25 function_expression
+            25 function_body
+              25 name_list
+              25 block
+                25 return_statement
+                  25 expression_list
+                    25 binary_operation concatenate
+                      25 table_constructor
+                      25 string_literal "a"
+    26 call_statement
+      26 call_expression
+        26 name_expression "print" global
+        26 call_expression
+          26 name_expression "pcall" global
+          26 function_expression
+            26 function_body
+              26 name_list
+              26 block
+                26 return_statement
+                  26 expression_list
+                    26 binary_operation concatenate
+                      26 integer_literal 1
+                      26 nil_literal
+    27 call_statement
+      27 call_expression
+        27 name_expression "print" global
+        27 call_expression
+          27 name_expression "pcall" global
+          27 function_expression
+            27 function_body
+              27 name_list
+              27 block
+                27 return_statement
+                  27 expression_list
+                    27 binary_operation concatenate
+                      27 true_literal
+                      27 string_literal "x"
+exit 0

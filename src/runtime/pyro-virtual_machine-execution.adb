@@ -44,6 +44,8 @@ package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
             else
                Raise_Runtime_Error (M, Budget, "internal error: bad constant");
             end if;
+         when Concatenate =>
+            Concatenate (M, Budget, A, B);
          when Close =>
             Close_From (M, A);
          when Load_False =>

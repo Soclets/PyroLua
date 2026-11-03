@@ -93,8 +93,9 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
                               = F.Func + 1 + Natural (Header (Program, F.Prototype).Stack_Size)
                      and then F.PC < Code_Length (Program, F.Prototype)
                      and then F.Extra < F.Func
-                     and then (if F.Action = Store_Result
+                     and then (if F.Action in Store_Result | Concat_Result
                                then F.Target < F.Top - F.Func - 1)
+                     and then (if F.Action = Concat_Result then F.PC >= 1)
                      and then (if F.Action = Test_Result
                                then F.PC + 1 < Code_Length (Program, F.Prototype)),
                    when Host_Frame => True))
@@ -1590,6 +1591,13 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
                Set_Top_Frame
                  (M.Frames.all, M.Depth, (Caller with delta Action => No_Action), M.Stack'Last,
                   M.Program.all);
+            elsif Caller.Action = Concat_Result then
+               --  [puc lvm.c:luaV_finishOp] The CONCAT goes on with the values left.
+               Store_Value (M.Stack.all, M.Heap, Caller.Func + 1 + Caller.Target, Result);
+               Set_Top_Frame
+                 (M.Frames.all, M.Depth,
+                  (Caller with delta Action => No_Action, PC => Caller.PC - 1), M.Stack'Last,
+                  M.Program.all);
             else
                Set_Top_Frame
                  (M.Frames.all, M.Depth,
@@ -1696,7 +1704,8 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
              Protect   => False,
              Action    => No_Action,
              Target    => 0,
-             Expected  => False),
+             Expected  => False,
+             Resume    => 0),
             M.Stack'Last, M.Program.all, Success);
          if not Success then
             Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
@@ -1729,7 +1738,8 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
              Protect   => False,
              Action    => No_Action,
              Target    => 0,
-             Expected  => False),
+             Expected  => False,
+             Resume    => 0),
             M.Stack'Last, M.Program.all, Success);
          if not Success then
             Throw_Message (M, Budget, Position_Of (M, 1) & "stack overflow");
@@ -1948,6 +1958,161 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Advance (M, 0);
    end Make_Closure;
 
+   --  Item can be joined by concatenation: a string or a number.
+   function Joinable (M : Machine; Item : Value) return Boolean
+   is (Is_String (M, Item) or else Item.Kind in Integer_Value | Float_Value);
+
+   --  The text concatenation joins for Item: its bytes, or a number as tostring writes it.
+   function Piece (M : Machine; Item : Value) return String
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Canonical (Item) and then Joinable (M, Item),
+     Post   =>
+       Piece'Result'First = 1 and then Piece'Result'Length <= Pyro.Strings.Maximum_String_Length
+   is
+   begin
+      if Is_String (M, Item) then
+         return String_Text (M, Item);
+      end if;
+      return Basic_Image (Item);
+   end Piece;
+
+   --  A new string joining registers From .. To of the running frame, Length bytes in all.
+   --  Handle is No_Object when Budget cannot pay.
+   procedure Join
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      From   : Natural;
+      To     : Natural;
+      Length : Natural;
+      Handle : out Object_Handle)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Running (M)
+       and then From <= To
+       and then To < View (M).Registers
+       and then Length <= Pyro.Strings.Maximum_String_Length
+       and then (for all Place in From .. To => Joinable (M, Register (M, Place))),
+     Post   =>
+       Is_Valid (M)
+       and then Running (M)
+       and then View (M) = View (M)'Old
+       and then Limit (Budget) = Limit (Budget)'Old
+       and then (if Handle /= No_Object then Is_Live (M, Object_Value_Of (Handle)))
+   is
+      Bytes  : Pyro.Strings.Byte_Array (1 .. Byte_Position'Base (Length)) :=
+        [others => ASCII.NUL];
+      Filled : Natural := 0;
+      Before : constant Pyro.Kind_Sequences.Sequence := Objects (M) with Ghost;
+   begin
+      for Place in From .. To loop
+         pragma Loop_Invariant (Filled <= Length);
+         declare
+            Text : constant String := Piece (M, Register (M, Place));
+         begin
+            for Index in Text'Range loop
+               pragma Loop_Invariant (Filled + Index - 1 <= Length);
+               exit when Filled + Index > Length;
+               Bytes (Byte_Position (Filled + Index)) := Text (Index);
+            end loop;
+            Filled := Natural'Min (Length, Filled + Text'Length);
+         end;
+      end loop;
+      Pyro.Heap.New_String (M.Heap, Budget, Bytes, Handle);
+      Lemma_Roots_Grow (Before, M);
+      if Handle /= No_Object then
+         Lemma_Live_Heap (M.Heap, Object_Value_Of (Handle));
+      end if;
+   end Join;
+
+   procedure Concatenate
+     (M      : in out Machine;
+      Budget : in out Memory_Budget;
+      First  : Natural;
+      Count  : Positive)
+   is
+      F       : constant Frame := M.Frames (M.Depth);
+      Total   : Positive := Count;
+      Top     : Natural;
+      Left    : Value;
+      Right   : Value;
+      Handler : Value;
+      Joined  : Natural;
+      Length  : Natural;
+      Handle  : Object_Handle;
+   begin
+      Lemma_Frame (M, M.Depth);
+      if F.Resume /= 0 then
+         --  The frame runs its CONCAT again after a __concat metamethod: fewer values left.
+         if F.Resume <= Count then
+            Total := F.Resume;
+         end if;
+         Set_Top_Frame
+           (M.Frames.all, M.Depth, (F with delta Resume => 0), M.Stack'Last, M.Program.all);
+      end if;
+      while Total > 1 loop
+         pragma Loop_Invariant (Is_Valid (M) and then Running (M));
+         pragma Loop_Invariant (View (M) = View (M)'Loop_Entry);
+         pragma Loop_Invariant (Limit (Budget) = Limit (Budget)'Loop_Entry);
+         pragma Loop_Invariant (Total in 2 .. Count);
+         pragma Loop_Variant (Decreases => Total);
+         Top := First + Total;
+         Left := Register (M, Top - 2);
+         Right := Register (M, Top - 1);
+         if not (Joinable (M, Left) and then Joinable (M, Right)) then
+            --  [puc ltm.c:luaT_tryconcatTM] The first operand's __concat, else the second's.
+            Handler := Metafield (M, Left, Concatenate_Event);
+            if Handler = Nil then
+               Handler := Metafield (M, Right, Concatenate_Event);
+            end if;
+            if Handler /= Nil then
+               Call_Metamethod
+                 (M, Budget, Handler, [Left, Right], Concat_Result, Top - 2, False, Total - 1);
+            else
+               --  [puc ldebug.c:luaG_concaterror]
+               Raise_Runtime_Error
+                 (M, Budget,
+                  "attempt to concatenate a "
+                  & Type_Name (M, (if Joinable (M, Left) then Right else Left)) & " value");
+            end if;
+            return;
+         end if;
+         --  As many strings and numbers as there are below the top, joined at once.
+         Joined := 2;
+         Length := Piece (M, Left)'Length;
+         if Piece (M, Right)'Length > Pyro.Strings.Maximum_String_Length - Length then
+            Raise_Runtime_Error (M, Budget, "string length overflow");
+            return;
+         end if;
+         Length := Length + Piece (M, Right)'Length;
+         while Joined < Total and then Joinable (M, Register (M, Top - Joined - 1)) loop
+            pragma Loop_Invariant (Joined in 2 .. Total - 1);
+            pragma Loop_Invariant (Length <= Pyro.Strings.Maximum_String_Length);
+            pragma Loop_Invariant
+              (for all Place in Top - Joined .. Top - 1 => Joinable (M, Register (M, Place)));
+            pragma Loop_Variant (Increases => Joined);
+            if Piece (M, Register (M, Top - Joined - 1))'Length
+              > Pyro.Strings.Maximum_String_Length - Length
+            then
+               Raise_Runtime_Error (M, Budget, "string length overflow");
+               return;
+            end if;
+            Length := Length + Piece (M, Register (M, Top - Joined - 1))'Length;
+            Joined := Joined + 1;
+         end loop;
+         Join (M, Budget, Top - Joined, Top - 1, Length, Handle);
+         if Handle = No_Object then
+            Raise_Memory_Error (M);
+            return;
+         end if;
+         Set_Register (M, Top - Joined, Object_Value_Of (Handle));
+         Total := Total - (Joined - 1);
+      end loop;
+      Next (M);
+   end Concatenate;
+
    procedure Close_From (M : in out Machine; First : Natural) is
       F : constant Frame := M.Frames (M.Depth);
    begin
@@ -1974,7 +2139,8 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Arguments : Value_List;
       Action    : Pending_Action;
       Target    : Natural;
-      Expected  : Boolean)
+      Expected  : Boolean;
+      Resume    : Natural := 0)
    is
       F       : constant Frame := M.Frames (M.Depth);
       Last    : constant Stack_Size := M.Stack'Last;
@@ -1993,7 +2159,7 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       Set_Top_Frame
         (M.Frames.all, M.Depth,
          (F with delta PC => F.PC + 1, Action => Action, Target => Target,
-                       Expected => Expected),
+                       Expected => Expected, Resume => Resume),
          M.Stack'Last, M.Program.all);
       Call_At (M, Budget, F.Top, Arguments'Length, (if Action = No_Action then 0 else 1));
    end Call_Metamethod;

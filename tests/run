@@ -703,6 +703,10 @@ class Runner:
 
         def compare(source):
             relative = source.relative_to(ROOT)
+            # A script that does not compile fails the same way under both: it tests nothing.
+            compiled = self.run([LUAC, "-p", relative], what=str(relative))
+            if compiled[0] is not None and compiled[0] != 0:
+                self.fail(f"{relative}: luac -p rejects it")
             reference = self.run([LUA, "-e", REFERENCE_PRELUDE, relative], what=str(relative))
             pyro = self.run([PYRO, relative], what=str(relative))
             return relative, reference, pyro
