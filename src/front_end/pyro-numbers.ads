@@ -26,4 +26,11 @@ package Pyro.Numbers with SPARK_Mode => On, Always_Terminates is
    procedure Convert (Text : String; Value : out Numeral_Value; Valid : out Boolean)
    with Global => null, Pre => Text'First = 1 and then Text'Length in 1 .. 2 ** 30;
 
+   --  [puc lobject.c:luaO_str2num] The number a string holds, as the VM reads one where Lua
+   --  converts strings to numbers (for loops, and later tonumber and string arithmetic): a
+   --  numeral with optional spaces around it and an optional sign. Valid is False when the
+   --  string holds nothing else.
+   procedure String_To_Number (Text : String; Value : out Numeral_Value; Valid : out Boolean)
+   with Global => null, Pre => Text'First = 1 and then Text'Length <= 2 ** 30;
+
 end Pyro.Numbers;

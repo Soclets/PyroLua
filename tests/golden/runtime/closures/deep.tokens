@@ -1,0 +1,95 @@
+2 keyword local
+2 keyword function
+2 name depth
+2 (
+2 name n
+2 )
+2 keyword if
+2 name n
+2 ==
+2 integer 0
+2 keyword then
+2 keyword return
+2 integer 0
+2 keyword end
+2 keyword return
+2 integer 1
+2 +
+2 name depth
+2 (
+2 name n
+2 -
+2 integer 1
+2 )
+2 keyword end
+3 name print
+3 (
+3 name depth
+3 (
+3 integer 10000
+3 )
+3 )
+4 keyword local
+4 keyword function
+4 name forever
+4 (
+4 name n
+4 )
+4 keyword return
+4 integer 1
+4 +
+4 name forever
+4 (
+4 name n
+4 +
+4 integer 1
+4 )
+4 keyword end
+5 keyword local
+5 name ok
+5 ,
+5 name message
+5 =
+5 name pcall
+5 (
+5 name forever
+5 ,
+5 integer 1
+5 )
+6 name print
+6 (
+6 name ok
+6 ,
+6 name message
+6 )
+7 keyword local
+7 keyword function
+7 name tail
+7 (
+7 name n
+7 )
+7 keyword if
+7 name n
+7 ==
+7 integer 0
+7 keyword then
+7 keyword return
+7 string "done"
+7 keyword end
+7 keyword return
+7 name tail
+7 (
+7 name n
+7 -
+7 integer 1
+7 )
+7 keyword end
+8 name print
+8 (
+8 name tail
+8 (
+8 integer 1000000
+8 )
+8 )
+9 <eof>
+exit 0

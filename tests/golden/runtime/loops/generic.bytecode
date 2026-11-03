@@ -1,0 +1,314 @@
+
+main <tests/corpus/runtime/loops/generic.lua:0,0> (165 instructions at #5)
+0+ params, 16 slots, 1 upvalue, 62 locals, 15 constants, 3 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	new_table	0 0 5	; 5
+	3	[2]	extra_argument	0
+	4	[2]	load_integer	1 10
+	5	[2]	load_integer	2 20
+	6	[2]	load_integer	3 30
+	7	[2]	load_nil 	4 0	; 1 out
+	8	[2]	load_integer	5 50
+	9	[2]	set_list 	0 5 0
+	10	[3]	get_table_upvalue	1 0 0	; _ENV "ipairs"
+	11	[3]	move     	2 0
+	12	[3]	call     	1 2 5	; 1 in 4 out
+	13	[3]	generic_for_prepare	1 4	; to 18
+	14	[3]	get_table_upvalue	7 0 1	; _ENV "print"
+	15	[3]	move     	8 5
+	16	[3]	move     	9 6
+	17	[3]	call     	7 3 1	; 2 in 0 out
+	18	[3]	generic_for_call	1 2
+	19	[3]	generic_for_loop	1 6	; to 14
+	20	[3]	close    	1
+	21	[7]	closure  	1 0	; #2
+	22	[8]	move     	2 1
+	23	[8]	load_integer	3 4
+	24	[8]	call     	2 2 5	; 1 in 4 out
+	25	[8]	generic_for_prepare	2 4	; to 30
+	26	[8]	get_table_upvalue	8 0 1	; _ENV "print"
+	27	[8]	move     	9 6
+	28	[8]	move     	10 7
+	29	[8]	call     	8 3 1	; 2 in 0 out
+	30	[8]	generic_for_call	2 2
+	31	[8]	generic_for_loop	2 6	; to 26
+	32	[8]	close    	2
+	33	[11]	closure  	2 1	; #3
+	34	[12]	move     	3 2
+	35	[12]	load_integer	4 3
+	36	[12]	load_integer	5 0
+	37	[12]	load_nil 	6 0	; 1 out
+	38	[12]	generic_for_prepare	3 3	; to 42
+	39	[12]	get_table_upvalue	8 0 1	; _ENV "print"
+	40	[12]	move     	9 7
+	41	[12]	call     	8 2 1	; 1 in 0 out
+	42	[12]	generic_for_call	3 1
+	43	[12]	generic_for_loop	3 5	; to 39
+	44	[12]	close    	3
+	45	[13]	new_table	3 3 0	; 0
+	46	[13]	extra_argument	0
+	47	[13]	set_field	3 2 3k	; "x" 1
+	48	[13]	set_field	3 4 5k	; "y" 2
+	49	[13]	set_field	3 6 7k	; "z" 3
+	50	[14]	new_table	4 0 0	; 0
+	51	[14]	extra_argument	0
+	52	[15]	get_table_upvalue	5 0 8	; _ENV "pairs"
+	53	[15]	move     	6 3
+	54	[15]	call     	5 2 5	; 1 in 4 out
+	55	[15]	generic_for_prepare	5 4	; to 60
+	56	[15]	length   	10 4
+	57	[15]	add_integer	10 10 1
+	58	[15]	metamethod_binary_integer	10 1 6 0	; __add
+	59	[15]	set_table	4 10 9
+	60	[15]	generic_for_call	5 1
+	61	[15]	generic_for_loop	5 6	; to 56
+	62	[15]	close    	5
+	63	[16]	load_integer	5 2
+	64	[17]	length   	6 4
+	65	[17]	less_equal	5 6 0
+	66	[17]	jump     	20	; to 87
+	67	[18]	move     	6 5
+	68	[18]	get_table	7 4 5
+	69	[19]	greater_than_integer	6 1 0
+	70	[19]	jump     	12	; to 83
+	71	[19]	add_integer	8 6 -1
+	72	[19]	metamethod_binary_integer	6 1 7 0	; __sub
+	73	[19]	get_table	8 4 8
+	74	[19]	less_than	7 8 0
+	75	[19]	jump     	7	; to 83
+	76	[19]	add_integer	8 6 -1
+	77	[19]	metamethod_binary_integer	6 1 7 0	; __sub
+	78	[19]	get_table	8 4 8
+	79	[19]	set_table	4 6 8
+	80	[19]	add_integer	6 6 -1
+	81	[19]	metamethod_binary_integer	6 1 7 0	; __sub
+	82	[19]	jump     	-14	; to 69
+	83	[20]	set_table	4 6 7
+	84	[21]	add_integer	5 5 1
+	85	[21]	metamethod_binary_integer	5 1 6 0	; __add
+	86	[21]	jump     	-23	; to 64
+	87	[23]	get_table_upvalue	6 0 0	; _ENV "ipairs"
+	88	[23]	move     	7 4
+	89	[23]	call     	6 2 5	; 1 in 4 out
+	90	[23]	generic_for_prepare	6 4	; to 95
+	91	[23]	get_table_upvalue	12 0 1	; _ENV "print"
+	92	[23]	move     	13 11
+	93	[23]	get_table	14 3 11
+	94	[23]	call     	12 3 1	; 2 in 0 out
+	95	[23]	generic_for_call	6 2
+	96	[23]	generic_for_loop	6 6	; to 91
+	97	[23]	close    	6
+	98	[24]	get_table_upvalue	6 0 9	; _ENV "setmetatable"
+	99	[24]	new_table	7 0 0	; 0
+	100	[24]	extra_argument	0
+	101	[24]	new_table	8 1 0	; 0
+	102	[24]	extra_argument	0
+	103	[24]	closure  	9 2	; #4
+	104	[24]	set_field	8 10 9	; "__index"
+	105	[24]	call     	6 3 2	; 2 in 1 out
+	106	[25]	get_table_upvalue	7 0 0	; _ENV "ipairs"
+	107	[25]	move     	8 6
+	108	[25]	call     	7 2 5	; 1 in 4 out
+	109	[25]	generic_for_prepare	7 4	; to 114
+	110	[25]	get_table_upvalue	13 0 1	; _ENV "print"
+	111	[25]	move     	14 11
+	112	[25]	move     	15 12
+	113	[25]	call     	13 3 1	; 2 in 0 out
+	114	[25]	generic_for_call	7 2
+	115	[25]	generic_for_loop	7 6	; to 110
+	116	[25]	close    	7
+	117	[26]	get_table_upvalue	7 0 0	; _ENV "ipairs"
+	118	[26]	new_table	8 0 0	; 0
+	119	[26]	extra_argument	0
+	120	[26]	call     	7 2 5	; 1 in 4 out
+	121	[26]	generic_for_prepare	7 3	; to 125
+	122	[26]	get_table_upvalue	13 0 1	; _ENV "print"
+	123	[26]	load_constant	14 11	; "never"
+	124	[26]	call     	13 2 1	; 1 in 0 out
+	125	[26]	generic_for_call	7 2
+	126	[26]	generic_for_loop	7 5	; to 122
+	127	[26]	close    	7
+	128	[27]	load_integer	7 0
+	129	[28]	get_table_upvalue	8 0 8	; _ENV "pairs"
+	130	[28]	new_table	9 1 3	; 3
+	131	[28]	extra_argument	0
+	132	[28]	load_integer	10 1
+	133	[28]	load_integer	11 2
+	134	[28]	load_integer	12 3
+	135	[28]	set_field	9 12 13k	; "a" 4
+	136	[28]	set_list 	9 3 0
+	137	[28]	call     	8 2 5	; 1 in 4 out
+	138	[28]	generic_for_prepare	8 2	; to 141
+	139	[28]	add_integer	7 7 1
+	140	[28]	metamethod_binary_integer	7 1 6 0	; __add
+	141	[28]	generic_for_call	8 1
+	142	[28]	generic_for_loop	8 4	; to 139
+	143	[28]	close    	8
+	144	[29]	get_table_upvalue	8 0 1	; _ENV "print"
+	145	[29]	move     	9 7
+	146	[29]	call     	8 2 1	; 1 in 0 out
+	147	[30]	load_integer	8 0
+	148	[31]	get_table_upvalue	9 0 14	; _ENV "next"
+	149	[31]	new_table	10 0 3	; 3
+	150	[31]	extra_argument	0
+	151	[31]	load_integer	11 7
+	152	[31]	load_integer	12 8
+	153	[31]	load_integer	13 9
+	154	[31]	set_list 	10 3 0
+	155	[31]	load_nil 	11 1	; 2 out
+	156	[31]	generic_for_prepare	9 2	; to 159
+	157	[31]	add      	8 8 14
+	158	[31]	metamethod_binary	8 14 6	; __add
+	159	[31]	generic_for_call	9 2
+	160	[31]	generic_for_loop	9 4	; to 157
+	161	[31]	close    	9
+	162	[32]	get_table_upvalue	9 0 1	; _ENV "print"
+	163	[32]	move     	10 8
+	164	[32]	call     	9 2 1	; 1 in 0 out
+	165	[32]	return_values	9 1 1k	; 0 out
+constants (15) for #5:
+	0	S	"ipairs"
+	1	S	"print"
+	2	S	"x"
+	3	I	1
+	4	S	"y"
+	5	I	2
+	6	S	"z"
+	7	I	3
+	8	S	"pairs"
+	9	S	"setmetatable"
+	10	S	"__index"
+	11	S	"never"
+	12	S	"a"
+	13	I	4
+	14	S	"next"
+locals (62) for #5:
+	0	list	10	166
+	1	(for state)	13	20
+	2	(for state)	13	20
+	3	(for state)	13	20
+	4	(for state)	13	20
+	5	i	14	18
+	6	v	14	18
+	7	range	22	166
+	8	(for state)	25	32
+	9	(for state)	25	32
+	10	(for state)	25	32
+	11	(for state)	25	32
+	12	i	26	30
+	13	sq	26	30
+	14	stateless	34	166
+	15	(for state)	38	44
+	16	(for state)	38	44
+	17	(for state)	38	44
+	18	(for state)	38	44
+	19	i	39	42
+	20	t	50	166
+	21	keys	52	166
+	22	(for state)	55	62
+	23	(for state)	55	62
+	24	(for state)	55	62
+	25	(for state)	55	62
+	26	k	56	60
+	27	i	64	166
+	28	j	69	86
+	29	key	69	86
+	30	(for state)	90	97
+	31	(for state)	90	97
+	32	(for state)	90	97
+	33	(for state)	90	97
+	34	_	91	95
+	35	k	91	95
+	36	proxy	106	166
+	37	(for state)	109	116
+	38	(for state)	109	116
+	39	(for state)	109	116
+	40	(for state)	109	116
+	41	i	110	114
+	42	v	110	114
+	43	(for state)	121	127
+	44	(for state)	121	127
+	45	(for state)	121	127
+	46	(for state)	121	127
+	47	i	122	125
+	48	v	122	125
+	49	count	129	166
+	50	(for state)	138	143
+	51	(for state)	138	143
+	52	(for state)	138	143
+	53	(for state)	138	143
+	54	_	139	141
+	55	seen	148	166
+	56	(for state)	156	161
+	57	(for state)	156	161
+	58	(for state)	156	161
+	59	(for state)	156	161
+	60	k	157	159
+	61	v	157	159
+upvalues (1) for #5:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/loops/generic.lua:4,7> (4 instructions at #2)
+1 param, 3 slots, 0 upvalues, 2 locals, 0 constants, 1 function
+	1	[5]	load_integer	1 0
+	2	[6]	closure  	2 0	; #1
+	3	[6]	return_values	2 2 0k	; 1 out
+	4	[7]	return_values	2 1 0k	; 0 out
+constants (0) for #2:
+locals (2) for #2:
+	0	n	1	5
+	1	i	2	5
+upvalues (0) for #2:
+
+function <tests/corpus/runtime/loops/generic.lua:6,6> (15 instructions at #1)
+0 params, 3 slots, 2 upvalues, 0 locals, 0 constants, 0 functions
+	1	[6]	get_upvalue	0 0	; i
+	2	[6]	add_integer	0 0 1
+	3	[6]	metamethod_binary_integer	0 1 6 0	; __add
+	4	[6]	set_upvalue	0 0	; i
+	5	[6]	get_upvalue	0 0	; i
+	6	[6]	get_upvalue	1 1	; n
+	7	[6]	less_equal	0 1 0
+	8	[6]	jump     	6	; to 15
+	9	[6]	get_upvalue	0 0	; i
+	10	[6]	get_upvalue	1 0	; i
+	11	[6]	get_upvalue	2 0	; i
+	12	[6]	multiply 	1 1 2
+	13	[6]	metamethod_binary	1 2 8	; __mul
+	14	[6]	return_values	0 3 0	; 2 out
+	15	[6]	return_none	
+constants (0) for #1:
+locals (0) for #1:
+upvalues (2) for #1:
+	0	i	1	1
+	1	n	1	0
+
+function <tests/corpus/runtime/loops/generic.lua:9,11> (6 instructions at #3)
+2 params, 3 slots, 0 upvalues, 2 locals, 0 constants, 0 functions
+	1	[10]	less_than	1 0 0
+	2	[10]	jump     	3	; to 6
+	3	[10]	add_integer	2 1 1
+	4	[10]	metamethod_binary_integer	1 1 6 0	; __add
+	5	[10]	return_one	2
+	6	[11]	return_none	
+constants (0) for #3:
+locals (2) for #3:
+	0	limit	1	7
+	1	control	1	7
+upvalues (0) for #3:
+
+function <tests/corpus/runtime/loops/generic.lua:24,24> (6 instructions at #4)
+2 params, 3 slots, 0 upvalues, 2 locals, 1 constant, 0 functions
+	1	[24]	less_equal_integer	1 3 0
+	2	[24]	jump     	3	; to 6
+	3	[24]	multiply_constant	2 1 0	; 2
+	4	[24]	metamethod_binary_constant	1 0 8 0	; __mul 2
+	5	[24]	return_one	2
+	6	[24]	return_none	
+constants (1) for #4:
+	0	I	2
+locals (2) for #4:
+	0	_	1	7
+	1	k	1	7
+upvalues (0) for #4:
+exit 0

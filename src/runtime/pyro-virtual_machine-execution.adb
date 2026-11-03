@@ -6,6 +6,7 @@ with Pyro.Floats;
 with Pyro.Virtual_Machine.Arithmetic;
 with Pyro.Virtual_Machine.Comparisons;
 with Pyro.Virtual_Machine.Indexing;
+with Pyro.Virtual_Machine.Loops;
 
 package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
 
@@ -35,6 +36,16 @@ package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
          when Load_Constant =>
             Set_Register (M, A, Constant_At (M, Natural (I.Wide)));
             Next (M);
+         when Load_Constant_Extra =>
+            --  [puc lvm.c:OP_LOADKX] The constant's number is the next instruction's Ax.
+            if Extra_Argument (M) < View (M).Constants then
+               Set_Register (M, A, Constant_At (M, Extra_Argument (M)));
+               Next (M, 1);
+            else
+               Raise_Runtime_Error (M, Budget, "internal error: bad constant");
+            end if;
+         when Close =>
+            Close_From (M, A);
          when Load_False =>
             Set_Register (M, A, Boolean_Value_Of (False));
             Next (M);
@@ -66,6 +77,8 @@ package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
             Pyro.Virtual_Machine.Arithmetic.Execute_Unary (M, Budget, I);
          when Test_Opcode =>
             Pyro.Virtual_Machine.Comparisons.Execute (M, Budget, I);
+         when For_Loop .. Generic_For_Loop =>
+            Pyro.Virtual_Machine.Loops.Execute (M, Budget, I);
          when Jump =>
             Next (M, Integer (I.Wide) - Offset_sJ);
          when Closure =>

@@ -1,0 +1,127 @@
+2 name print
+2 (
+2 name pcall
+2 (
+2 keyword function
+2 (
+2 )
+2 keyword for
+2 name i
+2 =
+2 integer 1
+2 ,
+2 integer 2
+2 ,
+2 integer 0
+2 keyword do
+2 keyword end
+2 keyword end
+2 )
+2 )
+3 name print
+3 (
+3 name pcall
+3 (
+3 keyword function
+3 (
+3 )
+3 keyword for
+3 name i
+3 =
+3 float 1.0 0x3FF0000000000000
+3 ,
+3 integer 2
+3 ,
+3 integer 0
+3 keyword do
+3 keyword end
+3 keyword end
+3 )
+3 )
+4 name print
+4 (
+4 name pcall
+4 (
+4 keyword function
+4 (
+4 )
+4 keyword for
+4 name i
+4 =
+4 keyword nil
+4 ,
+4 integer 2
+4 keyword do
+4 keyword end
+4 keyword end
+4 )
+4 )
+5 name print
+5 (
+5 name pcall
+5 (
+5 keyword function
+5 (
+5 )
+5 keyword for
+5 name i
+5 =
+5 integer 1
+5 ,
+5 {
+5 }
+5 keyword do
+5 keyword end
+5 keyword end
+5 )
+5 )
+6 name print
+6 (
+6 name pcall
+6 (
+6 keyword function
+6 (
+6 )
+6 keyword for
+6 name i
+6 =
+6 integer 1
+6 ,
+6 integer 2
+6 ,
+6 string "x"
+6 keyword do
+6 keyword end
+6 keyword end
+6 )
+6 )
+7 name print
+7 (
+7 name pcall
+7 (
+7 keyword function
+7 (
+7 )
+7 keyword for
+7 name i
+7 =
+7 string "a"
+7 ,
+7 integer 2
+7 keyword do
+7 keyword end
+7 keyword end
+7 )
+7 )
+8 keyword for
+8 name i
+8 =
+8 integer 1
+8 ,
+8 integer 10
+8 ,
+8 keyword false
+8 keyword do
+8 keyword end
+9 <eof>
+exit 0

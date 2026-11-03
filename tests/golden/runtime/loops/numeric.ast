@@ -1,0 +1,312 @@
+1 function_body vararg
+  1 block
+    2 local_statement
+      2 name_list
+        2 local_name "sum"
+      2 expression_list
+        2 integer_literal 0
+    3 numeric_for
+      3 local_name "i"
+      3 expression_list
+        3 integer_literal 1
+        3 integer_literal 10
+      3 block
+        3 assignment
+          3 expression_list
+            3 assignment_target "sum"
+              3 name_expression "sum" local@1
+          3 expression_list
+            3 binary_operation add
+              3 name_expression "sum" local@1
+              3 name_expression "i" local@6
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 name_expression "sum" local@1
+    5 numeric_for
+      5 local_name "i"
+      5 expression_list
+        5 integer_literal 10
+        5 integer_literal 1
+        5 unary_operation negate
+          5 integer_literal 3
+      5 block
+        5 call_statement
+          5 call_expression
+            5 name_expression "print" global
+            5 name_expression "i" local@24
+    6 numeric_for
+      6 local_name "i"
+      6 expression_list
+        6 integer_literal 1
+        6 integer_literal 0
+      6 block
+        6 call_statement
+          6 call_expression
+            6 name_expression "print" global
+            6 string_literal "never"
+    7 numeric_for
+      7 local_name "i"
+      7 expression_list
+        7 float_literal 0x3FF0000000000000
+        7 float_literal 0x4000000000000000
+        7 float_literal 0x3FD0000000000000
+      7 block
+        7 call_statement
+          7 call_expression
+            7 name_expression "print" global
+            7 name_expression "i" local@46
+    8 numeric_for
+      8 local_name "i"
+      8 expression_list
+        8 integer_literal 1
+        8 float_literal 0x4004000000000000
+      8 block
+        8 call_statement
+          8 call_expression
+            8 name_expression "print" global
+            8 name_expression "i" local@57
+    9 numeric_for
+      9 local_name "i"
+      9 expression_list
+        9 integer_literal 3
+        9 float_literal 0x3FF8000000000000
+        9 unary_operation negate
+          9 integer_literal 1
+      9 block
+        9 call_statement
+          9 call_expression
+            9 name_expression "print" global
+            9 name_expression "i" local@67
+    10 local_statement
+      10 name_list
+        10 local_name "max"
+      10 expression_list
+        10 integer_literal 9223372036854775807
+    11 local_statement
+      11 name_list
+        11 local_name "min"
+      11 expression_list
+        11 binary_operation subtract
+          11 unary_operation negate
+            11 name_expression "max" local@79
+          11 integer_literal 1
+    12 numeric_for
+      12 local_name "i"
+      12 expression_list
+        12 binary_operation subtract
+          12 name_expression "max" local@79
+          12 integer_literal 2
+        12 name_expression "max" local@79
+      12 block
+        12 call_statement
+          12 call_expression
+            12 name_expression "print" global
+            12 name_expression "i" local@92
+    13 numeric_for
+      13 local_name "i"
+      13 expression_list
+        13 name_expression "min" local@84
+        13 binary_operation add
+          13 name_expression "min" local@84
+          13 integer_literal 2
+      13 block
+        13 call_statement
+          13 call_expression
+            13 name_expression "print" global
+            13 name_expression "i" local@104
+    14 numeric_for
+      14 local_name "i"
+      14 expression_list
+        14 binary_operation add
+          14 name_expression "min" local@84
+          14 integer_literal 2
+        14 name_expression "min" local@84
+        14 unary_operation negate
+          14 integer_literal 1
+      14 block
+        14 call_statement
+          14 call_expression
+            14 name_expression "print" global
+            14 name_expression "i" local@116
+    15 local_statement
+      15 name_list
+        15 local_name "n"
+      15 expression_list
+        15 integer_literal 0
+    16 numeric_for
+      16 local_name "i"
+      16 expression_list
+        16 integer_literal 1
+        16 name_expression "max" local@79
+        16 binary_operation floor_divide
+          16 name_expression "max" local@79
+          16 integer_literal 4
+      16 block
+        16 assignment
+          16 expression_list
+            16 assignment_target "n"
+              16 name_expression "n" local@130
+          16 expression_list
+            16 binary_operation add
+              16 name_expression "n" local@130
+              16 integer_literal 1
+    17 call_statement
+      17 call_expression
+        17 name_expression "print" global
+        17 name_expression "n" local@130
+    18 numeric_for
+      18 local_name "i"
+      18 expression_list
+        18 integer_literal 0
+        18 binary_operation power
+          18 integer_literal 2
+          18 integer_literal 53
+        18 binary_operation power
+          18 integer_literal 2
+          18 integer_literal 52
+      18 block
+        18 call_statement
+          18 call_expression
+            18 name_expression "print" global
+            18 name_expression "i" local@156
+    19 numeric_for
+      19 local_name "i"
+      19 expression_list
+        19 integer_literal 1
+        19 binary_operation or_else
+          19 name_expression "math_huge" global
+          19 binary_operation divide
+            19 integer_literal 1
+            19 integer_literal 0
+      19 block
+        19 if_statement
+          19 if_clause
+            19 binary_operation greater
+              19 name_expression "i" local@171
+              19 integer_literal 3
+            19 block
+              19 break_statement
+        19 call_statement
+          19 call_expression
+            19 name_expression "print" global
+            19 name_expression "i" local@171
+    20 numeric_for
+      20 local_name "i"
+      20 expression_list
+        20 integer_literal 1
+        20 binary_operation divide
+          20 unary_operation negate
+            20 integer_literal 1
+          20 integer_literal 0
+      20 block
+        20 call_statement
+          20 call_expression
+            20 name_expression "print" global
+            20 string_literal "never"
+    21 numeric_for
+      21 local_name "i"
+      21 expression_list
+        21 string_literal "1"
+        21 integer_literal 2
+      21 block
+        21 call_statement
+          21 call_expression
+            21 name_expression "print" global
+            21 name_expression "i" local@205
+    22 numeric_for
+      22 local_name "i"
+      22 expression_list
+        22 integer_literal 1
+        22 string_literal "2"
+      22 block
+        22 call_statement
+          22 call_expression
+            22 name_expression "print" global
+            22 name_expression "i" local@215
+    23 numeric_for
+      23 local_name "i"
+      23 expression_list
+        23 integer_literal 1
+        23 integer_literal 3
+        23 string_literal " 1 "
+      23 block
+        23 call_statement
+          23 call_expression
+            23 name_expression "print" global
+            23 name_expression "i" local@225
+    24 numeric_for
+      24 local_name "i"
+      24 expression_list
+        24 integer_literal 16
+        24 integer_literal 18
+      24 block
+        24 call_statement
+          24 call_expression
+            24 name_expression "print" global
+            24 name_expression "i" local@236
+    25 local_statement
+      25 name_list
+        25 local_name "fns"
+      25 expression_list
+        25 table_constructor
+    26 numeric_for
+      26 local_name "i"
+      26 expression_list
+        26 integer_literal 1
+        26 integer_literal 3
+      26 block
+        26 assignment
+          26 expression_list
+            26 assignment_target
+              26 index_expression
+                26 name_expression "fns" local@246
+                26 name_expression "i" local@251
+          26 expression_list
+            26 function_expression
+              26 function_body
+                26 name_list
+                26 block
+                  26 return_statement
+                    26 expression_list
+                      26 name_expression "i" upvalue@251
+    27 call_statement
+      27 call_expression
+        27 name_expression "print" global
+        27 call_expression
+          27 index_expression
+            27 name_expression "fns" local@246
+            27 integer_literal 1
+        27 call_expression
+          27 index_expression
+            27 name_expression "fns" local@246
+            27 integer_literal 2
+        27 call_expression
+          27 index_expression
+            27 name_expression "fns" local@246
+            27 integer_literal 3
+    28 numeric_for
+      28 local_name "i"
+      28 expression_list
+        28 integer_literal 1
+        28 integer_literal 3
+      29 block
+        29 local_statement
+          29 name_list
+            29 local_name "j"
+          29 expression_list
+            29 name_expression "i" local@286
+        30 assignment
+          30 expression_list
+            30 assignment_target "i"
+              30 name_expression "i" local@286
+          30 expression_list
+            30 binary_operation multiply
+              30 name_expression "i" local@286
+              30 integer_literal 100
+        31 call_statement
+          31 call_expression
+            31 name_expression "print" global
+            31 name_expression "i" local@286
+            31 name_expression "j" local@290
+exit 0

@@ -7,6 +7,7 @@ with Ada.Unchecked_Deallocation;
 with Pyro.Floats;
 with Pyro.Heap.Table_Reads;
 with Pyro.Integer_Arithmetic;
+with Pyro.Numbers;
 with Pyro.Virtual_Machine.Execution;
 
 package body Pyro.Virtual_Machine with SPARK_Mode => On is
@@ -699,6 +700,23 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       end loop;
       return Result;
    end String_Text;
+
+   procedure To_Number (M : Machine; Item : Value; Result : out Value; Valid : out Boolean) is
+      Number : Pyro.Numbers.Numeral_Value;
+   begin
+      Result := Nil;
+      Valid := Item.Kind in Integer_Value | Float_Value;
+      if Valid then
+         Result := Item;
+      elsif Is_String (M, Item) then
+         Pyro.Numbers.String_To_Number (String_Text (M, Item), Number, Valid);
+         if Valid then
+            Result :=
+              (if Number.Is_Integer then Integer_Value_Of (Number.Integer_Value)
+               else Float_Value_Of (Number.Float_Bits));
+         end if;
+      end if;
+   end To_Number;
 
    function Type_Name (M : Machine; Item : Value) return String is
    begin
@@ -1929,6 +1947,14 @@ package body Pyro.Virtual_Machine with SPARK_Mode => On is
       end loop;
       Advance (M, 0);
    end Make_Closure;
+
+   procedure Close_From (M : in out Machine; First : Natural) is
+      F : constant Frame := M.Frames (M.Depth);
+   begin
+      Lemma_Frame (M, M.Depth);
+      Close_Upvalues (M.Heap, M.Open.all, M.Open_Count, M.Stack.all, F.Func + 1 + First);
+      Advance (M, 0);
+   end Close_From;
 
    ----------------------------------------------------------------------------------------
    --  Tables and metamethods

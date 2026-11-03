@@ -1,0 +1,306 @@
+
+main <tests/corpus/runtime/loops/numeric.lua:0,0> (191 instructions at #2)
+0+ params, 13 slots, 1 upvalue, 82 locals, 15 constants, 1 function
+	1	[1]	vararg_prepare	0
+	2	[2]	load_integer	0 0
+	3	[3]	load_integer	1 1
+	4	[3]	load_integer	2 10
+	5	[3]	load_integer	3 1
+	6	[3]	for_prepare	1 2	; exit to 10
+	7	[3]	add      	0 0 4
+	8	[3]	metamethod_binary	0 4 6	; __add
+	9	[3]	for_loop 	1 3	; to 7
+	10	[4]	get_table_upvalue	1 0 0	; _ENV "print"
+	11	[4]	move     	2 0
+	12	[4]	call     	1 2 1	; 1 in 0 out
+	13	[5]	load_integer	1 10
+	14	[5]	load_integer	2 1
+	15	[5]	load_integer	3 -3
+	16	[5]	for_prepare	1 3	; exit to 21
+	17	[5]	get_table_upvalue	5 0 0	; _ENV "print"
+	18	[5]	move     	6 4
+	19	[5]	call     	5 2 1	; 1 in 0 out
+	20	[5]	for_loop 	1 4	; to 17
+	21	[6]	load_integer	1 1
+	22	[6]	load_integer	2 0
+	23	[6]	load_integer	3 1
+	24	[6]	for_prepare	1 3	; exit to 29
+	25	[6]	get_table_upvalue	5 0 0	; _ENV "print"
+	26	[6]	load_constant	6 1	; "never"
+	27	[6]	call     	5 2 1	; 1 in 0 out
+	28	[6]	for_loop 	1 4	; to 25
+	29	[7]	load_float	1 1
+	30	[7]	load_float	2 2
+	31	[7]	load_constant	3 2	; 0.25
+	32	[7]	for_prepare	1 3	; exit to 37
+	33	[7]	get_table_upvalue	5 0 0	; _ENV "print"
+	34	[7]	move     	6 4
+	35	[7]	call     	5 2 1	; 1 in 0 out
+	36	[7]	for_loop 	1 4	; to 33
+	37	[8]	load_integer	1 1
+	38	[8]	load_constant	2 3	; 2.5
+	39	[8]	load_integer	3 1
+	40	[8]	for_prepare	1 3	; exit to 45
+	41	[8]	get_table_upvalue	5 0 0	; _ENV "print"
+	42	[8]	move     	6 4
+	43	[8]	call     	5 2 1	; 1 in 0 out
+	44	[8]	for_loop 	1 4	; to 41
+	45	[9]	load_integer	1 3
+	46	[9]	load_constant	2 4	; 1.5
+	47	[9]	load_integer	3 -1
+	48	[9]	for_prepare	1 3	; exit to 53
+	49	[9]	get_table_upvalue	5 0 0	; _ENV "print"
+	50	[9]	move     	6 4
+	51	[9]	call     	5 2 1	; 1 in 0 out
+	52	[9]	for_loop 	1 4	; to 49
+	53	[10]	load_constant	1 5	; 9223372036854775807
+	54	[11]	negate   	2 1
+	55	[11]	add_integer	2 2 -1
+	56	[11]	metamethod_binary_integer	2 1 7 0	; __sub
+	57	[12]	add_integer	3 1 -2
+	58	[12]	metamethod_binary_integer	1 2 7 0	; __sub
+	59	[12]	move     	4 1
+	60	[12]	load_integer	5 1
+	61	[12]	for_prepare	3 3	; exit to 66
+	62	[12]	get_table_upvalue	7 0 0	; _ENV "print"
+	63	[12]	move     	8 6
+	64	[12]	call     	7 2 1	; 1 in 0 out
+	65	[12]	for_loop 	3 4	; to 62
+	66	[13]	move     	3 2
+	67	[13]	add_integer	4 2 2
+	68	[13]	metamethod_binary_integer	2 2 6 0	; __add
+	69	[13]	load_integer	5 1
+	70	[13]	for_prepare	3 3	; exit to 75
+	71	[13]	get_table_upvalue	7 0 0	; _ENV "print"
+	72	[13]	move     	8 6
+	73	[13]	call     	7 2 1	; 1 in 0 out
+	74	[13]	for_loop 	3 4	; to 71
+	75	[14]	add_integer	3 2 2
+	76	[14]	metamethod_binary_integer	2 2 6 0	; __add
+	77	[14]	move     	4 2
+	78	[14]	load_integer	5 -1
+	79	[14]	for_prepare	3 3	; exit to 84
+	80	[14]	get_table_upvalue	7 0 0	; _ENV "print"
+	81	[14]	move     	8 6
+	82	[14]	call     	7 2 1	; 1 in 0 out
+	83	[14]	for_loop 	3 4	; to 80
+	84	[15]	load_integer	3 0
+	85	[16]	load_integer	4 1
+	86	[16]	move     	5 1
+	87	[16]	floor_divide_constant	6 1 6	; 4
+	88	[16]	metamethod_binary_constant	1 6 12 0	; __idiv 4
+	89	[16]	for_prepare	4 2	; exit to 93
+	90	[16]	add_integer	3 3 1
+	91	[16]	metamethod_binary_integer	3 1 6 0	; __add
+	92	[16]	for_loop 	4 3	; to 90
+	93	[17]	get_table_upvalue	4 0 0	; _ENV "print"
+	94	[17]	move     	5 3
+	95	[17]	call     	4 2 1	; 1 in 0 out
+	96	[18]	load_integer	4 0
+	97	[18]	load_constant	5 7	; 9.007199254741e+15
+	98	[18]	load_constant	6 8	; 4.5035996273705e+15
+	99	[18]	for_prepare	4 3	; exit to 104
+	100	[18]	get_table_upvalue	8 0 0	; _ENV "print"
+	101	[18]	move     	9 7
+	102	[18]	call     	8 2 1	; 1 in 0 out
+	103	[18]	for_loop 	4 4	; to 100
+	104	[19]	load_integer	4 1
+	105	[19]	get_table_upvalue	5 0 9	; _ENV "math_huge"
+	106	[19]	test     	5 1
+	107	[19]	jump     	3	; to 111
+	108	[19]	load_integer	5 1
+	109	[19]	divide_constant	5 5 10	; 0
+	110	[19]	metamethod_binary_constant	5 10 11 0	; __div 0
+	111	[19]	load_integer	6 1
+	112	[19]	for_prepare	4 5	; exit to 119
+	113	[19]	greater_than_integer	7 3 1
+	114	[19]	jump     	4	; to 119
+	115	[19]	get_table_upvalue	8 0 0	; _ENV "print"
+	116	[19]	move     	9 7
+	117	[19]	call     	8 2 1	; 1 in 0 out
+	118	[19]	for_loop 	4 6	; to 113
+	119	[20]	load_integer	4 1
+	120	[20]	load_integer	5 -1
+	121	[20]	divide_constant	5 5 10	; 0
+	122	[20]	metamethod_binary_constant	5 10 11 0	; __div 0
+	123	[20]	load_integer	6 1
+	124	[20]	for_prepare	4 3	; exit to 129
+	125	[20]	get_table_upvalue	8 0 0	; _ENV "print"
+	126	[20]	load_constant	9 1	; "never"
+	127	[20]	call     	8 2 1	; 1 in 0 out
+	128	[20]	for_loop 	4 4	; to 125
+	129	[21]	load_constant	4 11	; "1"
+	130	[21]	load_integer	5 2
+	131	[21]	load_integer	6 1
+	132	[21]	for_prepare	4 3	; exit to 137
+	133	[21]	get_table_upvalue	8 0 0	; _ENV "print"
+	134	[21]	move     	9 7
+	135	[21]	call     	8 2 1	; 1 in 0 out
+	136	[21]	for_loop 	4 4	; to 133
+	137	[22]	load_integer	4 1
+	138	[22]	load_constant	5 12	; "2"
+	139	[22]	load_integer	6 1
+	140	[22]	for_prepare	4 3	; exit to 145
+	141	[22]	get_table_upvalue	8 0 0	; _ENV "print"
+	142	[22]	move     	9 7
+	143	[22]	call     	8 2 1	; 1 in 0 out
+	144	[22]	for_loop 	4 4	; to 141
+	145	[23]	load_integer	4 1
+	146	[23]	load_integer	5 3
+	147	[23]	load_constant	6 13	; " 1 "
+	148	[23]	for_prepare	4 3	; exit to 153
+	149	[23]	get_table_upvalue	8 0 0	; _ENV "print"
+	150	[23]	move     	9 7
+	151	[23]	call     	8 2 1	; 1 in 0 out
+	152	[23]	for_loop 	4 4	; to 149
+	153	[24]	load_integer	4 16
+	154	[24]	load_integer	5 18
+	155	[24]	load_integer	6 1
+	156	[24]	for_prepare	4 3	; exit to 161
+	157	[24]	get_table_upvalue	8 0 0	; _ENV "print"
+	158	[24]	move     	9 7
+	159	[24]	call     	8 2 1	; 1 in 0 out
+	160	[24]	for_loop 	4 4	; to 157
+	161	[25]	new_table	4 0 0	; 0
+	162	[25]	extra_argument	0
+	163	[26]	load_integer	5 1
+	164	[26]	load_integer	6 3
+	165	[26]	load_integer	7 1
+	166	[26]	for_prepare	5 3	; exit to 171
+	167	[26]	closure  	9 0	; #1
+	168	[26]	set_table	4 8 9
+	169	[26]	close    	8
+	170	[26]	for_loop 	5 4	; to 167
+	171	[27]	get_table_upvalue	5 0 0	; _ENV "print"
+	172	[27]	get_integer	6 4 1
+	173	[27]	call     	6 1 2	; 0 in 1 out
+	174	[27]	get_integer	7 4 2
+	175	[27]	call     	7 1 2	; 0 in 1 out
+	176	[27]	get_integer	8 4 3
+	177	[27]	call     	8 1 0	; 0 in all out
+	178	[27]	call     	5 0 1	; all in 0 out
+	179	[28]	load_integer	5 1
+	180	[28]	load_integer	6 3
+	181	[28]	load_integer	7 1
+	182	[28]	for_prepare	5 7	; exit to 191
+	183	[29]	move     	9 8
+	184	[30]	multiply_constant	8 8 14	; 100
+	185	[30]	metamethod_binary_constant	8 14 8 0	; __mul 100
+	186	[31]	get_table_upvalue	10 0 0	; _ENV "print"
+	187	[31]	move     	11 8
+	188	[31]	move     	12 9
+	189	[31]	call     	10 3 1	; 2 in 0 out
+	190	[28]	for_loop 	5 8	; to 183
+	191	[32]	return_values	5 1 1k	; 0 out
+constants (15) for #2:
+	0	S	"print"
+	1	S	"never"
+	2	F	0.25
+	3	F	2.5
+	4	F	1.5
+	5	I	9223372036854775807
+	6	I	4
+	7	F	9.007199254741e+15
+	8	F	4.5035996273705e+15
+	9	S	"math_huge"
+	10	I	0
+	11	S	"1"
+	12	S	"2"
+	13	S	" 1 "
+	14	I	100
+locals (82) for #2:
+	0	sum	3	192
+	1	(for state)	6	10
+	2	(for state)	6	10
+	3	(for state)	6	10
+	4	i	7	9
+	5	(for state)	16	21
+	6	(for state)	16	21
+	7	(for state)	16	21
+	8	i	17	20
+	9	(for state)	24	29
+	10	(for state)	24	29
+	11	(for state)	24	29
+	12	i	25	28
+	13	(for state)	32	37
+	14	(for state)	32	37
+	15	(for state)	32	37
+	16	i	33	36
+	17	(for state)	40	45
+	18	(for state)	40	45
+	19	(for state)	40	45
+	20	i	41	44
+	21	(for state)	48	53
+	22	(for state)	48	53
+	23	(for state)	48	53
+	24	i	49	52
+	25	max	54	192
+	26	min	57	192
+	27	(for state)	61	66
+	28	(for state)	61	66
+	29	(for state)	61	66
+	30	i	62	65
+	31	(for state)	70	75
+	32	(for state)	70	75
+	33	(for state)	70	75
+	34	i	71	74
+	35	(for state)	79	84
+	36	(for state)	79	84
+	37	(for state)	79	84
+	38	i	80	83
+	39	n	85	192
+	40	(for state)	89	93
+	41	(for state)	89	93
+	42	(for state)	89	93
+	43	i	90	92
+	44	(for state)	99	104
+	45	(for state)	99	104
+	46	(for state)	99	104
+	47	i	100	103
+	48	(for state)	112	119
+	49	(for state)	112	119
+	50	(for state)	112	119
+	51	i	113	118
+	52	(for state)	124	129
+	53	(for state)	124	129
+	54	(for state)	124	129
+	55	i	125	128
+	56	(for state)	132	137
+	57	(for state)	132	137
+	58	(for state)	132	137
+	59	i	133	136
+	60	(for state)	140	145
+	61	(for state)	140	145
+	62	(for state)	140	145
+	63	i	141	144
+	64	(for state)	148	153
+	65	(for state)	148	153
+	66	(for state)	148	153
+	67	i	149	152
+	68	(for state)	156	161
+	69	(for state)	156	161
+	70	(for state)	156	161
+	71	i	157	160
+	72	fns	163	192
+	73	(for state)	166	171
+	74	(for state)	166	171
+	75	(for state)	166	171
+	76	i	167	169
+	77	(for state)	182	191
+	78	(for state)	182	191
+	79	(for state)	182	191
+	80	i	183	190
+	81	j	184	190
+upvalues (1) for #2:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/loops/numeric.lua:26,26> (3 instructions at #1)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 0 functions
+	1	[26]	get_upvalue	0 0	; i
+	2	[26]	return_one	0
+	3	[26]	return_none	
+constants (0) for #1:
+locals (0) for #1:
+upvalues (1) for #1:
+	0	i	1	8
+exit 0

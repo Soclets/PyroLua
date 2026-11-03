@@ -2,6 +2,8 @@
 --
 --  Conversion of Lua numerals (as the lexer reads them) to integers and floats.
 
+with Pyro.Integer_Arithmetic;
+
 package body Pyro.Numbers with SPARK_Mode => On is
 
    use Interfaces;
@@ -302,5 +304,77 @@ package body Pyro.Numbers with SPARK_Mode => On is
          Valid := False;
       end if;
    end Convert;
+
+   --  Text, numbered from 1.
+   function From_One (Text : String) return String
+   with Post => From_One'Result'First = 1 and then From_One'Result'Length = Text'Length
+   is
+      Result : String (1 .. Text'Length);
+   begin
+      for Index in Result'Range loop
+         Result (Index) := Text (Text'First - 1 + Index);
+      end loop;
+      return Result;
+   end From_One;
+
+   procedure String_To_Number (Text : String; Value : out Numeral_Value; Valid : out Boolean) is
+      --  [puc lctype.h:lisspace] The C locale's spaces.
+      function Is_Space (Byte : Character) return Boolean
+      is (Byte in ' ' | ASCII.HT | ASCII.LF | ASCII.VT | ASCII.FF | ASCII.CR);
+
+      --  2 ** 63, which only a negative decimal integer reaches (l_str2int's maxlastd + neg).
+      Minimum_Magnitude : constant String := "9223372036854775808";
+
+      First    : Integer := Text'First;
+      Last     : Integer := Text'Last;
+      Negative : Boolean := False;
+   begin
+      Value := (Is_Integer => True, Integer_Value => 0, Float_Bits => 0);
+      Valid := False;
+      while First <= Last and then Is_Space (Text (First)) loop
+         pragma Loop_Invariant (First in Text'First .. Last);
+         pragma Loop_Variant (Increases => First);
+         First := First + 1;
+      end loop;
+      while Last >= First and then Is_Space (Text (Last)) loop
+         pragma Loop_Invariant (Last in First .. Text'Last);
+         pragma Loop_Variant (Decreases => Last);
+         Last := Last - 1;
+      end loop;
+      if First <= Last and then Text (First) in '-' | '+' then
+         Negative := Text (First) = '-';
+         First := First + 1;
+      end if;
+      if First > Last then
+         return;
+      end if;
+      declare
+         Numeral     : constant String := From_One (Text (First .. Last));
+         Significant : Natural := 0;
+      begin
+         Convert (Numeral, Value, Valid);
+         if not Valid or else not Negative then
+            return;
+         elsif Value.Is_Integer then
+            Value.Integer_Value := Pyro.Integer_Arithmetic.Negate (Value.Integer_Value);
+            return;
+         end if;
+         --  A decimal integer of magnitude 2 ** 63 is the minimum integer, not a float.
+         for Index in Numeral'Range loop
+            if Numeral (Index) /= '0' or else Significant > 0 then
+               Significant := Significant + 1;
+            end if;
+            pragma Loop_Invariant (Significant <= Index);
+         end loop;
+         if (for all Byte of Numeral => Is_Decimal_Digit (Byte))
+           and then Significant = Minimum_Magnitude'Length
+           and then Numeral (Numeral'Last - Significant + 1 .. Numeral'Last) = Minimum_Magnitude
+         then
+            Value := (Is_Integer => True, Integer_Value => Integer_64'First, Float_Bits => 0);
+         else
+            Value.Float_Bits := Value.Float_Bits xor 16#8000_0000_0000_0000#;
+         end if;
+      end;
+   end String_To_Number;
 
 end Pyro.Numbers;

@@ -421,7 +421,22 @@ package Pyro.Virtual_Machine with SPARK_Mode => On, Always_Terminates is
 
    --  The bytes of string Item.
    function String_Text (M : Machine; Item : Value) return String
-   with Global => null, Pre => Is_Valid (M) and then Is_String (M, Item);
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_String (M, Item),
+     Post   =>
+       String_Text'Result'First = 1
+       and then String_Text'Result'Length <= Pyro.Strings.Maximum_String_Length;
+
+   --  [puc lvm.c:luaV_tonumber_] Item as a number: a number, or a string holding a numeral
+   --  (Pyro.Numbers.String_To_Number). Valid is False for anything else.
+   procedure To_Number (M : Machine; Item : Value; Result : out Value; Valid : out Boolean)
+   with
+     Global => null,
+     Pre    => Is_Valid (M) and then Is_Canonical (Item),
+     Post   =>
+       (if Valid
+        then Is_Canonical (Result) and then Result.Kind in Integer_Value | Float_Value);
 
    --  A string holding Text. Success is False when Budget cannot pay.
    procedure New_String
@@ -627,6 +642,23 @@ private
               Is_Register (V, Integer (I.A)) and then Natural (I.Wide) < V.Constants,
             when Pyro.Bytecode.Load_Constant_Extra | Pyro.Bytecode.Load_False_Skip =>
               Is_Register (V, Integer (I.A)) and then V.PC + 2 < V.Code,
+            when Pyro.Bytecode.For_Prepare =>
+              Is_Register (V, Integer (I.A) + 3)
+              and then V.PC + 2 + Integer (I.Wide) in 0 .. V.Code - 1,
+            when Pyro.Bytecode.For_Loop =>
+              Is_Register (V, Integer (I.A) + 3)
+              and then V.PC + 1 - Integer (I.Wide) in 0 .. V.Code - 1,
+            when Pyro.Bytecode.Generic_For_Prepare =>
+              Is_Register (V, Integer (I.A) + 3)
+              and then V.PC + 1 + Integer (I.Wide) in 0 .. V.Code - 1,
+            when Pyro.Bytecode.Generic_For_Call =>
+              Is_Register (V, Integer (I.A) + 6)
+              and then Is_Register (V, Integer (I.A) + 3 + Integer (I.C)),
+            when Pyro.Bytecode.Generic_For_Loop =>
+              Is_Register (V, Integer (I.A) + 4)
+              and then V.PC + 1 - Integer (I.Wide) in 0 .. V.Code - 1,
+            when Pyro.Bytecode.Close =>
+              Natural (I.A) <= V.Registers,
             when Pyro.Bytecode.Load_Nil =>
               Is_Register (V, Integer (I.A) + Integer (I.B)),
             when Pyro.Bytecode.Get_Upvalue | Pyro.Bytecode.Set_Upvalue =>
@@ -893,6 +925,18 @@ private
        and then Skip <= 1
        and then View (M).PC + 1 + Skip < View (M).Code,
      Post   => Is_Valid (M) and then Is_Loaded (M) and then Limit (Budget) = Limit (Budget)'Old;
+
+   --  [puc lvm.c:OP_CLOSE] Closes the open upvalues of the running frame's registers from
+   --  First on; the running frame moves on to its next instruction.
+   procedure Close_From (M : in out Machine; First : Natural)
+   with
+     Global => null,
+     Pre    =>
+       Is_Valid (M)
+       and then Running (M)
+       and then First <= View (M).Registers
+       and then View (M).PC + 1 < View (M).Code,
+     Post   => Is_Valid (M) and then Is_Loaded (M);
 
    --  Register Number of the running frame.
    function Register (M : Machine; Number : Natural) return Value

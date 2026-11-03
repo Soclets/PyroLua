@@ -1,0 +1,343 @@
+
+main <tests/corpus/runtime/closures/capture.lua:0,0> (119 instructions at #15)
+0+ params, 20 slots, 1 upvalue, 18 locals, 4 constants, 8 functions
+	1	[1]	vararg_prepare	0
+	2	[6]	closure  	0 0	; #3
+	3	[7]	move     	1 0
+	4	[7]	call     	1 1 3	; 0 in 2 out
+	5	[8]	move     	3 1
+	6	[8]	call     	3 1 1	; 0 in 0 out
+	7	[8]	move     	3 1
+	8	[8]	call     	3 1 1	; 0 in 0 out
+	9	[9]	get_table_upvalue	3 0 0	; _ENV "print"
+	10	[9]	move     	4 2
+	11	[9]	call     	4 1 2	; 0 in 1 out
+	12	[9]	move     	5 1
+	13	[9]	call     	5 1 2	; 0 in 1 out
+	14	[9]	move     	6 2
+	15	[9]	call     	6 1 0	; 0 in all out
+	16	[9]	call     	3 0 1	; all in 0 out
+	17	[10]	move     	3 0
+	18	[10]	call     	3 1 2	; 0 in 1 out
+	19	[11]	get_table_upvalue	4 0 0	; _ENV "print"
+	20	[11]	move     	5 3
+	21	[11]	call     	5 1 2	; 0 in 1 out
+	22	[11]	move     	6 2
+	23	[11]	call     	6 1 0	; 0 in all out
+	24	[11]	call     	4 0 1	; all in 0 out
+	25	[12]	new_table	4 0 0	; 0
+	26	[12]	extra_argument	0
+	27	[13]	load_integer	5 1
+	28	[14]	less_equal_integer	5 3 0
+	29	[14]	jump     	8	; to 38
+	30	[15]	multiply_constant	6 5 1	; 10
+	31	[15]	metamethod_binary_constant	5 1 8 0	; __mul 10
+	32	[16]	closure  	7 1	; #4
+	33	[16]	set_table	4 5 7
+	34	[17]	add_integer	5 5 1
+	35	[17]	metamethod_binary_integer	5 1 6 0	; __add
+	36	[17]	close    	6
+	37	[17]	jump     	-10	; to 28
+	38	[19]	get_table_upvalue	6 0 0	; _ENV "print"
+	39	[19]	get_integer	7 4 1
+	40	[19]	call     	7 1 2	; 0 in 1 out
+	41	[19]	get_integer	8 4 2
+	42	[19]	call     	8 1 2	; 0 in 1 out
+	43	[19]	get_integer	9 4 3
+	44	[19]	call     	9 1 0	; 0 in all out
+	45	[19]	call     	6 0 1	; all in 0 out
+	46	[20]	new_table	6 0 0	; 0
+	47	[20]	extra_argument	0
+	48	[22]	load_integer	7 1
+	49	[23]	closure  	8 2	; #5
+	50	[23]	set_field	6 2 8	; "get"
+	51	[24]	closure  	8 3	; #6
+	52	[24]	set_field	6 3 8	; "set"
+	53	[24]	close    	7
+	54	[26]	get_field	7 6 3	; "set"
+	55	[26]	load_integer	8 42
+	56	[26]	call     	7 2 1	; 1 in 0 out
+	57	[27]	get_table_upvalue	7 0 0	; _ENV "print"
+	58	[27]	get_field	8 6 2	; "get"
+	59	[27]	call     	8 1 0	; 0 in all out
+	60	[27]	call     	7 0 1	; all in 0 out
+	61	[40]	closure  	7 4	; #10
+	62	[41]	move     	8 7
+	63	[41]	call     	8 1 3	; 0 in 2 out
+	64	[42]	get_table_upvalue	10 0 0	; _ENV "print"
+	65	[42]	move     	11 8
+	66	[42]	call     	11 1 0	; 0 in all out
+	67	[42]	call     	10 0 1	; all in 0 out
+	68	[43]	get_table_upvalue	10 0 0	; _ENV "print"
+	69	[43]	move     	11 8
+	70	[43]	call     	11 1 0	; 0 in all out
+	71	[43]	call     	10 0 1	; all in 0 out
+	72	[44]	get_table_upvalue	10 0 0	; _ENV "print"
+	73	[44]	move     	11 9
+	74	[44]	call     	11 1 0	; 0 in all out
+	75	[44]	call     	10 0 1	; all in 0 out
+	76	[45]	load_integer	10 0
+	77	[46]	new_table	11 0 0	; 0
+	78	[46]	extra_argument	0
+	79	[48]	add_integer	10 10 1
+	80	[48]	metamethod_binary_integer	10 1 6 0	; __add
+	81	[49]	move     	12 10
+	82	[50]	closure  	13 5	; #11
+	83	[50]	set_table	11 10 13
+	84	[51]	equal_integer	10 3 1
+	85	[51]	jump     	2	; to 88
+	86	[51]	close    	12
+	87	[51]	jump     	-9	; to 79
+	88	[52]	close    	12
+	89	[53]	get_table_upvalue	12 0 0	; _ENV "print"
+	90	[53]	get_integer	13 11 1
+	91	[53]	call     	13 1 2	; 0 in 1 out
+	92	[53]	get_integer	14 11 1
+	93	[53]	call     	14 1 2	; 0 in 1 out
+	94	[53]	get_integer	15 11 2
+	95	[53]	call     	15 1 2	; 0 in 1 out
+	96	[53]	get_integer	16 11 3
+	97	[53]	call     	16 1 0	; 0 in all out
+	98	[53]	call     	12 0 1	; all in 0 out
+	99	[57]	closure  	12 6	; #12
+	100	[58]	get_table_upvalue	13 0 0	; _ENV "print"
+	101	[58]	move     	14 12
+	102	[58]	load_integer	15 100
+	103	[58]	call     	14 2 0	; 1 in all out
+	104	[58]	call     	13 0 1	; all in 0 out
+	105	[68]	closure  	13 7	; #14
+	106	[69]	move     	14 13
+	107	[69]	call     	14 1 2	; 0 in 1 out
+	108	[70]	get_table_upvalue	15 0 0	; _ENV "print"
+	109	[70]	get_integer	16 14 1
+	110	[70]	load_integer	17 10
+	111	[70]	call     	16 2 2	; 1 in 1 out
+	112	[70]	get_integer	17 14 2
+	113	[70]	load_integer	18 10
+	114	[70]	call     	17 2 2	; 1 in 1 out
+	115	[70]	get_integer	18 14 3
+	116	[70]	load_integer	19 10
+	117	[70]	call     	18 2 0	; 1 in all out
+	118	[70]	call     	15 0 1	; all in 0 out
+	119	[70]	return_values	15 1 1k	; 0 out
+constants (4) for #15:
+	0	S	"print"
+	1	I	10
+	2	S	"get"
+	3	S	"set"
+locals (18) for #15:
+	0	counter	3	120
+	1	inc	5	120
+	2	get	5	120
+	3	other	19	120
+	4	fns	27	120
+	5	i	28	120
+	6	j	32	36
+	7	shared	48	120
+	8	x	49	53
+	9	outer	62	120
+	10	inner	64	120
+	11	read_a	64	120
+	12	k	77	120
+	13	captured	79	120
+	14	v	82	86
+	15	recursive	100	120
+	16	make_adders	106	120
+	17	adders	108	120
+upvalues (1) for #15:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/closures/capture.lua:3,6> (5 instructions at #3)
+0 params, 3 slots, 0 upvalues, 1 local, 0 constants, 2 functions
+	1	[4]	load_integer	0 0
+	2	[5]	closure  	1 0	; #1
+	3	[5]	closure  	2 1	; #2
+	4	[5]	return_values	1 3 0k	; 2 out
+	5	[6]	return_values	1 1 0k	; 0 out
+constants (0) for #3:
+locals (1) for #3:
+	0	n	2	6
+upvalues (0) for #3:
+
+function <tests/corpus/runtime/closures/capture.lua:5,5> (7 instructions at #1)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 0 functions
+	1	[5]	get_upvalue	0 0	; n
+	2	[5]	add_integer	0 0 1
+	3	[5]	metamethod_binary_integer	0 1 6 0	; __add
+	4	[5]	set_upvalue	0 0	; n
+	5	[5]	get_upvalue	0 0	; n
+	6	[5]	return_one	0
+	7	[5]	return_none	
+constants (0) for #1:
+locals (0) for #1:
+upvalues (1) for #1:
+	0	n	1	0
+
+function <tests/corpus/runtime/closures/capture.lua:5,5> (3 instructions at #2)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 0 functions
+	1	[5]	get_upvalue	0 0	; n
+	2	[5]	return_one	0
+	3	[5]	return_none	
+constants (0) for #2:
+locals (0) for #2:
+upvalues (1) for #2:
+	0	n	1	0
+
+function <tests/corpus/runtime/closures/capture.lua:16,16> (3 instructions at #4)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 0 functions
+	1	[16]	get_upvalue	0 0	; j
+	2	[16]	return_one	0
+	3	[16]	return_none	
+constants (0) for #4:
+locals (0) for #4:
+upvalues (1) for #4:
+	0	j	1	6
+
+function <tests/corpus/runtime/closures/capture.lua:23,23> (3 instructions at #5)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 0 functions
+	1	[23]	get_upvalue	0 0	; x
+	2	[23]	return_one	0
+	3	[23]	return_none	
+constants (0) for #5:
+locals (0) for #5:
+upvalues (1) for #5:
+	0	x	1	7
+
+function <tests/corpus/runtime/closures/capture.lua:24,24> (2 instructions at #6)
+1 param, 2 slots, 1 upvalue, 1 local, 0 constants, 0 functions
+	1	[24]	set_upvalue	0 0	; x
+	2	[24]	return_none	
+constants (0) for #6:
+locals (1) for #6:
+	0	v	1	3
+upvalues (1) for #6:
+	0	x	1	7
+
+function <tests/corpus/runtime/closures/capture.lua:28,40> (7 instructions at #10)
+0 params, 4 slots, 0 upvalues, 2 locals, 0 constants, 2 functions
+	1	[29]	load_integer	0 1
+	2	[38]	closure  	1 0	; #8
+	3	[39]	move     	2 1
+	4	[39]	call     	2 1 2	; 0 in 1 out
+	5	[39]	closure  	3 1	; #9
+	6	[39]	return_values	2 3 0k	; 2 out
+	7	[40]	return_values	2 1 0k	; 0 out
+constants (0) for #10:
+locals (2) for #10:
+	0	a	2	8
+	1	middle	3	8
+upvalues (0) for #10:
+
+function <tests/corpus/runtime/closures/capture.lua:30,38> (4 instructions at #8)
+0 params, 2 slots, 1 upvalue, 2 locals, 0 constants, 1 function
+	1	[31]	load_integer	0 2
+	2	[36]	closure  	1 0	; #7
+	3	[37]	return_values	1 2 0k	; 1 out
+	4	[38]	return_values	2 1 0k	; 0 out
+constants (0) for #8:
+locals (2) for #8:
+	0	b	2	5
+	1	inner	3	5
+upvalues (1) for #8:
+	0	a	1	0
+
+function <tests/corpus/runtime/closures/capture.lua:32,36> (12 instructions at #7)
+0 params, 2 slots, 2 upvalues, 0 locals, 0 constants, 0 functions
+	1	[33]	get_upvalue	0 0	; a
+	2	[33]	add_integer	0 0 1
+	3	[33]	metamethod_binary_integer	0 1 6 0	; __add
+	4	[33]	set_upvalue	0 0	; a
+	5	[34]	get_upvalue	0 1	; b
+	6	[34]	add_integer	0 0 1
+	7	[34]	metamethod_binary_integer	0 1 6 0	; __add
+	8	[34]	set_upvalue	0 1	; b
+	9	[35]	get_upvalue	0 0	; a
+	10	[35]	get_upvalue	1 1	; b
+	11	[35]	return_values	0 3 0	; 2 out
+	12	[36]	return_none	
+constants (0) for #7:
+locals (0) for #7:
+upvalues (2) for #7:
+	0	a	0	0
+	1	b	1	0
+
+function <tests/corpus/runtime/closures/capture.lua:39,39> (3 instructions at #9)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 0 functions
+	1	[39]	get_upvalue	0 0	; a
+	2	[39]	return_one	0
+	3	[39]	return_none	
+constants (0) for #9:
+locals (0) for #9:
+upvalues (1) for #9:
+	0	a	1	0
+
+function <tests/corpus/runtime/closures/capture.lua:50,50> (7 instructions at #11)
+0 params, 2 slots, 1 upvalue, 0 locals, 0 constants, 0 functions
+	1	[50]	get_upvalue	0 0	; v
+	2	[50]	add_integer	0 0 100
+	3	[50]	metamethod_binary_integer	0 100 6 0	; __add
+	4	[50]	set_upvalue	0 0	; v
+	5	[50]	get_upvalue	0 0	; v
+	6	[50]	return_one	0
+	7	[50]	return_none	
+constants (0) for #11:
+locals (0) for #11:
+upvalues (1) for #11:
+	0	v	1	12
+
+function <tests/corpus/runtime/closures/capture.lua:54,57> (12 instructions at #12)
+1 param, 3 slots, 1 upvalue, 1 local, 0 constants, 0 functions
+	1	[55]	equal_integer	0 0 0
+	2	[55]	jump     	2	; to 5
+	3	[55]	load_integer	1 0
+	4	[55]	return_one	1
+	5	[56]	get_upvalue	1 0	; recursive
+	6	[56]	add_integer	2 0 -1
+	7	[56]	metamethod_binary_integer	0 1 7 0	; __sub
+	8	[56]	call     	1 2 2	; 1 in 1 out
+	9	[56]	add      	1 0 1
+	10	[56]	metamethod_binary	0 1 6	; __add
+	11	[56]	return_one	1
+	12	[57]	return_none	
+constants (0) for #12:
+locals (1) for #12:
+	0	n	1	13
+upvalues (1) for #12:
+	0	recursive	1	12
+
+function <tests/corpus/runtime/closures/capture.lua:59,68> (14 instructions at #14)
+0 params, 4 slots, 0 upvalues, 3 locals, 0 constants, 1 function
+	1	[60]	new_table	0 0 0	; 0
+	2	[60]	extra_argument	0
+	3	[61]	load_integer	1 1
+	4	[62]	less_equal_integer	1 3 0
+	5	[62]	jump     	7	; to 13
+	6	[63]	move     	2 1
+	7	[64]	closure  	3 0	; #13
+	8	[64]	set_table	0 1 3
+	9	[65]	add_integer	1 1 1
+	10	[65]	metamethod_binary_integer	1 1 6 0	; __add
+	11	[65]	close    	2
+	12	[65]	jump     	-9	; to 4
+	13	[67]	return_values	0 2 0k	; 1 out
+	14	[68]	return_values	2 1 0k	; 0 out
+constants (0) for #14:
+locals (3) for #14:
+	0	list	3	15
+	1	n	4	15
+	2	step	7	11
+upvalues (0) for #14:
+
+function <tests/corpus/runtime/closures/capture.lua:64,64> (5 instructions at #13)
+1 param, 2 slots, 1 upvalue, 1 local, 0 constants, 0 functions
+	1	[64]	get_upvalue	1 0	; step
+	2	[64]	add      	1 0 1
+	3	[64]	metamethod_binary	0 1 6	; __add
+	4	[64]	return_one	1
+	5	[64]	return_none	
+constants (0) for #13:
+locals (1) for #13:
+	0	x	1	6
+upvalues (1) for #13:
+	0	step	1	2
+exit 0

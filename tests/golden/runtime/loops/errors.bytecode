@@ -1,0 +1,150 @@
+
+main <tests/corpus/runtime/loops/errors.lua:0,0> (37 instructions at #7)
+0+ params, 4 slots, 1 upvalue, 4 locals, 2 constants, 6 functions
+	1	[1]	vararg_prepare	0
+	2	[2]	get_table_upvalue	0 0 0	; _ENV "print"
+	3	[2]	get_table_upvalue	1 0 1	; _ENV "pcall"
+	4	[2]	closure  	2 0	; #1
+	5	[2]	call     	1 2 0	; 1 in all out
+	6	[2]	call     	0 0 1	; all in 0 out
+	7	[3]	get_table_upvalue	0 0 0	; _ENV "print"
+	8	[3]	get_table_upvalue	1 0 1	; _ENV "pcall"
+	9	[3]	closure  	2 1	; #2
+	10	[3]	call     	1 2 0	; 1 in all out
+	11	[3]	call     	0 0 1	; all in 0 out
+	12	[4]	get_table_upvalue	0 0 0	; _ENV "print"
+	13	[4]	get_table_upvalue	1 0 1	; _ENV "pcall"
+	14	[4]	closure  	2 2	; #3
+	15	[4]	call     	1 2 0	; 1 in all out
+	16	[4]	call     	0 0 1	; all in 0 out
+	17	[5]	get_table_upvalue	0 0 0	; _ENV "print"
+	18	[5]	get_table_upvalue	1 0 1	; _ENV "pcall"
+	19	[5]	closure  	2 3	; #4
+	20	[5]	call     	1 2 0	; 1 in all out
+	21	[5]	call     	0 0 1	; all in 0 out
+	22	[6]	get_table_upvalue	0 0 0	; _ENV "print"
+	23	[6]	get_table_upvalue	1 0 1	; _ENV "pcall"
+	24	[6]	closure  	2 4	; #5
+	25	[6]	call     	1 2 0	; 1 in all out
+	26	[6]	call     	0 0 1	; all in 0 out
+	27	[7]	get_table_upvalue	0 0 0	; _ENV "print"
+	28	[7]	get_table_upvalue	1 0 1	; _ENV "pcall"
+	29	[7]	closure  	2 5	; #6
+	30	[7]	call     	1 2 0	; 1 in all out
+	31	[7]	call     	0 0 1	; all in 0 out
+	32	[8]	load_integer	0 1
+	33	[8]	load_integer	1 10
+	34	[8]	load_false	2
+	35	[8]	for_prepare	0 0	; exit to 37
+	36	[8]	for_loop 	0 1	; to 36
+	37	[8]	return_values	0 1 1	; 0 out
+constants (2) for #7:
+	0	S	"print"
+	1	S	"pcall"
+locals (4) for #7:
+	0	(for state)	35	37
+	1	(for state)	35	37
+	2	(for state)	35	37
+	3	i	36	36
+upvalues (1) for #7:
+	0	_ENV	1	0
+
+function <tests/corpus/runtime/loops/errors.lua:2,2> (6 instructions at #1)
+0 params, 4 slots, 0 upvalues, 4 locals, 0 constants, 0 functions
+	1	[2]	load_integer	0 1
+	2	[2]	load_integer	1 2
+	3	[2]	load_integer	2 0
+	4	[2]	for_prepare	0 0	; exit to 6
+	5	[2]	for_loop 	0 1	; to 5
+	6	[2]	return_none	
+constants (0) for #1:
+locals (4) for #1:
+	0	(for state)	4	6
+	1	(for state)	4	6
+	2	(for state)	4	6
+	3	i	5	5
+upvalues (0) for #1:
+
+function <tests/corpus/runtime/loops/errors.lua:3,3> (6 instructions at #2)
+0 params, 4 slots, 0 upvalues, 4 locals, 0 constants, 0 functions
+	1	[3]	load_float	0 1
+	2	[3]	load_integer	1 2
+	3	[3]	load_integer	2 0
+	4	[3]	for_prepare	0 0	; exit to 6
+	5	[3]	for_loop 	0 1	; to 5
+	6	[3]	return_none	
+constants (0) for #2:
+locals (4) for #2:
+	0	(for state)	4	6
+	1	(for state)	4	6
+	2	(for state)	4	6
+	3	i	5	5
+upvalues (0) for #2:
+
+function <tests/corpus/runtime/loops/errors.lua:4,4> (6 instructions at #3)
+0 params, 4 slots, 0 upvalues, 4 locals, 0 constants, 0 functions
+	1	[4]	load_nil 	0 0	; 1 out
+	2	[4]	load_integer	1 2
+	3	[4]	load_integer	2 1
+	4	[4]	for_prepare	0 0	; exit to 6
+	5	[4]	for_loop 	0 1	; to 5
+	6	[4]	return_none	
+constants (0) for #3:
+locals (4) for #3:
+	0	(for state)	4	6
+	1	(for state)	4	6
+	2	(for state)	4	6
+	3	i	5	5
+upvalues (0) for #3:
+
+function <tests/corpus/runtime/loops/errors.lua:5,5> (7 instructions at #4)
+0 params, 4 slots, 0 upvalues, 4 locals, 0 constants, 0 functions
+	1	[5]	load_integer	0 1
+	2	[5]	new_table	1 0 0	; 0
+	3	[5]	extra_argument	0
+	4	[5]	load_integer	2 1
+	5	[5]	for_prepare	0 0	; exit to 7
+	6	[5]	for_loop 	0 1	; to 6
+	7	[5]	return_none	
+constants (0) for #4:
+locals (4) for #4:
+	0	(for state)	5	7
+	1	(for state)	5	7
+	2	(for state)	5	7
+	3	i	6	6
+upvalues (0) for #4:
+
+function <tests/corpus/runtime/loops/errors.lua:6,6> (6 instructions at #5)
+0 params, 4 slots, 0 upvalues, 4 locals, 1 constant, 0 functions
+	1	[6]	load_integer	0 1
+	2	[6]	load_integer	1 2
+	3	[6]	load_constant	2 0	; "x"
+	4	[6]	for_prepare	0 0	; exit to 6
+	5	[6]	for_loop 	0 1	; to 5
+	6	[6]	return_none	
+constants (1) for #5:
+	0	S	"x"
+locals (4) for #5:
+	0	(for state)	4	6
+	1	(for state)	4	6
+	2	(for state)	4	6
+	3	i	5	5
+upvalues (0) for #5:
+
+function <tests/corpus/runtime/loops/errors.lua:7,7> (6 instructions at #6)
+0 params, 4 slots, 0 upvalues, 4 locals, 1 constant, 0 functions
+	1	[7]	load_constant	0 0	; "a"
+	2	[7]	load_integer	1 2
+	3	[7]	load_integer	2 1
+	4	[7]	for_prepare	0 0	; exit to 6
+	5	[7]	for_loop 	0 1	; to 5
+	6	[7]	return_none	
+constants (1) for #6:
+	0	S	"a"
+locals (4) for #6:
+	0	(for state)	4	6
+	1	(for state)	4	6
+	2	(for state)	4	6
+	3	i	5	5
+upvalues (0) for #6:
+exit 0

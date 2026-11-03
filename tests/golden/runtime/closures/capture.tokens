@@ -1,0 +1,448 @@
+3 keyword local
+3 keyword function
+3 name counter
+3 (
+3 )
+4 keyword local
+4 name n
+4 =
+4 integer 0
+5 keyword return
+5 keyword function
+5 (
+5 )
+5 name n
+5 =
+5 name n
+5 +
+5 integer 1
+5 ;
+5 keyword return
+5 name n
+5 keyword end
+5 ,
+5 keyword function
+5 (
+5 )
+5 keyword return
+5 name n
+5 keyword end
+6 keyword end
+7 keyword local
+7 name inc
+7 ,
+7 name get
+7 =
+7 name counter
+7 (
+7 )
+8 name inc
+8 (
+8 )
+8 ;
+8 name inc
+8 (
+8 )
+9 name print
+9 (
+9 name get
+9 (
+9 )
+9 ,
+9 name inc
+9 (
+9 )
+9 ,
+9 name get
+9 (
+9 )
+9 )
+10 keyword local
+10 name other
+10 =
+10 name counter
+10 (
+10 )
+11 name print
+11 (
+11 name other
+11 (
+11 )
+11 ,
+11 name get
+11 (
+11 )
+11 )
+12 keyword local
+12 name fns
+12 =
+12 {
+12 }
+13 keyword local
+13 name i
+13 =
+13 integer 1
+14 keyword while
+14 name i
+14 <=
+14 integer 3
+14 keyword do
+15 keyword local
+15 name j
+15 =
+15 name i
+15 *
+15 integer 10
+16 name fns
+16 [
+16 name i
+16 ]
+16 =
+16 keyword function
+16 (
+16 )
+16 keyword return
+16 name j
+16 keyword end
+17 name i
+17 =
+17 name i
+17 +
+17 integer 1
+18 keyword end
+19 name print
+19 (
+19 name fns
+19 [
+19 integer 1
+19 ]
+19 (
+19 )
+19 ,
+19 name fns
+19 [
+19 integer 2
+19 ]
+19 (
+19 )
+19 ,
+19 name fns
+19 [
+19 integer 3
+19 ]
+19 (
+19 )
+19 )
+20 keyword local
+20 name shared
+20 =
+20 {
+20 }
+21 keyword do
+22 keyword local
+22 name x
+22 =
+22 integer 1
+23 name shared
+23 .
+23 name get
+23 =
+23 keyword function
+23 (
+23 )
+23 keyword return
+23 name x
+23 keyword end
+24 name shared
+24 .
+24 name set
+24 =
+24 keyword function
+24 (
+24 name v
+24 )
+24 name x
+24 =
+24 name v
+24 keyword end
+25 keyword end
+26 name shared
+26 .
+26 name set
+26 (
+26 integer 42
+26 )
+27 name print
+27 (
+27 name shared
+27 .
+27 name get
+27 (
+27 )
+27 )
+28 keyword local
+28 keyword function
+28 name outer
+28 (
+28 )
+29 keyword local
+29 name a
+29 =
+29 integer 1
+30 keyword local
+30 keyword function
+30 name middle
+30 (
+30 )
+31 keyword local
+31 name b
+31 =
+31 integer 2
+32 keyword local
+32 keyword function
+32 name inner
+32 (
+32 )
+33 name a
+33 =
+33 name a
+33 +
+33 integer 1
+34 name b
+34 =
+34 name b
+34 +
+34 integer 1
+35 keyword return
+35 name a
+35 ,
+35 name b
+36 keyword end
+37 keyword return
+37 name inner
+38 keyword end
+39 keyword return
+39 name middle
+39 (
+39 )
+39 ,
+39 keyword function
+39 (
+39 )
+39 keyword return
+39 name a
+39 keyword end
+40 keyword end
+41 keyword local
+41 name inner
+41 ,
+41 name read_a
+41 =
+41 name outer
+41 (
+41 )
+42 name print
+42 (
+42 name inner
+42 (
+42 )
+42 )
+43 name print
+43 (
+43 name inner
+43 (
+43 )
+43 )
+44 name print
+44 (
+44 name read_a
+44 (
+44 )
+44 )
+45 keyword local
+45 name k
+45 =
+45 integer 0
+46 keyword local
+46 name captured
+46 =
+46 {
+46 }
+47 keyword while
+47 keyword true
+47 keyword do
+48 name k
+48 =
+48 name k
+48 +
+48 integer 1
+49 keyword local
+49 name v
+49 =
+49 name k
+50 name captured
+50 [
+50 name k
+50 ]
+50 =
+50 keyword function
+50 (
+50 )
+50 name v
+50 =
+50 name v
+50 +
+50 integer 100
+50 ;
+50 keyword return
+50 name v
+50 keyword end
+51 keyword if
+51 name k
+51 ==
+51 integer 3
+51 keyword then
+51 keyword break
+51 keyword end
+52 keyword end
+53 name print
+53 (
+53 name captured
+53 [
+53 integer 1
+53 ]
+53 (
+53 )
+53 ,
+53 name captured
+53 [
+53 integer 1
+53 ]
+53 (
+53 )
+53 ,
+53 name captured
+53 [
+53 integer 2
+53 ]
+53 (
+53 )
+53 ,
+53 name captured
+53 [
+53 integer 3
+53 ]
+53 (
+53 )
+53 )
+54 keyword local
+54 keyword function
+54 name recursive
+54 (
+54 name n
+54 )
+55 keyword if
+55 name n
+55 ==
+55 integer 0
+55 keyword then
+55 keyword return
+55 integer 0
+55 keyword end
+56 keyword return
+56 name n
+56 +
+56 name recursive
+56 (
+56 name n
+56 -
+56 integer 1
+56 )
+57 keyword end
+58 name print
+58 (
+58 name recursive
+58 (
+58 integer 100
+58 )
+58 )
+59 keyword local
+59 keyword function
+59 name make_adders
+59 (
+59 )
+60 keyword local
+60 name list
+60 =
+60 {
+60 }
+61 keyword local
+61 name n
+61 =
+61 integer 1
+62 keyword while
+62 name n
+62 <=
+62 integer 3
+62 keyword do
+63 keyword local
+63 name step
+63 =
+63 name n
+64 name list
+64 [
+64 name n
+64 ]
+64 =
+64 keyword function
+64 (
+64 name x
+64 )
+64 keyword return
+64 name x
+64 +
+64 name step
+64 keyword end
+65 name n
+65 =
+65 name n
+65 +
+65 integer 1
+66 keyword end
+67 keyword return
+67 name list
+68 keyword end
+69 keyword local
+69 name adders
+69 =
+69 name make_adders
+69 (
+69 )
+70 name print
+70 (
+70 name adders
+70 [
+70 integer 1
+70 ]
+70 (
+70 integer 10
+70 )
+70 ,
+70 name adders
+70 [
+70 integer 2
+70 ]
+70 (
+70 integer 10
+70 )
+70 ,
+70 name adders
+70 [
+70 integer 3
+70 ]
+70 (
+70 integer 10
+70 )
+70 )
+71 <eof>
+exit 0

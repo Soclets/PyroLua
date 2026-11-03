@@ -1,0 +1,450 @@
+1 function_body vararg
+  1 block
+    3 local_function
+      3 local_name "counter"
+      3 function_body
+        3 name_list
+        4 block
+          4 local_statement
+            4 name_list
+              4 local_name "n"
+            4 expression_list
+              4 integer_literal 0
+          5 return_statement
+            5 expression_list
+              5 function_expression
+                5 function_body
+                  5 name_list
+                  5 block
+                    5 assignment
+                      5 expression_list
+                        5 assignment_target "n"
+                          5 name_expression "n" upvalue@3
+                      5 expression_list
+                        5 binary_operation add
+                          5 name_expression "n" upvalue@3
+                          5 integer_literal 1
+                    5 return_statement
+                      5 expression_list
+                        5 name_expression "n" upvalue@3
+              5 function_expression
+                5 function_body
+                  5 name_list
+                  5 block
+                    5 return_statement
+                      5 expression_list
+                        5 name_expression "n" upvalue@3
+    7 local_statement
+      7 name_list
+        7 local_name "inc"
+        7 local_name "get"
+      7 expression_list
+        7 call_expression
+          7 name_expression "counter" local@1
+    8 call_statement
+      8 call_expression
+        8 name_expression "inc" local@35
+    8 call_statement
+      8 call_expression
+        8 name_expression "inc" local@35
+    9 call_statement
+      9 call_expression
+        9 name_expression "print" global
+        9 call_expression
+          9 name_expression "get" local@36
+        9 call_expression
+          9 name_expression "inc" local@35
+        9 call_expression
+          9 name_expression "get" local@36
+    10 local_statement
+      10 name_list
+        10 local_name "other"
+      10 expression_list
+        10 call_expression
+          10 name_expression "counter" local@1
+    11 call_statement
+      11 call_expression
+        11 name_expression "print" global
+        11 call_expression
+          11 name_expression "other" local@57
+        11 call_expression
+          11 name_expression "get" local@36
+    12 local_statement
+      12 name_list
+        12 local_name "fns"
+      12 expression_list
+        12 table_constructor
+    13 local_statement
+      13 name_list
+        13 local_name "i"
+      13 expression_list
+        13 integer_literal 1
+    14 while_statement
+      14 binary_operation less_equal
+        14 name_expression "i" local@75
+        14 integer_literal 3
+      15 block
+        15 local_statement
+          15 name_list
+            15 local_name "j"
+          15 expression_list
+            15 binary_operation multiply
+              15 name_expression "i" local@75
+              15 integer_literal 10
+        16 assignment
+          16 expression_list
+            16 assignment_target
+              16 index_expression
+                16 name_expression "fns" local@70
+                16 name_expression "i" local@75
+          16 expression_list
+            16 function_expression
+              16 function_body
+                16 name_list
+                16 block
+                  16 return_statement
+                    16 expression_list
+                      16 name_expression "j" upvalue@83
+        17 assignment
+          17 expression_list
+            17 assignment_target "i"
+              17 name_expression "i" local@75
+          17 expression_list
+            17 binary_operation add
+              17 name_expression "i" local@75
+              17 integer_literal 1
+    19 call_statement
+      19 call_expression
+        19 name_expression "print" global
+        19 call_expression
+          19 index_expression
+            19 name_expression "fns" local@70
+            19 integer_literal 1
+        19 call_expression
+          19 index_expression
+            19 name_expression "fns" local@70
+            19 integer_literal 2
+        19 call_expression
+          19 index_expression
+            19 name_expression "fns" local@70
+            19 integer_literal 3
+    20 local_statement
+      20 name_list
+        20 local_name "shared"
+      20 expression_list
+        20 table_constructor
+    21 do_statement
+      22 block
+        22 local_statement
+          22 name_list
+            22 local_name "x"
+          22 expression_list
+            22 integer_literal 1
+        23 assignment
+          23 expression_list
+            23 assignment_target name-key
+              23 index_expression name-key
+                23 name_expression "shared" local@129
+                23 string_literal "get"
+          23 expression_list
+            23 function_expression
+              23 function_body
+                23 name_list
+                23 block
+                  23 return_statement
+                    23 expression_list
+                      23 name_expression "x" upvalue@134
+        24 assignment
+          24 expression_list
+            24 assignment_target name-key
+              24 index_expression name-key
+                24 name_expression "shared" local@129
+                24 string_literal "set"
+          24 expression_list
+            24 function_expression
+              24 function_body
+                24 name_list
+                  24 local_name "v"
+                24 block
+                  24 assignment
+                    24 expression_list
+                      24 assignment_target "x"
+                        24 name_expression "x" upvalue@134
+                    24 expression_list
+                      24 name_expression "v" local@158
+    26 call_statement
+      26 call_expression
+        26 index_expression name-key
+          26 name_expression "shared" local@129
+          26 string_literal "set"
+        26 integer_literal 42
+    27 call_statement
+      27 call_expression
+        27 name_expression "print" global
+        27 call_expression
+          27 index_expression name-key
+            27 name_expression "shared" local@129
+            27 string_literal "get"
+    28 local_function
+      28 local_name "outer"
+      28 function_body
+        28 name_list
+        29 block
+          29 local_statement
+            29 name_list
+              29 local_name "a"
+            29 expression_list
+              29 integer_literal 1
+          30 local_function
+            30 local_name "middle"
+            30 function_body
+              30 name_list
+              31 block
+                31 local_statement
+                  31 name_list
+                    31 local_name "b"
+                  31 expression_list
+                    31 integer_literal 2
+                32 local_function
+                  32 local_name "inner"
+                  32 function_body
+                    32 name_list
+                    33 block
+                      33 assignment
+                        33 expression_list
+                          33 assignment_target "a"
+                            33 name_expression "a" upvalue@188
+                        33 expression_list
+                          33 binary_operation add
+                            33 name_expression "a" upvalue@188
+                            33 integer_literal 1
+                      34 assignment
+                        34 expression_list
+                          34 assignment_target "b"
+                            34 name_expression "b" upvalue@195
+                        34 expression_list
+                          34 binary_operation add
+                            34 name_expression "b" upvalue@195
+                            34 integer_literal 1
+                      35 return_statement
+                        35 expression_list
+                          35 name_expression "a" upvalue@188
+                          35 name_expression "b" upvalue@195
+                37 return_statement
+                  37 expression_list
+                    37 name_expression "inner" local@200
+          39 return_statement
+            39 expression_list
+              39 call_expression
+                39 name_expression "middle" local@193
+              39 function_expression
+                39 function_body
+                  39 name_list
+                  39 block
+                    39 return_statement
+                      39 expression_list
+                        39 name_expression "a" upvalue@188
+    41 local_statement
+      41 name_list
+        41 local_name "inner"
+        41 local_name "read_a"
+      41 expression_list
+        41 call_expression
+          41 name_expression "outer" local@186
+    42 call_statement
+      42 call_expression
+        42 name_expression "print" global
+        42 call_expression
+          42 name_expression "inner" local@245
+    43 call_statement
+      43 call_expression
+        43 name_expression "print" global
+        43 call_expression
+          43 name_expression "inner" local@245
+    44 call_statement
+      44 call_expression
+        44 name_expression "print" global
+        44 call_expression
+          44 name_expression "read_a" local@246
+    45 local_statement
+      45 name_list
+        45 local_name "k"
+      45 expression_list
+        45 integer_literal 0
+    46 local_statement
+      46 name_list
+        46 local_name "captured"
+      46 expression_list
+        46 table_constructor
+    47 while_statement
+      47 true_literal
+      48 block
+        48 assignment
+          48 expression_list
+            48 assignment_target "k"
+              48 name_expression "k" local@267
+          48 expression_list
+            48 binary_operation add
+              48 name_expression "k" local@267
+              48 integer_literal 1
+        49 local_statement
+          49 name_list
+            49 local_name "v"
+          49 expression_list
+            49 name_expression "k" local@267
+        50 assignment
+          50 expression_list
+            50 assignment_target
+              50 index_expression
+                50 name_expression "captured" local@272
+                50 name_expression "k" local@267
+          50 expression_list
+            50 function_expression
+              50 function_body
+                50 name_list
+                50 block
+                  50 assignment
+                    50 expression_list
+                      50 assignment_target "v"
+                        50 name_expression "v" upvalue@286
+                    50 expression_list
+                      50 binary_operation add
+                        50 name_expression "v" upvalue@286
+                        50 integer_literal 100
+                  50 return_statement
+                    50 expression_list
+                      50 name_expression "v" upvalue@286
+        51 if_statement
+          51 if_clause
+            51 binary_operation equal
+              51 name_expression "k" local@267
+              51 integer_literal 3
+            51 block
+              51 break_statement
+    53 call_statement
+      53 call_expression
+        53 name_expression "print" global
+        53 call_expression
+          53 index_expression
+            53 name_expression "captured" local@272
+            53 integer_literal 1
+        53 call_expression
+          53 index_expression
+            53 name_expression "captured" local@272
+            53 integer_literal 1
+        53 call_expression
+          53 index_expression
+            53 name_expression "captured" local@272
+            53 integer_literal 2
+        53 call_expression
+          53 index_expression
+            53 name_expression "captured" local@272
+            53 integer_literal 3
+    54 local_function
+      54 local_name "recursive"
+      54 function_body
+        54 name_list
+          54 local_name "n"
+        55 block
+          55 if_statement
+            55 if_clause
+              55 binary_operation equal
+                55 name_expression "n" local@342
+                55 integer_literal 0
+              55 block
+                55 return_statement
+                  55 expression_list
+                    55 integer_literal 0
+          56 return_statement
+            56 expression_list
+              56 binary_operation add
+                56 name_expression "n" local@342
+                56 call_expression
+                  56 name_expression "recursive" upvalue@341
+                  56 binary_operation subtract
+                    56 name_expression "n" local@342
+                    56 integer_literal 1
+    58 call_statement
+      58 call_expression
+        58 name_expression "print" global
+        58 call_expression
+          58 name_expression "recursive" local@341
+          58 integer_literal 100
+    59 local_function
+      59 local_name "make_adders"
+      59 function_body
+        59 name_list
+        60 block
+          60 local_statement
+            60 name_list
+              60 local_name "list"
+            60 expression_list
+              60 table_constructor
+          61 local_statement
+            61 name_list
+              61 local_name "n"
+            61 expression_list
+              61 integer_literal 1
+          62 while_statement
+            62 binary_operation less_equal
+              62 name_expression "n" local@378
+              62 integer_literal 3
+            63 block
+              63 local_statement
+                63 name_list
+                  63 local_name "step"
+                63 expression_list
+                  63 name_expression "n" local@378
+              64 assignment
+                64 expression_list
+                  64 assignment_target
+                    64 index_expression
+                      64 name_expression "list" local@373
+                      64 name_expression "n" local@378
+                64 expression_list
+                  64 function_expression
+                    64 function_body
+                      64 name_list
+                        64 local_name "x"
+                      64 block
+                        64 return_statement
+                          64 expression_list
+                            64 binary_operation add
+                              64 name_expression "x" local@396
+                              64 name_expression "step" upvalue@386
+              65 assignment
+                65 expression_list
+                  65 assignment_target "n"
+                    65 name_expression "n" local@378
+                65 expression_list
+                  65 binary_operation add
+                    65 name_expression "n" local@378
+                    65 integer_literal 1
+          67 return_statement
+            67 expression_list
+              67 name_expression "list" local@373
+    69 local_statement
+      69 name_list
+        69 local_name "adders"
+      69 expression_list
+        69 call_expression
+          69 name_expression "make_adders" local@371
+    70 call_statement
+      70 call_expression
+        70 name_expression "print" global
+        70 call_expression
+          70 index_expression
+            70 name_expression "adders" local@424
+            70 integer_literal 1
+          70 integer_literal 10
+        70 call_expression
+          70 index_expression
+            70 name_expression "adders" local@424
+            70 integer_literal 2
+          70 integer_literal 10
+        70 call_expression
+          70 index_expression
+            70 name_expression "adders" local@424
+            70 integer_literal 3
+          70 integer_literal 10
+exit 0

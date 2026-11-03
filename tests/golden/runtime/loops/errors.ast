@@ -1,0 +1,103 @@
+1 function_body vararg
+  1 block
+    2 call_statement
+      2 call_expression
+        2 name_expression "print" global
+        2 call_expression
+          2 name_expression "pcall" global
+          2 function_expression
+            2 function_body
+              2 name_list
+              2 block
+                2 numeric_for
+                  2 local_name "i"
+                  2 expression_list
+                    2 integer_literal 1
+                    2 integer_literal 2
+                    2 integer_literal 0
+                  2 block
+    3 call_statement
+      3 call_expression
+        3 name_expression "print" global
+        3 call_expression
+          3 name_expression "pcall" global
+          3 function_expression
+            3 function_body
+              3 name_list
+              3 block
+                3 numeric_for
+                  3 local_name "i"
+                  3 expression_list
+                    3 float_literal 0x3FF0000000000000
+                    3 integer_literal 2
+                    3 integer_literal 0
+                  3 block
+    4 call_statement
+      4 call_expression
+        4 name_expression "print" global
+        4 call_expression
+          4 name_expression "pcall" global
+          4 function_expression
+            4 function_body
+              4 name_list
+              4 block
+                4 numeric_for
+                  4 local_name "i"
+                  4 expression_list
+                    4 nil_literal
+                    4 integer_literal 2
+                  4 block
+    5 call_statement
+      5 call_expression
+        5 name_expression "print" global
+        5 call_expression
+          5 name_expression "pcall" global
+          5 function_expression
+            5 function_body
+              5 name_list
+              5 block
+                5 numeric_for
+                  5 local_name "i"
+                  5 expression_list
+                    5 integer_literal 1
+                    5 table_constructor
+                  5 block
+    6 call_statement
+      6 call_expression
+        6 name_expression "print" global
+        6 call_expression
+          6 name_expression "pcall" global
+          6 function_expression
+            6 function_body
+              6 name_list
+              6 block
+                6 numeric_for
+                  6 local_name "i"
+                  6 expression_list
+                    6 integer_literal 1
+                    6 integer_literal 2
+                    6 string_literal "x"
+                  6 block
+    7 call_statement
+      7 call_expression
+        7 name_expression "print" global
+        7 call_expression
+          7 name_expression "pcall" global
+          7 function_expression
+            7 function_body
+              7 name_list
+              7 block
+                7 numeric_for
+                  7 local_name "i"
+                  7 expression_list
+                    7 string_literal "a"
+                    7 integer_literal 2
+                  7 block
+    8 numeric_for
+      8 local_name "i"
+      8 expression_list
+        8 integer_literal 1
+        8 integer_literal 10
+        8 false_literal
+      8 block
+exit 0
