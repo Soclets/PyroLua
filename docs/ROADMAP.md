@@ -140,6 +140,17 @@ clean Lua errors; the README documents embedding.
 
 - Performance work: profiling, instruction specialisation, table and string fast
   paths, faster collector. Proofs stay complete.
+- Long strings without hashing until needed. Today every new string is hashed and
+  interned, so building a long string by repeated concatenation hashes every
+  intermediate one, which PUC Lua does not do for long strings. Sketch, lazy
+  canonicalisation:
+  - Long strings are created without hashing or interning.
+  - The VM interns a long string only when it needs a canonical handle: as a table key
+    (before any table operation, so tables only ever see interned handles and their
+    proofs do not change), or for equality.
+  - Equality between two long strings not yet interned compares their bytes, or interns
+    both first, whichever proves cheaper.
+  - Effect: building strings pays no hashing; only strings used as keys or compared do.
 - More Gold where it pays off, for example proving the lexer against a formal token
   grammar.
 - Optional companion crate implementing parts of the standard library on top of
