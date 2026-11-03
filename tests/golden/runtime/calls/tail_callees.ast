@@ -1,262 +1,262 @@
 1 function_body vararg
   1 block
-    5 local_function
-      5 local_name "count"
-      5 function_body
-        5 name_list
-          5 local_name "n"
-          5 local_name "total"
-        6 block
-          6 if_statement
-            6 if_clause
-              6 binary_operation equal
-                6 name_expression "n" local@2
-                6 integer_literal 0
-              7 block
-                7 return_statement
-                  7 expression_list
-                    7 name_expression "total" local@3
-          9 return_statement
-            9 expression_list
-              9 call_expression
-                9 name_expression "count" upvalue@1
-                9 binary_operation subtract
-                  9 name_expression "n" local@2
-                  9 integer_literal 1
-                9 binary_operation add
-                  9 name_expression "total" local@3
-                  9 integer_literal 1
-    11 call_statement
-      11 call_expression
-        11 name_expression "print" global
-        11 call_expression
-          11 name_expression "count" local@1
-          11 integer_literal 300000
-          11 integer_literal 0
-    14 local_statement
-      14 name_list
-        14 local_name "counter"
-      14 expression_list
-        14 call_expression
-          14 name_expression "setmetatable" global
-          14 table_constructor
-          14 table_constructor
-            14 named_field name-key
-              14 string_literal "__call"
-              14 function_expression
-                14 function_body
-                  14 name_list
-                    14 local_name "self"
-                    14 local_name "n"
-                    14 local_name "total"
-                  15 block
-                    15 if_statement
-                      15 if_clause
-                        15 binary_operation equal
-                          15 name_expression "n" local@40
-                          15 integer_literal 0
-                        16 block
-                          16 return_statement
-                            16 expression_list
-                              16 name_expression "total" local@41
-                    18 return_statement
-                      18 expression_list
-                        18 call_expression
-                          18 name_expression "self" local@39
-                          18 binary_operation subtract
-                            18 name_expression "n" local@40
-                            18 integer_literal 1
-                          18 binary_operation add
-                            18 name_expression "total" local@41
-                            18 integer_literal 2
-    20 call_statement
-      20 call_expression
-        20 name_expression "print" global
-        20 call_expression
-          20 name_expression "counter" local@34
-          20 integer_literal 300000
-          20 integer_literal 0
-    23 local_function
-      23 local_name "last"
-      23 function_body vararg
-        23 name_list
-        24 block
-          24 return_statement
-            24 expression_list
-              24 call_expression
-                24 name_expression "select" global
-                24 unary_operation negate
-                  24 integer_literal 1
-                24 vararg_expression
-    26 local_function
-      26 local_name "host"
-      26 function_body vararg
-        26 name_list
-        27 block
-          27 return_statement
-            27 expression_list
-              27 call_expression
-                27 name_expression "select" global
-                27 string_literal "#"
-                27 vararg_expression
-              27 call_expression
-                27 name_expression "select" global
-                27 integer_literal 2
-                27 vararg_expression
-    29 call_statement
-      29 call_expression
-        29 name_expression "print" global
-        29 call_expression
-          29 name_expression "host" local@89
-          29 integer_literal 1
-          29 integer_literal 2
-          29 integer_literal 3
-    30 local_statement
-      30 name_list
-        30 local_name "lengths"
-      30 expression_list
+    6 local_function
+      6 local_name "count"
+      6 function_body
+        6 name_list
+          6 local_name "n"
+          6 local_name "total"
+        7 block
+          7 if_statement
+            7 if_clause
+              7 binary_operation equal
+                7 name_expression "n" local@2
+                7 integer_literal 0
+              8 block
+                8 return_statement
+                  8 expression_list
+                    8 name_expression "total" local@3
+          10 return_statement
+            10 expression_list
+              10 call_expression
+                10 name_expression "count" upvalue@1
+                10 binary_operation subtract
+                  10 name_expression "n" local@2
+                  10 integer_literal 1
+                10 binary_operation add
+                  10 name_expression "total" local@3
+                  10 integer_literal 1
+    12 call_statement
+      12 call_expression
+        12 name_expression "print" global
+        12 call_expression
+          12 name_expression "count" local@1
+          12 integer_literal 300000
+          12 integer_literal 0
+    15 local_statement
+      15 name_list
+        15 local_name "counter"
+      15 expression_list
+        15 call_expression
+          15 name_expression "setmetatable" global
+          15 table_constructor
+          15 table_constructor
+            15 named_field name-key
+              15 string_literal "__call"
+              15 function_expression
+                15 function_body
+                  15 name_list
+                    15 local_name "self"
+                    15 local_name "n"
+                    15 local_name "total"
+                  16 block
+                    16 if_statement
+                      16 if_clause
+                        16 binary_operation equal
+                          16 name_expression "n" local@40
+                          16 integer_literal 0
+                        17 block
+                          17 return_statement
+                            17 expression_list
+                              17 name_expression "total" local@41
+                    19 return_statement
+                      19 expression_list
+                        19 call_expression
+                          19 name_expression "self" local@39
+                          19 binary_operation subtract
+                            19 name_expression "n" local@40
+                            19 integer_literal 1
+                          19 binary_operation add
+                            19 name_expression "total" local@41
+                            19 integer_literal 2
+    21 call_statement
+      21 call_expression
+        21 name_expression "print" global
+        21 call_expression
+          21 name_expression "counter" local@34
+          21 integer_literal 300000
+          21 integer_literal 0
+    24 local_function
+      24 local_name "last"
+      24 function_body vararg
+        24 name_list
+        25 block
+          25 return_statement
+            25 expression_list
+              25 call_expression
+                25 name_expression "select" global
+                25 unary_operation negate
+                  25 integer_literal 1
+                25 vararg_expression
+    27 local_function
+      27 local_name "host"
+      27 function_body vararg
+        27 name_list
+        28 block
+          28 return_statement
+            28 expression_list
+              28 call_expression
+                28 name_expression "select" global
+                28 string_literal "#"
+                28 vararg_expression
+              28 call_expression
+                28 name_expression "select" global
+                28 integer_literal 2
+                28 vararg_expression
+    30 call_statement
+      30 call_expression
+        30 name_expression "print" global
         30 call_expression
-          30 name_expression "setmetatable" global
-          30 table_constructor
-            30 integer_literal 1
-            30 integer_literal 2
-            30 integer_literal 3
-          30 table_constructor
-            30 named_field name-key
-              30 string_literal "__call"
-              30 name_expression "rawlen" global
-    31 local_function
-      31 local_name "length"
-      31 function_body
-        31 name_list
-        32 block
-          32 return_statement
-            32 expression_list
-              32 call_expression
-                32 name_expression "lengths" upvalue@112
-    34 call_statement
-      34 call_expression
-        34 name_expression "print" global
-        34 call_expression
-          34 name_expression "length" local@126
+          30 name_expression "host" local@89
+          30 integer_literal 1
+          30 integer_literal 2
+          30 integer_literal 3
+    31 local_statement
+      31 name_list
+        31 local_name "lengths"
+      31 expression_list
+        31 call_expression
+          31 name_expression "setmetatable" global
+          31 table_constructor
+            31 integer_literal 1
+            31 integer_literal 2
+            31 integer_literal 3
+          31 table_constructor
+            31 named_field name-key
+              31 string_literal "__call"
+              31 name_expression "rawlen" global
+    32 local_function
+      32 local_name "length"
+      32 function_body
+        32 name_list
+        33 block
+          33 return_statement
+            33 expression_list
+              33 call_expression
+                33 name_expression "lengths" upvalue@112
     35 call_statement
       35 call_expression
         35 name_expression "print" global
         35 call_expression
-          35 name_expression "last" local@77
-          35 integer_literal 1
-          35 integer_literal 2
-          35 integer_literal 3
-    37 local_statement
-      37 name_list
-        37 local_name "selecting"
-      37 expression_list
-        37 call_expression
-          37 name_expression "setmetatable" global
-          37 table_constructor
-          37 table_constructor
-            37 named_field name-key
-              37 string_literal "__call"
-              37 name_expression "select" global
-    38 local_function
-      38 local_name "through"
-      38 function_body vararg
-        38 name_list
-        39 block
-          39 return_statement
-            39 expression_list
-              39 call_expression
-                39 name_expression "selecting" upvalue@148
-                39 vararg_expression
-    41 call_statement
-      41 call_expression
-        41 name_expression "print" global
-        41 call_expression
-          41 name_expression "pcall" global
-          41 name_expression "through" local@159
-          41 string_literal "#"
-          41 string_literal "a"
-          41 string_literal "b"
-    44 local_function
-      44 local_name "failing"
-      44 function_body
-        44 name_list
-        45 block
-          45 return_statement
-            45 expression_list
-              45 call_expression
-                45 name_expression "setmetatable" global
-                46 integer_literal 1
-    48 call_statement
-      48 call_expression
-        48 name_expression "print" global
-        48 call_expression
-          48 name_expression "pcall" global
-          48 name_expression "failing" local@178
-    49 local_function
-      49 local_name "hidden"
-      49 function_body
-        49 name_list
-        50 block
-          50 local_statement
-            50 name_list
-              50 local_name "fn"
-            50 expression_list
-              50 name_expression "rawlen" global
-          51 return_statement
+          35 name_expression "length" local@126
+    36 call_statement
+      36 call_expression
+        36 name_expression "print" global
+        36 call_expression
+          36 name_expression "last" local@77
+          36 integer_literal 1
+          36 integer_literal 2
+          36 integer_literal 3
+    38 local_statement
+      38 name_list
+        38 local_name "selecting"
+      38 expression_list
+        38 call_expression
+          38 name_expression "setmetatable" global
+          38 table_constructor
+          38 table_constructor
+            38 named_field name-key
+              38 string_literal "__call"
+              38 name_expression "select" global
+    39 local_function
+      39 local_name "through"
+      39 function_body vararg
+        39 name_list
+        40 block
+          40 return_statement
+            40 expression_list
+              40 call_expression
+                40 name_expression "selecting" upvalue@148
+                40 vararg_expression
+    42 call_statement
+      42 call_expression
+        42 name_expression "print" global
+        42 call_expression
+          42 name_expression "pcall" global
+          42 name_expression "through" local@159
+          42 string_literal "#"
+          42 string_literal "a"
+          42 string_literal "b"
+    45 local_function
+      45 local_name "failing"
+      45 function_body
+        45 name_list
+        46 block
+          46 return_statement
+            46 expression_list
+              46 call_expression
+                46 name_expression "setmetatable" global
+                47 integer_literal 1
+    49 call_statement
+      49 call_expression
+        49 name_expression "print" global
+        49 call_expression
+          49 name_expression "pcall" global
+          49 name_expression "failing" local@178
+    50 local_function
+      50 local_name "hidden"
+      50 function_body
+        50 name_list
+        51 block
+          51 local_statement
+            51 name_list
+              51 local_name "fn"
             51 expression_list
-              51 call_expression
-                51 name_expression "fn" local@196
-                51 integer_literal 1
-    53 call_statement
-      53 call_expression
-        53 name_expression "print" global
-        53 call_expression
-          53 name_expression "pcall" global
-          53 name_expression "hidden" local@194
-    54 local_function
-      54 local_name "not_callable"
-      54 function_body
-        54 name_list
-        55 block
-          55 local_statement
-            55 name_list
-              55 local_name "value"
-            55 expression_list
-              55 table_constructor
-          56 return_statement
+              51 name_expression "rawlen" global
+          52 return_statement
+            52 expression_list
+              52 call_expression
+                52 name_expression "fn" local@196
+                52 integer_literal 1
+    54 call_statement
+      54 call_expression
+        54 name_expression "print" global
+        54 call_expression
+          54 name_expression "pcall" global
+          54 name_expression "hidden" local@194
+    55 local_function
+      55 local_name "not_callable"
+      55 function_body
+        55 name_list
+        56 block
+          56 local_statement
+            56 name_list
+              56 local_name "value"
             56 expression_list
-              56 call_expression
-                56 name_expression "value" local@217
-                56 integer_literal 1
-    58 call_statement
-      58 call_expression
-        58 name_expression "print" global
-        58 call_expression
-          58 name_expression "pcall" global
-          58 name_expression "not_callable" local@215
-    59 local_statement
-      59 name_list
-        59 local_name "object"
-      59 expression_list
-        59 table_constructor
-          59 named_field name-key
-            59 string_literal "method"
-            59 name_expression "rawlen" global
-    60 local_function
-      60 local_name "method"
-      60 function_body
-        60 name_list
-        61 block
-          61 return_statement
-            61 expression_list
-              61 method_call "method"
-                61 name_expression "object" upvalue@236
-                61 integer_literal 2
-    63 call_statement
-      63 call_expression
-        63 name_expression "print" global
-        63 call_expression
-          63 name_expression "pcall" global
-          63 name_expression "method" local@244
+              56 table_constructor
+          57 return_statement
+            57 expression_list
+              57 call_expression
+                57 name_expression "value" local@217
+                57 integer_literal 1
+    59 call_statement
+      59 call_expression
+        59 name_expression "print" global
+        59 call_expression
+          59 name_expression "pcall" global
+          59 name_expression "not_callable" local@215
+    60 local_statement
+      60 name_list
+        60 local_name "object"
+      60 expression_list
+        60 table_constructor
+          60 named_field name-key
+            60 string_literal "method"
+            60 name_expression "rawlen" global
+    61 local_function
+      61 local_name "method"
+      61 function_body
+        61 name_list
+        62 block
+          62 return_statement
+            62 expression_list
+              62 method_call "method"
+                62 name_expression "object" upvalue@236
+                62 integer_literal 2
+    64 call_statement
+      64 call_expression
+        64 name_expression "print" global
+        64 call_expression
+          64 name_expression "pcall" global
+          64 name_expression "method" local@244
 exit 0

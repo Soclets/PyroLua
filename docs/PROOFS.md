@@ -316,5 +316,5 @@ When it grows, find where by unit rather than guessing:
 | Heap | Gold | proven |
 | Tables | Gold | proven |
 | GC | Gold | proven |
-| VM | Silver + frame invariant | in progress: proven for the instructions it runs so far |
+| VM | Silver + frame invariant | proven (every instruction, metamethods, errors, `<close>`, the collector's safe point) |
 | API | Silver | not started |

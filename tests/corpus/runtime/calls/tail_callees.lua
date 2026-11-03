@@ -1,6 +1,7 @@
 -- Tail calls of every kind of callee (tail_calls.lua has the plain ones): Lua functions, host functions (which run above the
 -- frame that calls them), and values with __call, in loops deep enough that only proper
 -- tail calls finish.
+-- no gc-stress: collecting at every step of loops this long takes too long.
 
 local function count (n, total)
   if n == 0 then

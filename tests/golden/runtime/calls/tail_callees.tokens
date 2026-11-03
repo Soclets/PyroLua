@@ -1,312 +1,312 @@
-5 keyword local
-5 keyword function
-5 name count
-5 (
-5 name n
-5 ,
-5 name total
-5 )
-6 keyword if
+6 keyword local
+6 keyword function
+6 name count
+6 (
 6 name n
-6 ==
-6 integer 0
-6 keyword then
-7 keyword return
-7 name total
-8 keyword end
-9 keyword return
-9 name count
-9 (
-9 name n
-9 -
-9 integer 1
-9 ,
-9 name total
-9 +
-9 integer 1
-9 )
-10 keyword end
-11 name print
-11 (
-11 name count
-11 (
-11 integer 300000
-11 ,
-11 integer 0
-11 )
-11 )
-14 keyword local
-14 name counter
-14 =
-14 name setmetatable
-14 (
-14 {
-14 }
-14 ,
-14 {
-14 name __call
-14 =
-14 keyword function
-14 (
-14 name self
-14 ,
-14 name n
-14 ,
-14 name total
-14 )
-15 keyword if
+6 ,
+6 name total
+6 )
+7 keyword if
+7 name n
+7 ==
+7 integer 0
+7 keyword then
+8 keyword return
+8 name total
+9 keyword end
+10 keyword return
+10 name count
+10 (
+10 name n
+10 -
+10 integer 1
+10 ,
+10 name total
+10 +
+10 integer 1
+10 )
+11 keyword end
+12 name print
+12 (
+12 name count
+12 (
+12 integer 300000
+12 ,
+12 integer 0
+12 )
+12 )
+15 keyword local
+15 name counter
+15 =
+15 name setmetatable
+15 (
+15 {
+15 }
+15 ,
+15 {
+15 name __call
+15 =
+15 keyword function
+15 (
+15 name self
+15 ,
 15 name n
-15 ==
-15 integer 0
-15 keyword then
-16 keyword return
-16 name total
-17 keyword end
-18 keyword return
-18 name self
-18 (
-18 name n
-18 -
-18 integer 1
-18 ,
-18 name total
-18 +
-18 integer 2
-18 )
-19 keyword end
-19 }
+15 ,
+15 name total
+15 )
+16 keyword if
+16 name n
+16 ==
+16 integer 0
+16 keyword then
+17 keyword return
+17 name total
+18 keyword end
+19 keyword return
+19 name self
+19 (
+19 name n
+19 -
+19 integer 1
+19 ,
+19 name total
+19 +
+19 integer 2
 19 )
-20 name print
-20 (
-20 name counter
-20 (
-20 integer 300000
-20 ,
-20 integer 0
+20 keyword end
+20 }
 20 )
-20 )
-23 keyword local
-23 keyword function
-23 name last
-23 (
-23 ...
-23 )
-24 keyword return
-24 name select
+21 name print
+21 (
+21 name counter
+21 (
+21 integer 300000
+21 ,
+21 integer 0
+21 )
+21 )
+24 keyword local
+24 keyword function
+24 name last
 24 (
-24 -
-24 integer 1
-24 ,
 24 ...
 24 )
-25 keyword end
-26 keyword local
-26 keyword function
-26 name host
-26 (
-26 ...
-26 )
-27 keyword return
-27 name select
+25 keyword return
+25 name select
+25 (
+25 -
+25 integer 1
+25 ,
+25 ...
+25 )
+26 keyword end
+27 keyword local
+27 keyword function
+27 name host
 27 (
-27 string "#"
-27 ,
 27 ...
 27 )
-27 ,
-27 name select
-27 (
-27 integer 2
-27 ,
-27 ...
-27 )
-28 keyword end
-29 name print
-29 (
-29 name host
-29 (
-29 integer 1
-29 ,
-29 integer 2
-29 ,
-29 integer 3
-29 )
-29 )
-30 keyword local
-30 name lengths
-30 =
-30 name setmetatable
+28 keyword return
+28 name select
+28 (
+28 string "#"
+28 ,
+28 ...
+28 )
+28 ,
+28 name select
+28 (
+28 integer 2
+28 ,
+28 ...
+28 )
+29 keyword end
+30 name print
 30 (
-30 {
+30 name host
+30 (
 30 integer 1
 30 ,
 30 integer 2
 30 ,
 30 integer 3
-30 }
-30 ,
-30 {
-30 name __call
-30 =
-30 name rawlen
-30 }
+30 )
 30 )
 31 keyword local
-31 keyword function
-31 name length
+31 name lengths
+31 =
+31 name setmetatable
 31 (
+31 {
+31 integer 1
+31 ,
+31 integer 2
+31 ,
+31 integer 3
+31 }
+31 ,
+31 {
+31 name __call
+31 =
+31 name rawlen
+31 }
 31 )
-32 keyword return
-32 name lengths
+32 keyword local
+32 keyword function
+32 name length
 32 (
 32 )
-33 keyword end
-34 name print
-34 (
-34 name length
-34 (
-34 )
-34 )
+33 keyword return
+33 name lengths
+33 (
+33 )
+34 keyword end
 35 name print
 35 (
-35 name last
+35 name length
 35 (
-35 integer 1
-35 ,
-35 integer 2
-35 ,
-35 integer 3
 35 )
 35 )
-37 keyword local
-37 name selecting
-37 =
-37 name setmetatable
-37 (
-37 {
-37 }
-37 ,
-37 {
-37 name __call
-37 =
-37 name select
-37 }
-37 )
+36 name print
+36 (
+36 name last
+36 (
+36 integer 1
+36 ,
+36 integer 2
+36 ,
+36 integer 3
+36 )
+36 )
 38 keyword local
-38 keyword function
-38 name through
+38 name selecting
+38 =
+38 name setmetatable
 38 (
-38 ...
+38 {
+38 }
+38 ,
+38 {
+38 name __call
+38 =
+38 name select
+38 }
 38 )
-39 keyword return
-39 name selecting
+39 keyword local
+39 keyword function
+39 name through
 39 (
 39 ...
 39 )
-40 keyword end
-41 name print
-41 (
-41 name pcall
-41 (
-41 name through
-41 ,
-41 string "#"
-41 ,
-41 string "a"
-41 ,
-41 string "b"
-41 )
-41 )
-44 keyword local
-44 keyword function
-44 name failing
-44 (
-44 )
-45 keyword return
-45 name setmetatable
+40 keyword return
+40 name selecting
+40 (
+40 ...
+40 )
+41 keyword end
+42 name print
+42 (
+42 name pcall
+42 (
+42 name through
+42 ,
+42 string "#"
+42 ,
+42 string "a"
+42 ,
+42 string "b"
+42 )
+42 )
+45 keyword local
+45 keyword function
+45 name failing
 45 (
-46 integer 1
-46 )
-47 keyword end
-48 name print
-48 (
-48 name pcall
-48 (
-48 name failing
-48 )
-48 )
-49 keyword local
-49 keyword function
-49 name hidden
+45 )
+46 keyword return
+46 name setmetatable
+46 (
+47 integer 1
+47 )
+48 keyword end
+49 name print
 49 (
+49 name pcall
+49 (
+49 name failing
+49 )
 49 )
 50 keyword local
-50 name fn
-50 =
-50 name rawlen
-51 keyword return
+50 keyword function
+50 name hidden
+50 (
+50 )
+51 keyword local
 51 name fn
-51 (
-51 integer 1
-51 )
-52 keyword end
-53 name print
-53 (
-53 name pcall
-53 (
-53 name hidden
-53 )
-53 )
-54 keyword local
-54 keyword function
-54 name not_callable
+51 =
+51 name rawlen
+52 keyword return
+52 name fn
+52 (
+52 integer 1
+52 )
+53 keyword end
+54 name print
 54 (
+54 name pcall
+54 (
+54 name hidden
+54 )
 54 )
 55 keyword local
-55 name value
-55 =
-55 {
-55 }
-56 keyword return
+55 keyword function
+55 name not_callable
+55 (
+55 )
+56 keyword local
 56 name value
-56 (
-56 integer 1
-56 )
-57 keyword end
-58 name print
-58 (
-58 name pcall
-58 (
-58 name not_callable
-58 )
-58 )
-59 keyword local
-59 name object
-59 =
-59 {
-59 name method
-59 =
-59 name rawlen
-59 }
+56 =
+56 {
+56 }
+57 keyword return
+57 name value
+57 (
+57 integer 1
+57 )
+58 keyword end
+59 name print
+59 (
+59 name pcall
+59 (
+59 name not_callable
+59 )
+59 )
 60 keyword local
-60 keyword function
+60 name object
+60 =
+60 {
 60 name method
-60 (
-60 )
-61 keyword return
-61 name object
-61 :
+60 =
+60 name rawlen
+60 }
+61 keyword local
+61 keyword function
 61 name method
 61 (
-61 integer 2
 61 )
-62 keyword end
-63 name print
-63 (
-63 name pcall
-63 (
-63 name method
-63 )
-63 )
-64 <eof>
+62 keyword return
+62 name object
+62 :
+62 name method
+62 (
+62 integer 2
+62 )
+63 keyword end
+64 name print
+64 (
+64 name pcall
+64 (
+64 name method
+64 )
+64 )
+65 <eof>
 exit 0

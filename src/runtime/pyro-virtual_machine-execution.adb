@@ -101,8 +101,10 @@ package body Pyro.Virtual_Machine.Execution with SPARK_Mode => On is
             Prepare_Varargs (M, Budget, A);
          when Vararg =>
             Copy_Varargs (M, Budget, A, C - 1);
-         when others =>
-            Raise_Runtime_Error (M, Budget, "instruction not supported yet");
+         when Extra_Argument =>
+            --  Only an operand of the instruction before it (NEWTABLE, SETLIST, LOADKX), which
+            --  skips it; luac never makes code that runs it.
+            Raise_Runtime_Error (M, Budget, "internal error: EXTRAARG executed");
       end case;
    end Step;
 
