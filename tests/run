@@ -120,7 +120,7 @@ MEMORY_PER_SOURCE_MB = 16.9
 # CPU seconds (user and system, gnatprove and everything it runs). tests/run --full fails when
 # either is more than 25% above it. The baseline changes only in a commit of its own that
 # says why (normally at the end of a milestone), never as a side effect of a run.
-PROOF_BASELINE = {"wall-clock": 848, "CPU": 6615}
+PROOF_BASELINE = {"wall-clock": 1222, "CPU": 10633}
 
 # Chunks that reach PUC Lua's compile-time limits, or come just short of them, generated
 # rather than kept in the corpus because of their size. luac -p and pyrolua --check must agree on

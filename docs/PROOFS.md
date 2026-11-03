@@ -263,7 +263,7 @@ Rules:
 ### Proof time
 
 The uncached proof (`tests/run --full`'s proof stage) has a cap of 1,800 s and a
-baseline: 848 s of wall-clock time and 6,615 s of CPU time at the end of M3, on the
+baseline: 1,222 s of wall-clock time and 10,633 s of CPU time at the end of M4, on the
 development profile (macOS arm64, 4 performance and 6 efficiency cores). `tests/run --full`
 fails when either is more than 25% above the baseline, which changes only in a commit of
 its own that says why, normally at the end of a milestone.
@@ -278,7 +278,8 @@ entities, many in SPARKlib's instances inside each growable array). On these cor
 wall-clock time follows the total CPU time at about 7 cores' worth.
 
 History: M2 ended at 484 s; the front-end memory work at 584 s; values, heap, strings and
-tables at 800 s; the collector at 852 s. A measurement of 587 s made while tables were
+tables at 800 s; the collector at 852 s; M3 at 848 s (6,615 s of CPU); M4, the virtual
+machine, at 1,222 s (10,633 s of CPU), with 16,908 checks, 2,803 of them the VM's. A measurement of 587 s made while tables were
 in progress had stopped early on a warning and proved 12,196 of 17,280 checks: compare
 check counts, not only times.
 
