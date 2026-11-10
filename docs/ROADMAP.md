@@ -1,5 +1,8 @@
 # Pyro Lua roadmap
 
+> **Abandoned on 2026-11-10.** M1 to M4 (and the M4 follow-up) are done; M5, M6 and the
+> "Later" items below were never started. The roadmap is kept as it stood.
+
 Each milestone ends with a working, fully proven state: `gnatprove` reports zero
 unproved checks and all tests pass. A milestone is done when every item in its
 **Done when** list is true. Proof targets for each area are in

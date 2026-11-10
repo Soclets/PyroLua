@@ -2,6 +2,11 @@
 
 [![Linux](https://github.com/Soclets/PyroLua/actions/workflows/linux.yml/badge.svg?branch=main)](https://github.com/Soclets/PyroLua/actions/workflows/linux.yml)
 
+> **Pyro Lua is abandoned (2026-11-10).** The owner has stopped working on it. The code
+> and its proofs stay here as they were left: milestones M1 to M4 are done (a proven
+> front end, compiler and virtual machine that run Lua 5.4 scripts), M5 and M6 were
+> never started. See [Status](#status).
+
 Pyro Lua is a memory-safe **Lua 5.4** for running scripts you do not trust: game mods and
 plugins, server-side scripting in the style of Redis or nginx, rules engines. It is
 written in **SPARK** (the formally verifiable subset of Ada), and the goal is a
@@ -25,19 +30,23 @@ error or run out of the limits its host gave it.
 
 ## Status
 
-M1 (front end) is done: the lexer, parser and resolver are proven (Silver everywhere,
-Gold for growable arrays and syntax-tree well-formedness, termination of lexer and
-parser). `pyrolua --tokens`, `pyrolua --ast` and `pyrolua --check` work, with Radium-style
-messages. `pyrolua --check --lua-style` prints exactly what `luac -p` 5.4.9 prints on the
-official test suite and Pyro's corpus, and agrees with it on accepting or rejecting
-every mutated file of the fuzzing runs.
+**Abandoned on 2026-11-10.** Nothing more is planned. Where it stopped:
 
-M2 (compiler and bytecode) is done: the compiler is a port of PUC Lua's code generator,
-and every prototype it returns is proven valid (checked by the proven predicate
-`Is_Valid`). `pyrolua --bytecode --lua-style` prints exactly what `luac -l -l` 5.4.9 prints
-(memory addresses aside) on the official test suite, Pyro's corpus, generated chunks at
-the compile-time limits, and the fuzzing runs. Next milestone: **M3, values, heap,
-tables and garbage collector**. See [docs/ROADMAP.md](docs/ROADMAP.md).
+- **Done, proven and tested (M1 to M4):** the lexer, parser and resolver; the compiler,
+  whose every prototype is proven valid; values, heap, strings, tables and a mark-and-sweep
+  garbage collector proven never to free a reachable object; and the virtual machine
+  (Silver, with the frame invariant at Gold). `pyrolua file.lua` runs Lua 5.4 scripts
+  byte-identically to PUC Lua 5.4.9 on the runtime corpus, and `--check --lua-style` and
+  `--bytecode --lua-style` match `luac` 5.4.9 exactly. The public PUC Lua CVEs up to M4 in
+  [tests/cve/](tests/cve/README.md) all end cleanly.
+- **Never started:** M5 (coroutines, weak tables, finalisers) and M6 (the C and Ada
+  embedding APIs, sandbox limits as a public interface). Without M6 there is no way to
+  embed Pyro Lua in another program.
+- **Known weakness at the time:** speed. An optimised build was 2 to 15 times slower
+  than PUC Lua 5.4.9 on small benchmarks (13.5 times on function calls), and no profiling
+  or tuning was ever done.
+
+The milestones and their completion criteria are in [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Documentation
 
